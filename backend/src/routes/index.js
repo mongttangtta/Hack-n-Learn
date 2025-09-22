@@ -10,12 +10,14 @@ import rewardsRoutes from './rewards.routes.js';
 import communityRoutes from './community.routes.js';
 import statsRoutes from './stats.routes.js';
 import adminRoutes from './admin.routes.js';
+import mainRoutes from './main.routes.js';
 
 import newsRoutes from './news.routes.js';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/main', mainRoutes);
 router.use('/users', usersRoutes);
 router.use('/admin', adminRoutes);
 router.use('/community', communityRoutes);
