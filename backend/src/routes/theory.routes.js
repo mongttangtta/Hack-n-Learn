@@ -7,33 +7,33 @@ import { requireLogin } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 // 모든 카테고리(기법) 목록 조회
-// GET /api/techniques
+// GET /api/theory/techniques
 router.get("/techniques", requireLogin, listTechniques);
 
 // 카테고리별 레벨 목록 조회 (Form 선택용)
-// GET /api/techniques/:techniqueId/levels
+// GET /api/theory/techniques/:techniqueId/levels
 router.get("/techniques/:techniqueId/levels", requireLogin, listLevels);
 
 // 레벨별 상세 이론 조회
-// GET /api/techniques/:techniqueId/levels/:levelId
+// GET /api/theory/techniques/:techniqueId/levels/:levelId
 router.get("/techniques/:techniqueId/levels/:levelId", requireLogin, getLevelDetail);
 
 
 // 퀴즈 생성 (최초 요청 시 AI/Preset → DB에 저장)
-// POST /api/quiz/generate
+// POST /api/theory/quiz/generate
 router.post("/quiz/generate", requireLogin, postGenerateQuiz);
 
 // 특정 Technique + Level에 대한 퀴즈 목록 조회
-// GET /api/quiz/:techniqueId/levels/:levelId
+// GET /api/theory/quiz/:techniqueId/levels/:levelId
 router.get("/quiz/:techniqueId/levels/:levelId", requireLogin, getQuizzesByLevel);
 
 
 // 퀴즈 정답 제출 및 채점 ( 한 문제 한 문제에 대한 답안 제출 )
-// POST /api/quiz/:quizId/answer
+// POST /api/theory/quiz/:quizId/answer
 router.post("/quiz/:quizId/answer", requireLogin, postAnswerQuiz);
 
 // 오답노트 조회 (필터: techniqueId, levelId)
-// GET /api/quiz/wrong-notes
+// GET /api/theory/quiz/:quizId/wrong-notes
 router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 /**
  * @swagger
@@ -44,7 +44,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/techniques:
+ * /api/theory/techniques:
  *   get:
  *     summary: 카테고리(Technique) 목록 조회
  *     tags: [Theory]
@@ -67,7 +67,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/techniques/{techniqueId}/levels:
+ * /api/theory/techniques/{techniqueId}/levels:
  *   get:
  *     summary: 특정 Technique의 레벨 목록 조회
  *     tags: [Theory]
@@ -104,7 +104,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/techniques/{techniqueId}/levels/{levelId}:
+ * /api/theory/techniques/{techniqueId}/levels/{levelId}:
  *   get:
  *     summary: 특정 Technique의 특정 Level 상세 조회
  *     tags: [Theory]
@@ -249,7 +249,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/quiz/generate:
+ * /api/theory/quiz/generate:
  *   post:
  *     summary: 퀴즈 생성 (최초 요청 시 AI/Preset → DB 저장)
  *     tags: [Quiz]
@@ -301,7 +301,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/quiz/{techniqueId}/levels/{levelId}:
+ * /api/theory/quiz/{techniqueId}/levels/{levelId}:
  *   get:
  *     summary: 특정 Technique + Level에 대한 퀴즈 목록 조회
  *     tags: [Quiz]
@@ -344,7 +344,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/quiz/{quizId}/answer:
+ * /api/theory/quiz/{quizId}/answer:
  *   post:
  *     summary: 퀴즈 정답 제출 및 채점
  *     tags: [Quiz]
@@ -397,7 +397,7 @@ router.get("/quiz/:quizId/wrong-notes", requireLogin, getWrongNotes);
 
 /**
  * @swagger
- * /api/quiz/wrong-notes:
+ * /api/theory/quiz/wrong-notes:
  *   get:
  *     summary: 오답노트 조회 (필터 가능)
  *     tags: [Quiz]
