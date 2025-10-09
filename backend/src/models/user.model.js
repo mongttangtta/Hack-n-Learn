@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
         isActive : { type: Boolean, default: true },
         provider: { type: String, enum: ['local', 'google', 'kakao', 'github'], default: 'local' },
         oauthId: { type: String, unique: true, sparse: true }, // OAuth 사용자의 고유 ID 저장
+        profileImageId : { type : mongoose.Schema.Types.ObjectId, default: null },
         isProfileComplete: { type: Boolean, default: true }, // 프로필 완성 여부
 }, { timestamps: true });
 
