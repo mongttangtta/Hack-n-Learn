@@ -1,11 +1,13 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import iconv from "iconv-lite";
 import {getPagination} from "../utils/pagination.js";
 
 export const fetchBoanNewsList = async (page = 1, limit = 10) => {
         const url = "https://www.boannews.com/media/s_list.asp?skind=5";
         const { data } = await axios.get(url, {responseType: "arraybuffer"});
-        const html = Buffer.from(data, 'binary').toString('utf-8');
+
+        const html = iconv.decode(Buffer.from(data), "EUC-KR").toString();
         const $ = cheerio.load(html);
 
         const newsList = [];
@@ -37,7 +39,7 @@ export const fetchBoanNewsList = async (page = 1, limit = 10) => {
 export const fetchBoanNewsDetail = async (id) => {
         const url = `https://www.boannews.com/media/view.asp?idx=${id}`;
         const { data } = await axios.get(url, {responseType: "arraybuffer"});
-        const html = Buffer.from(data, 'binary').toString('utf-8');
+        const html = iconv.decode(Buffer.from(data), "EUC-KR").toString();
         const $ = cheerio.load(html);
 
         const title = $(".news_title02 h1").text().trim();
