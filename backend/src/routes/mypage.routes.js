@@ -1,5 +1,6 @@
 // 마이페이지 관련 라우트
 import { Router } from "express";
+import passport from "passport";
 import * as mypageController from "../controllers/mypage.controller.js";
 import requireLogin from "../middlewares/auth.middleware.js";
 
@@ -7,6 +8,22 @@ import requireLogin from "../middlewares/auth.middleware.js";
 const router = Router();
 
 router.get("/", requireLogin, mypageController.getMyPage);
+
+router.get("/link/google", requireLogin, passport.authorize("google", { scope: ["profile","email"] }));
+
+router.get("/link/google/callback",
+        requireLogin,
+        passport.authorize("google", { failureRedirect: "/api/mypage", failureFlash: false }),
+        mypageController.linkGoogleAccount
+);
+
+router.get("/link/github", requireLogin, passport.authorize("github", { scope: ["user:email"] }));
+
+router.get("/link/github/callback",
+        requireLogin,
+        passport.authorize("github", { failureRedirect: "/api/mypage", failureFlash: false }),
+        mypageController.linkGitHubAccount
+);
 
 /**
  * @swagger

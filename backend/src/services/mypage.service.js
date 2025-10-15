@@ -53,3 +53,22 @@ const getMyPageData = async (userId) => {
                 typeStats
         }, practiceList };
 };
+
+export const linkAccount = async (userId, { provider, oauthId, email }) => {
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+
+        if(provider === 'google') {
+                user.linkedAccounts.google = { id: oauthId, email };
+        } else if(provider === 'github') {
+                user.linkedAccounts.github = { id: oauthId, email };
+        }
+
+        if(user.provider === 'local') {
+                user.provider = provider;
+                user.oauthId = oauthId;
+        }
+
+        await user.save();
+        return user;
+};
