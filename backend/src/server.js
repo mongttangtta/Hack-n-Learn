@@ -15,7 +15,8 @@ connectDB()
     console.log('DB connect fail:', err);
   })
   .finally(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, "127.0.0.1", () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log(`Accessible externally via Nginx proxy (port 80/443)`);
     });
   });
