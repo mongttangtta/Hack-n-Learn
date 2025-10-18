@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>글쓰기</h2>
+  <form method="post" action="{{ url_for('write') }}">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <!-- 일반 사용자는 board 선택 불가: hidden으로 free 고정 -->
+    {% if session.username == 'admin' %}
+      <label>게시판:
+        <select name="board">
+          <option value="free">자유게시판</option>
+          <option value="notice">공지사항 (관리자용)</option>
+        </select>
+      </label>
+    {% else %}
+      <input type="hidden" name="board" value="free">
+    {% endif %}
+
+    <div>
+      <label>제목<br><input type="text" name="title" style="width:100%;" required></label>
+    </div>
+    <div>
+      <label>내용<br><textarea name="content" rows="8" style="width:100%;" required></textarea></label>
+    </div>
+    <p>
+      <button type="submit">등록</button>
+      <a href="{{ url_for('board', board='free') }}">취소</a>
+    </p>
+  </form>
+</div>
+{% endblock %}
+

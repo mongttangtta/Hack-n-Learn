@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>결과</h2>
+{% if success %}
+  <p class="ok">{{ msg }}</p>
+{% else %}
+  <p class="err">{{ msg }}</p>
+{% endif %}
+<p><a href="{{ url_for('account') }}">계좌로 돌아가기</a></p>
+{% endblock %}
+

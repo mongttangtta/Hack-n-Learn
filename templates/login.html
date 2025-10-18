@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>로그인</h2>
+<form method="post" action="{{ url_for('login') }}">
+  <label>아이디</label><br>
+  <input name="username" placeholder="username"><br><br>
+  <label>비밀번호</label><br>
+  <input name="password" type="password" placeholder="password"><br><br>
+  <button type="submit">Login</button>
+</form>
+{% if msg %}<p class="err">{{ msg }}</p>{% endif %}
+<hr>
+<p>테스트 계정: <b>admin/admin123</b>, <b>alice/alice123</b>, <b>bob/bob123</b></p>
+{% endblock %}
+

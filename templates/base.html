@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HallymBank - Edu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="left">
+      <!-- 홈 버튼 -->
+      <a class="home-btn" href="{{ url_for('index') }}">HallymBank</a>
+
+      <!-- 좌측 메뉴 버튼 -->
+      {% if session.username %}
+      <nav class="side-menu">
+        <a href="{{ url_for('account') }}">내 계좌</a>
+        <a href="{{ url_for('transfer') }}">송금하기</a>
+      </nav>
+      {% endif %}
+    </div>
+
+    <div class="right-nav">
+      {% if session.username %}
+        <span class="who">안녕하세요, {{ session.username }}님</span>
+        <a class="nav-link logout" href="{{ url_for('logout') }}">로그아웃</a>
+      {% else %}
+        <a class="nav-link" href="{{ url_for('login') }}">로그인</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="main-container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
+

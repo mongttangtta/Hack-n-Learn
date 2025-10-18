@@ -1,0 +1,59 @@
+/* 기본 글꼴/색상 유지 (기존 스타일과 통합 가능) */
+body { font-family: Arial, sans-serif; background: #f6f8fb; color: #222; margin:0; padding:0; }
+.topbar { background: #0b67c2; color: white; padding: 12px 18px; display:flex; justify-content:space-between; align-items:center; }
+.topbar .left { display:flex; align-items:center; gap:12px; }
+.home-btn { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.15); padding:8px 12px; border-radius:6px; text-decoration:none; font-weight:700; }
+.home-btn:hover { background: rgba(255,255,255,0.06); }
+.right-nav { display:flex; gap:12px; align-items:center; }
+.nav-link { color: white; text-decoration:none; padding:6px 10px; border-radius:4px; }
+.nav-link:hover { background: rgba(255,255,255,0.06); }
+.who { opacity:0.9; font-size:14px; margin-right:6px; }
+
+/* 메인 레이아웃: 좌(boards) + 우(sidebar) */
+.main-container { max-width:1100px; margin:24px auto; padding:0 16px; }
+.home-grid { display:grid; grid-template-columns: 1fr 320px; gap:20px; align-items:start; }
+
+/* 카드 스타일 */
+.card { background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+.boards .board { margin-bottom:16px; }
+.board h3 { margin:0 0 10px 0; font-size:18px; }
+.posts { list-style:none; padding:0; margin:0; }
+.posts li { padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
+.posts li:last-child { border-bottom:none; }
+.more { margin-top:8px; }
+.more a { color:#0b67c2; text-decoration:none; }
+
+/* 로그인 사이드바 */
+.sidebar h3 { margin-top:0; }
+.login-form { display:flex; flex-direction:column; gap:8px; }
+.login-form input { padding:8px; border:1px solid #ddd; border-radius:4px; }
+.login-form button { background:#0b67c2; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+.login-form button:hover { opacity:0.95; }
+.small { font-size:12px; color:#666; margin-top:8px; }
+.side-menu {
+  display: flex;
+  gap: 10px;
+  margin-left: 20px;
+}
+.side-menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.side-menu a:hover {
+  background: rgba(255,255,255,0.1);
+}
+.logout {
+  background: rgba(255,255,255,0.1);
+}
+
+/* 반응형: 좁은 화면에서는 사이드바 아래로 */
+@media (max-width: 900px) {
+  .home-grid { grid-template-columns: 1fr; }
+  .sidebar { order: 2; }
+  .boards { order: 1; }
+  .main-container { padding:16px; }
+}
+

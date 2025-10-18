@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>계좌 정보</h2>
+
+<p>안녕하세요, <strong>{{ user.display_name }}</strong>님</p>
+<p>아이디: <b>{{ user.username }}</b></p>
+<p>잔액: <b>{{ user.balance }}원</b></p>
+
+{% endblock %}
+
