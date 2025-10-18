@@ -12,11 +12,14 @@ import { errorHandler } from "./middlewares/auth.middleware.js";
 import { initPassport } from "./config/passport.js";
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(helmet());
 app.use(express.json());
 app.use(expressMongoSanitize());
 app.use(errorHandler);
+
+app.set("trust proxy", 1);
 
 app.use(
         session({
@@ -30,7 +33,7 @@ app.use(
                 }),
                 cookie: {
                         httpOnly: true,
-                        secure: true,
+                        secure: isProduction,
                         sameSite: "lax",// CSRF 방지
                         maxAge : 60 * 60 // 1 hour
 

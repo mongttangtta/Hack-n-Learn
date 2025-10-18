@@ -4,7 +4,6 @@ import User from "../models/user.model.js";
 import EmailVerify from "../models/emailVerify.model.js";
 import PasswordReset from "../models/passwordReset.model.js";
 import { sendEmail } from "../utils/mail.service.js";
-import { send } from "process";
 
 export const sendVerificationCode = async(email) => {
         const code = String(Math.floor(100000 + Math.random() * 900000));

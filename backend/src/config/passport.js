@@ -39,14 +39,28 @@ passport.use(
         new GoogleStrategy({
                 clientID: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                callbackURL: "/api/auth/google/callback",
+                callbackURL: "https://hacknlearn.site/api/auth/google/callback",
         }, async (accessToken, refreshToken, profile, done) => {
                 try {
+                        if(!profile || !profile.emails) {
+                               console.log("[DEBUG] Missing profile info, fetching manually...");
+                               const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', { 
+                                       headers: {
+                                               Authorization: `Bearer ${accessToken}`
+                                       }
+                               });
+                               profile = { 
+                                id : data.id,
+                                displayName : data.name,
+                                emails : [{ value : data.email }]
+                               };
+                        }
                         const user = await findOrMergeUser({ provider: 'google', profile });
                         return done(null, user);
                 } catch (error) {
-                        console.error('Google OAuth error: ',error);
-                        return done(null, false, {message : 'Google OAuth error' });
+                        console.error("[Google OAuth error]", error);
+                        if (typeof done === "function") return done(error);
+                        console.error("⚠️ Done callback missing, passport may have broken context.");
                 }
         })
 );

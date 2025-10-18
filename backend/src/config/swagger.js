@@ -10,7 +10,7 @@ const options = {
                         description: "보안 학습 플랫폼 API 문서"
                 },
                 servers: [
-                        { url: 'https://localhost:3000', description: '로컬 서버' },
+                        { url: 'https://hacknlearn.site', description: '로컬 서버' },
                 ],
         },
         apis: ['./src/routes/*.js', './src/models/*.js'], // 라우트 및 모델 파일에서 주석을 읽어들임
