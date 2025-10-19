@@ -1,5 +1,4 @@
 import React from 'react';
-import { Search } from 'lucide-react';
 
 /**
  * 공통 Input 컴포넌트
@@ -10,7 +9,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   className?: string;
 };
 
-export default function Input({
+export default function AuthInput({
   type = 'text',
   placeholder,
   value,
@@ -28,10 +27,10 @@ export default function Input({
         className="
           text-body
           w-full
-          pl-5 pr-12 py-3
+          pl-5 pr-12 py-5
           bg-card-background
           text-primary-text
-          border-primary-text border-[1.5px]
+          border-edge border
           rounded-[20px]
           placeholder-secondary-text
           transition-colors duration-300 ease-in-out
@@ -40,9 +39,6 @@ export default function Input({
         "
         {...rest} // name, disabled, readOnly 등 나머지 props를 전달합니다.
       />
-      <div className="absolute inset-y-0 right-0 flex items-center pr-5">
-        <Search className="text-secondary-text" />
-      </div>
     </div>
   );
 }
