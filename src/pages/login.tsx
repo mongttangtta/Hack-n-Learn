@@ -1,4 +1,4 @@
-import AuthInput from '../components/authInput';
+import AuthInput from '../components/AuthInput';
 import Button from '../components/Button';
 import SocialButton from '../components/SocialButton';
 

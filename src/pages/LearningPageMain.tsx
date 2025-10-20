@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Input from './Input'; // Assuming Input component is in the same folder
+import Input from '../components/Input'; // Assuming Input component is in the same folder
 import Header from '../layout/Header';
 import heroImage from '../assets/images/이론학습.png';
-import HeroSection from './HeroSection';
+import HeroSection from '../components/HeroSection';
 
 interface CourseCardProps {
   title: string;
