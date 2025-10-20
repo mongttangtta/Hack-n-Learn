@@ -20,7 +20,7 @@ export default function Header() {
           <img src={logo} alt="Hack 'n' Learn" className="h-6" />
         </a>
 
-        <div className="hidden md:flex items-center space-x-12 text-primary-text">
+        <div className="hidden md:flex items-center space-x-15 text-body1 text-primary-text">
           {navLinks.map((link) => (
             <a
               key={link}

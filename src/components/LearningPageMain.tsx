@@ -1,7 +1,8 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React, { useState } from 'react';
 import Input from './Input'; // Assuming Input component is in the same folder
 import Header from '../layout/Header';
+import heroImage from '../assets/images/이론학습.png';
+import HeroSection from './HeroSection';
 
 interface CourseCardProps {
   title: string;
@@ -17,35 +18,49 @@ const CourseCard: React.FC<CourseCardProps> = ({
   isCompleted,
 }) => {
   const difficultyColors = {
-    쉬워요: 'text-green-400',
-    보통: 'text-yellow-400',
-    어려워요: 'text-red-400',
+    쉬워요: 'text-accent-primary1',
+    보통: 'text-accent-warning',
+    어려워요: 'text-accent-caution',
+  };
+
+  const difficultyIcons = {
+    쉬워요: '😊',
+    보통: '🤔',
+    어려워요: '🥵',
   };
 
   return (
-    <div
-      className={`bg-card-background p-6 rounded-lg border-2 ${
+    <button
+      className={`bg-card-background p-6 rounded-lg border-2 text-left w-full h-full flex flex-col transition-transform duration-300 hover:scale-105 ${
         isCompleted ? 'border-accent-primary1' : 'border-edge'
       }`}
+      onClick={() => {
+        // Handle card click here
+        alert(`Clicked on ${title}`);
+      }}
     >
-      <h3 className="text-2xl font-bold text-primary-text mb-2">
-        {title} {isCompleted && '[V]'}
-      </h3>
-      <p className="text-secondary-text mb-4">{description}</p>
-      <div className="flex justify-between items-center">
-        <span className={`${difficultyColors[difficulty]} font-bold`}>
-          {difficulty}
-        </span>
-        <button className="text-accent-primary1 font-bold hover:underline">
-          학습하기 →
-        </button>
+      <div className="flex-grow">
+        <h3 className="text-2xl font-bold text-primary-text mb-2">
+          {title} {isCompleted && '[V]'}
+        </h3>
+        <p className="text-secondary-text mb-4">{description}</p>
       </div>
-    </div>
+      <div className="flex justify-end items-center">
+        <div className="flex items-center">
+          <span className="text-primary-text font-bold mr-2">{difficulty}</span>
+          <span className={`${difficultyColors[difficulty]}`}>
+            {difficultyIcons[difficulty]}
+          </span>
+        </div>
+      </div>
+    </button>
   );
 };
 
 export default function LearningPage() {
-  const courses = [
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const courses: CourseCardProps[] = [
     {
       title: 'XSS (Cross-Site Scripting)',
       description:
@@ -85,34 +100,46 @@ export default function LearningPage() {
     },
   ];
 
+  const filteredCourses = courses.filter((course) =>
+    course.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
   return (
     <div className=" min-h-screen text-primary-text">
       <Header />
 
       {/* Hero Section */}
-      <section className="container mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl font-bold mb-4">이론학습</h1>
-        <p className="text-lg text-secondary-text">
-          실습에 앞서, 해킹과 보안의 핵심 이론을 마스터하세요. 아는 만큼 보이고,
-          보이는 만큼 공격하고 방어할 수 있습니다.
-        </p>
-      </section>
+      <HeroSection
+        imageUrl={heroImage}
+        title="이론학습"
+        subtitle="실습에 앞서, 해킹과 보안의 핵심 이론을 마스터하세요. 아는 만큼 보이고, 보이는 만큼 공격하고 방어할 수 있습니다."
+      />
 
-      {/* Search Bar */}
-      <section className="container mx-auto px-6 mb-12">
-        <div className="max-w-3xl mx-auto">
-          <Input placeholder="원하시는 강의가 있나요?" />
-        </div>
-      </section>
+      <div className="container mx-auto max-w-[1440px] px-20">
+        {/* Search Bar */}
+        <section className="mb-12">
+          <div className="max-w-full mx-auto">
+            <Input
+              placeholder="원하시는 강의가 있나요?"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </section>
 
-      {/* Courses Grid */}
-      <main className="container mx-auto px-6 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {courses.map((course) => (
-            <CourseCard key={course.title} {...course} />
-          ))}
-        </div>
-      </main>
+        {/* Courses Grid */}
+        <main className="pb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {filteredCourses.map((course) => (
+              <CourseCard key={course.title} {...course} />
+            ))}
+          </div>
+        </main>
+      </div>
 
       {/* Footer or other sections can go here */}
     </div>
