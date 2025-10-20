@@ -15,14 +15,19 @@ cd C:\Users\내이름\Desktop
 ```
 
 GitHub에서 프로젝트 클론
-(👉 예: https://github.com/WhiteHatSchool/HallymBank.git 라고 가정)
 ```
-git clone https://github.com/WhiteHatSchool/HallymBank.git
+git clone https://github.com/mongttangtta/Hack-n-Learn.git
 ```
 
 프로젝트 폴더로 이동
 ```
 cd HallymBank
+```
+
+브랜치 변경
+```
+git fetch origin
+git checkout Secure
 ```
 
 폴더 구조가 아래처럼 보이면 정상:
