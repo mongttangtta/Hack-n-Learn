@@ -3,7 +3,7 @@ import React from 'react';
 interface HeroSectionProps {
   imageUrl: string;
   title: React.ReactNode;
-  subtitle: React.ReactNode;
+  subtitle?: React.ReactNode;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
