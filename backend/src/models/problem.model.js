@@ -2,6 +2,13 @@
 import mongoose from "mongoose";
 
 const problemSchema = new mongoose.Schema({
+        slug: { 
+                type: String, 
+                required: true, 
+                unique: true,
+                trim: true,
+                lowercase: true
+        },
         title : { type: String, required: true, trim : true },
         description : { type: String, required: true }, // 문제 설명 (HTML 형식)
         type : {

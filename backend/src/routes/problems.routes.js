@@ -3,6 +3,7 @@ import { Router } from "express";
 import { exec } from "child_process";
 import util from "util";
 import Practice from "../models/practice.model.js";
+import Problem from "../models/problem.model.js";
 import * as problemController from "../controllers/problems.controller.js";
 import requireLogin from "../middlewares/auth.middleware.js";
 import { validateQuery, validateBody } from "../middlewares/validateQuery.js";
@@ -30,6 +31,33 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
         try{
                 const { id } = req.params;
                 const userId = req.user._id;
+                // 1. Problem 찾기 (ObjectId 또는 slug로)
+                let problem;
+                if (mongoose.Types.ObjectId.isValid(id)) {
+                        problem = await Problem.findById(id);
+                } else {
+                        problem = await Problem.findOne({ slug: id });
+                }
+
+                if (!problem) {
+                        return res.status(404).json({ 
+                                success: false, 
+                                message: "Problem not found." 
+                        });
+                }
+
+                const existing = await Practice.findOne({ userId, problemId: problem._id,  status : 'running' });
+
+                if ( existing ) {
+                        return res.json
+                        ({
+                                success: true,
+                                url : `https://hacknlearn.site:${existing.port}`,
+                                port: existing.port,
+                                expiresAt: existing.expiresAt
+                        });
+                }
+
 
                 const runningCount = await Practice.countDocuments({ userId, status : 'running' });
                 if( runningCount >= 2) {
@@ -42,15 +70,29 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                 }
 
                 const port = getAvailablePort();
-                const containerName = `practice_${id}_${userId}_${Date.now()}`;
-                const dockerCommand = `docker run -d --name ${containerName} -p ${port}:80 --memory="128m" --cpus="0.25" --restart=no practice-${id}:latest`;
+                const containerName = `practice_${problem.slug}_${userId}_${Date.now()}`;
+                const dockerCommand = `docker run -d \
+                --name ${containerName} \
+                -p ${port}:5000 \
+                --memory="128m" \
+                --cpus="0.25" \
+                --restart=no \
+                practice-${problem.slug}:latest`;
 
-                await execPromise(dockerCommand);
+                console.log(`Starting container: ${containerName} on port ${port}`);
+    
+                try {
+                        await execPromise(dockerCommand);
+                } catch (dockerError) {
+                // Docker 실행 실패 시 포트 반환
+                        usedPorts.delete(port);
+                        throw dockerError;
+                }
 
                 const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 30분 후 만료
                 const practice = await Practice.create({
                         userId,
-                        problemId: id,
+                        problemId: problem._id,
                         containerName,
                         port,
                         status: 'running',
@@ -60,7 +102,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
 
                 res.json({
                         success: true,
-                        url : `http://hacknlearn/problems/${port}`,
+                        url : `https://hacknlearn.site:${existing.port}`,
                         port,
                         expiresAt
                 })
