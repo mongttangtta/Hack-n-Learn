@@ -9,11 +9,11 @@ dotenv.config();
 const execPromise = util.promisify(exec);
 
 async function cleanupExpiredPractices() {
-        if (!process.env.MONGODB_URI) {
-                console.error('MONGODB_URI is not defined in environment variables');
+        if (!process.env.MONGO_URI) {
+                console.error('MONGO_URI is not defined in environment variables');
                 return;
         }
-        await mongoose.connect(process.env.MONGODB_URI);
+        await mongoose.connect(process.env.MONGO_URI);
         const expired = await Practice.find({ status: 'running', expiresAt: { $lt: new Date() } });
 
         for (const p of expired) {
