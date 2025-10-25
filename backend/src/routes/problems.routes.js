@@ -103,7 +103,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
 
                 res.json({
                         success: true,
-                        url : `https://hacknlearn.site:${existing.port}`,
+                        url : `https://hacknlearn.site:${port}`,
                         port,
                         expiresAt
                 })
