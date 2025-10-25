@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Input from '../components/Input'; // Assuming Input component is in the same folder
-import Header from '../layout/Header';
+
 import heroImage from '../assets/images/이론학습.png';
 import HeroSection from '../components/HeroSection';
 
@@ -110,7 +110,6 @@ export default function LearningPage() {
 
   return (
     <div className=" min-h-screen text-primary-text">
-      <Header />
       {/* Hero Section */}
       <HeroSection
         imageUrl={heroImage}

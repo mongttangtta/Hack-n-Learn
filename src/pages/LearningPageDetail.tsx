@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import heroImage from '../assets/images/이론학습 상세.png';
 import Button from '../components/Button';
@@ -17,7 +17,7 @@ export default function LearningPageDetail() {
 
   return (
     <div className="min-h-screen text-primary-text">
-      <Header />
+
       <HeroSection
         imageUrl={heroImage}
         title="XSS (Cross-Site Scripting)"

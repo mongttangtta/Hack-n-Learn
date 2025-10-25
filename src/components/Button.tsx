@@ -21,7 +21,7 @@ export default function Button({
     'w-[150px] h-[40px]  rounded-[20px] font-semibold text-body transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-accent-primary1 text-primary-text focus:ring-accent-primary1',
+    primary: 'bg-accent-primary1 text-black focus:ring-accent-primary1',
     secondary:
       'text-accent-primary1 bg-primary-text border-2 border-accent-primary1 focus:ring-accent-primary1',
     success: 'bg-accent-primary2 text-main focus:ring-accent-primary2',

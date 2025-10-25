@@ -17,6 +17,10 @@
   --color-code-keyword: #ff79c6;
   --color-code-string: #00ffd1;
   --color-code-number: #ff6b6b;
+  --color-code-comment: #6272a4;
+  --color-code-function-call: #50fa7b;
+  --color-code-builtin: #8be9fd;
+  --color-code-parameter: #ffb86c;
 
   /* Fonts */
   --font-header: 'Montserrat', sans-serif;

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import Input from '../components/Input';
 import HeroImg from '../assets/images/실전문제.jpg'; // Assuming an image for practical problems
 
-const PracticalProblemsPage: React.FC = () => {
+const ChallengePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulties, setSelectedDifficulties] = useState<
     ('쉬워요' | '보통' | '어려워요')[]
@@ -53,7 +53,7 @@ const PracticalProblemsPage: React.FC = () => {
     const navigate = useNavigate();
 
     const handleClick = () => {
-      navigate(`/practical-problems/${id}`);
+      navigate(`/challenge/${id}`);
     };
 
     return (
@@ -258,7 +258,6 @@ const PracticalProblemsPage: React.FC = () => {
 
   return (
     <>
-      <Header />
       <HeroSection
         title="실전 문제"
         imageUrl={HeroImg}
@@ -462,4 +461,4 @@ const PracticalProblemsPage: React.FC = () => {
   );
 };
 
-export default PracticalProblemsPage;
+export default ChallengePage;

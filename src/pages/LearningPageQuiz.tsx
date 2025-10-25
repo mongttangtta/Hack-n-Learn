@@ -3,7 +3,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import type { Problem } from '../types/quiz';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
@@ -71,7 +71,7 @@ export default function LearningPageQuiz() {
 
   return (
     <>
-      <Header />
+
       <HeroSection title="개념확인퀴즈" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">

@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
@@ -14,7 +14,7 @@ const LearningPageQuizResult: React.FC = () => {
 
   return (
     <>
-      <Header />
+
       <HeroSection title="퀴즈 결과" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">
