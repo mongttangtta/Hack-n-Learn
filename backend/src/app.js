@@ -35,7 +35,7 @@ app.use(
                         httpOnly: true,
                         secure: isProduction,
                         sameSite: "lax",// CSRF 방지
-                        maxAge : 60 * 60 // 1 hour
+                        maxAge : 60 * 60 * 1000 // 1 hour
 
                 },
         })
@@ -43,20 +43,7 @@ app.use(
 
 initPassport();
 
-app.get("/lab/:sessionId/:file", async (req, res) => {
-        const { sessionId, file } = req.params;
-
-        const filePath = path.join(process.cwd(), "labs", sessionId, file);
-
-        res.sendFile(filePath, (err) => {
-                if (err) {
-                        res.status(404).send("File not found");
-                }
-        });
-});
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
-
 app.use("/api", routes);
 
 export default app;

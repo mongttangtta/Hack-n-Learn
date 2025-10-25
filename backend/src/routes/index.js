@@ -12,6 +12,7 @@ import rankingRoutes from './ranking.routes.js';
 import adminRoutes from './admin.routes.js';
 import mainRoutes from './main.routes.js';
 
+
 import newsRoutes from './news.routes.js';
 
 const router = Router();
@@ -25,6 +26,7 @@ router.use('/theory', theroryRoutes);
 router.use('/news', newsRoutes);
 router.use('/ranking', rankingRoutes);
 router.use('/problems', problemRoutes);
+
 
 router.use('/history', historyRoutes);
 router.use('/hints', hintsRoutes);

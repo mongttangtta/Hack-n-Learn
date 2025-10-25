@@ -17,7 +17,8 @@ export const findProblemsWithFilters = async (userId, query) => {
                 .select("title type difficulty score answerRate")
                 .lean();
 
-        const uid = mongoose.Types.ObjectId(userId);
+        let uid = null;
+        if (userId) uid = new mongoose.Types.ObjectId(userId);
         const practices = await Practice.find({ user: uid })
                 .select("problem result")
                 .lean();

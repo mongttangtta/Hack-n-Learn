@@ -68,6 +68,12 @@ export const login = async( id, password) => {
         return user;
 };
 
+export const me = async(userId) => {
+        const user = await User.findById(userId);
+        if(!user) throw new Error("User not found");
+        return user;
+};
+
 export const findIdByEmail = async(email) => {
         const user = await User.findOne({ email });
         if(!user) throw new Error("No user found with this email");

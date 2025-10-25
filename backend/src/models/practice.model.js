@@ -2,19 +2,19 @@
 import mongoose from 'mongoose';
 
 const practiceSchema = new mongoose.Schema({
-        user : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },  // 사용자 참조 ID
-        problem : { type: mongoose.Schema.Types.ObjectId, ref: 'Problem', required: true }, // 문제 참조 ID
-        result : { type : String , enum: ['success', 'fail'], required: true },
-        score : { type : Number, default: 0 },
-        usedHint: { type : Number, default: 0 },
-        solvedAt : { type : Date, default: Date.now },
-
-        //실습 환경 관리
-        problemName : { type: String, default: null }, //실습 환경 이름
-        labUrl : { type: String, default: null }, //실습 환경 URL
-        expiresAt : { type: Date, default: null }, //실습 환경 만료 시간
+        userId : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },  // 사용자 참조 ID
+        problemId : { type: String, required: true }, // 문제 ID
+        containerName : { type: String, required: true }, // 도커 컨테이너 이름
+        port : { type: Number, required: true }, // 할당된 포트 번호
+        status : { type: String, enum: ['running', 'stopped'], required: true }, // 상태
+        createdAt : { type: Date, default: Date.now }, // 생성 시간
+        expiresAt : { type: Date, required: true }, // 만료 시간
+        stoppedAt : { type: Date }, // 중지 시간
         }, { timestamps: true }
 );
+
+practiceSchema.index({ userId: 1, problemId: 1 });
+practiceSchema.index({ status: 1, expiresAt: 1 });
 
 const Practice = mongoose.model('Practice', practiceSchema);
 export default Practice;
