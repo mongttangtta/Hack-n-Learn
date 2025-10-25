@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import heroImage from '../assets/images/이론학습 상세.png';
 import Button from '../components/Button';
@@ -17,7 +17,7 @@ export default function LearningPageDetail() {
 
   return (
     <div className="min-h-screen text-primary-text">
-      <Header />
+
       <HeroSection
         imageUrl={heroImage}
         title="XSS (Cross-Site Scripting)"
@@ -250,7 +250,7 @@ export default function LearningPageDetail() {
           <Button
             variant="primary"
             className="w-72 h-12 text-xl font-semibold rounded-[20px]"
-            onClick={() => navigate('/learningPageQuiz')}
+            onClick={() => navigate('/learning/quiz')} // Corrected path
           >
             퀴즈 풀러가기
           </Button>

@@ -3,29 +3,31 @@ import React from 'react';
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
 
 const LearningPageQuizResult: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Initialize useLocation
+  const { score } = (location.state || { score: 0 }) as { score: number }; // Get score from state, default to 0
 
   const handleGoBack = () => {
-    navigate('/learning');
+    navigate('/challenge'); // Corrected path
   };
 
   return (
     <>
-      <HeroSection title="퀴즈 결과" imageUrl={HeroImg} />
+      <HeroSection title="실전문제 결과" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">
           <h2 className="text-h2 font-bold text-primary-text mb-10">
-            모든 이론 학습 과정이 끝났습니다. 수고하셨습니다
+            ✨ 정답입니다! 축하합니다! 🎉
           </h2>
           <p className="text-primary-text text-base mb-4">
-            당신은 <span className="font-bold">XSS (Cross-Site Scripting)</span>{' '}
-            학습을 완료했습니다!
+            당신은 <span className="font-bold"> SQLi Basic - Level 1</span>{' '}
+            문제를 해결했습니다!
           </p>
           <p className="text-primary-text text-base mb-4">
-            획득 점수: <span className="font-bold">90점</span>
+            획득 점수: <span className="font-bold">{score}점</span>
           </p>
           <p className="text-primary-text text-base mb-4">
             총점: <span className="font-bold">1230점</span>
@@ -39,9 +41,7 @@ const LearningPageQuizResult: React.FC = () => {
             <h3 className="text-h2 font-bold text-primary-text mb-4">
               AI 해설
             </h3>
-            <h4 className="text-h3 font-bold text-primary-text mb-2">
-              이준수님의 취약점
-            </h4>
+
             <p className="text-primary-text text-base">
               방어 전략 우선순위 개념에 대해서 취약하신 것 같습니다. 그 부분을
               집중적으로 공부해 보시길 바랍니다

@@ -1,13 +1,13 @@
 // src/pages/ProblemPage.tsx
 
 import { useNavigate } from 'react-router-dom';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Problem } from '../types/quiz';
-import ProblemCard from '../components/quiz/problemCard';
-import Header from '../layout/Header';
+
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
+import ProblemCard from '../components/quiz/ProblemCard';
 
 // 이미지에 나온 데이터를 기반으로 한 예시 데이터
 const problemsData: Problem[] = [
@@ -53,7 +53,9 @@ const problemsData: Problem[] = [
 
 export default function LearningPageQuiz() {
   const navigate = useNavigate();
-  const [submittedProblems, setSubmittedProblems] = useState<{ [key: number]: boolean }>({});
+  const [submittedProblems, setSubmittedProblems] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const handleProblemSubmit = (problemId: number, isSubmitted: boolean) => {
     setSubmittedProblems((prev) => ({ ...prev, [problemId]: isSubmitted }));
@@ -69,7 +71,7 @@ export default function LearningPageQuiz() {
 
   return (
     <>
-      <Header />
+
       <HeroSection title="개념확인퀴즈" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">

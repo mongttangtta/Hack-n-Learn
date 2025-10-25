@@ -23,7 +23,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="h-9 w-1.5 bg-accent-primary1 mr-4"></div>
           <h1 className="font-bold">{title}</h1>
         </div>
-        <p className="text-body1 text-secondary-text">{subtitle}</p>
+        <p className="text-body1 text-primary-text">{subtitle}</p>
       </div>
     </section>
   );

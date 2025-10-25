@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Input from '../components/Input'; // Assuming Input component is in the same folder
-import Header from '../layout/Header';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+
 import heroImage from '../assets/images/이론학습.png';
 import HeroSection from '../components/HeroSection';
 
@@ -9,6 +10,7 @@ interface CourseCardProps {
   description: string;
   difficulty: '쉬워요' | '보통' | '어려워요';
   isCompleted?: boolean;
+  onCardClick: (title: string) => void; // Add onCardClick prop
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -16,6 +18,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   description,
   difficulty,
   isCompleted,
+  onCardClick, // Destructure onCardClick
 }) => {
   const difficultyColors = {
     쉬워요: 'text-accent-primary1',
@@ -34,10 +37,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
       className={`bg-card-background p-6 rounded-lg border-2 text-left w-full h-full flex flex-col transition-transform duration-300 hover:scale-105 ${
         isCompleted ? 'border-accent-primary1' : 'border-edge'
       }`}
-      onClick={() => {
-        // Handle card click here
-        alert(`Clicked on ${title}`);
-      }}
+      onClick={() => onCardClick(title)} // Use onCardClick prop
     >
       <div className="flex-grow">
         <h3 className="text-2xl font-bold text-primary-text mb-2">
@@ -108,9 +108,16 @@ export default function LearningPage() {
     setSearchTerm(event.target.value);
   };
 
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  const handleCardClick = (title: string) => {
+    // For now, navigate to a generic detail page.
+    // In a real app, you might pass an ID or slug based on the title.
+    navigate('/learning-detail');
+  };
+
   return (
     <div className=" min-h-screen text-primary-text">
-      <Header />
       {/* Hero Section */}
       <HeroSection
         imageUrl={heroImage}
@@ -134,7 +141,7 @@ export default function LearningPage() {
         <main className="pb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {filteredCourses.map((course) => (
-              <CourseCard key={course.title} {...course} />
+              <CourseCard key={course.title} {...course} onCardClick={handleCardClick} />
             ))}
           </div>
         </main>
