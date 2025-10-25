@@ -1,7 +1,7 @@
 export const apps = [
   {
     name: "hacknlearn-server",
-    script: "./server.js",
+    script: "./src/server.js",
     exec_mode: "cluster",
     instances: 1,
     env: {
@@ -11,7 +11,7 @@ export const apps = [
   },
   {
     name: "practice-cleaner",
-    script: "./cron/cleanup.js",
+    script: "./src/cron/cleanup.js",
     cron_restart: "*/5 * * * *",
     autorestart: true
   }
