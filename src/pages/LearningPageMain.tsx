@@ -10,7 +10,7 @@ interface CourseCardProps {
   description: string;
   difficulty: '쉬워요' | '보통' | '어려워요';
   isCompleted?: boolean;
-  onCardClick: (title: string) => void; // Add onCardClick prop
+  onCardClick?: (title: string) => void; // Add onCardClick prop
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -37,7 +37,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
       className={`bg-card-background p-6 rounded-lg border-2 text-left w-full h-full flex flex-col transition-transform duration-300 hover:scale-105 ${
         isCompleted ? 'border-accent-primary1' : 'border-edge'
       }`}
-      onClick={() => onCardClick(title)} // Use onCardClick prop
+      onClick={() => onCardClick && onCardClick(title)} // Use onCardClick prop
     >
       <div className="flex-grow">
         <h3 className="text-2xl font-bold text-primary-text mb-2">
@@ -110,7 +110,7 @@ export default function LearningPage() {
 
   const navigate = useNavigate(); // Initialize useNavigate
 
-  const handleCardClick = (title: string) => {
+  const handleCardClick = (_title: string) => {
     // For now, navigate to a generic detail page.
     // In a real app, you might pass an ID or slug based on the title.
     navigate('/learning-detail');
