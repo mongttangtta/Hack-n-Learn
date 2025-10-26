@@ -7,6 +7,12 @@ import Button from '../components/Button';
 
 const CORRECT_FLAG = 'test_flag'; // Define CORRECT_FLAG for testing
 
+const hintDatabase: HintData[] = [
+  { level: 1, text: 'SQL Injection은 사용자의 입력값이 쿼리의 일부로 사용될 때 발생할 수 있습니다.', cost: 5 },
+  { level: 2, text: '로그인 폼에서 아이디와 비밀번호 입력 필드를 조작하여 쿼리 구조를 변경해보세요.', cost: 10 },
+  { level: 3, text: "' OR '1'='1' -- 와 같은 구문을 사용하여 인증을 우회할 수 있습니다.", cost: 15 },
+];
+
 export default function ChallengeDetailPage() {
   const [score, setScore] = useState<number>(100);
   const [flagValue, setFlagValue] = useState<string>('');
