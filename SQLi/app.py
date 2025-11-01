@@ -6,8 +6,32 @@ import os
 import secrets
 
 DB = "vuln_bank.db"
-app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+
+#ReverseProxied 미들웨어 클래스 추가
+class ReverseProxied:
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
+        if script_name:
+            environ['SCRIPT_NAME'] = script_name
+            path_info = environ.get('PATH_INFO', '')
+            if path_info.startswith(script_name):
+                environ['PATH_INFO'] = path_info[len(script_name):]
+
+        return self.app(environ, start_response)
+
+
+app = Flask(__name__,
+            static_folder='static',
+            static_url_path='/static',
+            template_folder='templates')
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+# ✅ secret_key 환경변수에서 불러오기 (기본값은 fallback용)
+app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")
+
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # ------------------ DB helper ------------------
@@ -71,13 +95,16 @@ def init_db(db_conn):
     # seed posts (ensure some defaults)
     cur.execute("DELETE FROM posts")
     sample_posts = [
-        ("notice", "시스템 점검 내역(예시)", "관리자", "시스템 점검이 완료되었습니다. 기록은 별도 보관됩니다."),
-        ("notice", "중요: 운영시간 안내", "관리자", "운영시간은 평일 09:00 - 18:00 입니다."),
-        ("notice", "DB 초기화 방법", "관리자", "python init_db.py 명령으로 초기화할 수 있습니다."),
-        ("notice", "서버 이용 안내", "관리자", "이 서버는 교육용 실습 환경입니다. 외부에 공개하지 마세요."),
-        ("free", "자유 글 예시 1", "alice", "안녕하세요!"),
-        ("free", "자유 글 예시 2", "bob", "테스트 게시글입니다.")
-    ]
+		    ("notice", "시스템 점검 완료 안내", "관리자", "정기 점검이 정상적으로 완료되었습니다. 서비스 이용에 불편을 드려 죄송합니다."),
+		    ("notice", "영업시간 안내", "관리자", "창구 영업시간이 평일 09:00 ~ 17:30으로 변경되었으니 업무에 참고하시기 바랍니다."),
+		    ("notice", "비대면 서비스 업데이트", "관리자", "모바일 앱의 계좌 조회 속도가 개선되었습니다. 앱 업데이트를 권장합니다."),
+		    ("notice", "서비스 점검 예고", "관리자", "서버 유지보수로 인해 11/10 02:00~03:00 사이에 잠시 접속이 제한될 수 있습니다."),
+		    ("free", "계좌 등록 관련 문의", "alice", "새로 발급받은 카드로 계좌 등록이 가능한가요? 경험 있으신 분 답변 부탁드립니다."),
+		    ("free", "이체 한도 문의", "bob", "모바일에서 하루 이체 한도가 어떻게 되나요? 설정 방법 알려주시면 감사하겠습니다."),
+		    ("free", "지점 방문 후기", "alice", "오늘 가까운 지점에서 친절하게 상담받았습니다. 추천드립니다."),
+		    ("free", "앱 오류 제보", "bob", "가끔 잔액 조회가 느려집니다. 다음 점검 때 확인 부탁드려요.")
+		]
+
     cur.executemany("INSERT INTO posts (board, title, author, content) VALUES (?,?,?,?)", sample_posts)
 
     # seed flag if not exists
