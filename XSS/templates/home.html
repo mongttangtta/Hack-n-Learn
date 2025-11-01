@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="home-grid">
+  <section class="boards">
+    <div class="board card">
+      <h3>📢 공지사항</h3>
+      <ul class="posts">
+        {% for p in notices %}
+        <li><a href="{{ url_for('post', post_id=p.id) }}"><strong>{{ p.title }}</strong></a> — {{ p.author }}</li>
+        {% endfor %}
+      </ul>
+      <p class="more"><a href="{{ url_for('board', board='notice') }}">더보기 →</a></p>
+    </div>
+
+    <div class="board card">
+      <h3>💬 자유게시판</h3>
+      <ul class="posts">
+        {% for p in frees %}
+        <li><a href="{{ url_for('post', post_id=p.id) }}"><strong>{{ p.title }}</strong></a> — {{ p.author }}</li>
+        {% endfor %}
+      </ul>
+      <p class="more"><a href="{{ url_for('board', board='free') }}">더보기 →</a></p>
+    </div>
+
+    <div class="board card actions">
+      <h3>💳 빠른 이동</h3>
+      <div class="btn-row">
+        <a href="{{ url_for('account') }}">내 계좌</a>
+        <a href="{{ url_for('transfer') }}">송금하기</a>
+      </div>
+    </div>
+  </section>
+
+  <aside class="sidebar card">
+    <h3>로그인</h3>
+    {% if not session.username %}
+    <form method="post" action="{{ url_for('login') }}" class="login-form">
+      <label>아이디</label>
+      <input name="username" placeholder="username" required>
+      <label>비밀번호</label>
+      <input name="password" type="password" required>
+      <button type="submit">로그인</button>
+    </form>
+    {% else %}
+    <p>현재 로그인: <b>{{ session.username }}</b></p>
+    <a href="{{ url_for('logout') }}">로그아웃</a>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

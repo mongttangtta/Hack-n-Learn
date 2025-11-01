@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>관리자 전용 페이지</h2>
+  <p>이 페이지는 관리자 계정으로만 접근할 수 있습니다.</p>
+
+  <p>관리자 FLAG: <span id="flag" style="color:#0a0; font-weight:bold;">{{ flag }}</span></p>
+
+  <hr>
+  <h3>게시글 목록 (Stored XSS 취약)</h3>
+  <ul>
+    {% for p in posts %}
+    <li>
+      <b>{{ p.title }}</b> — {{ p.author }}
+      <div style="margin:6px 0; padding:6px; border:1px solid #ccc; background:#fafafa;">
+        <!-- intentionally vulnerable -->
+        {{ p.content|safe }}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+

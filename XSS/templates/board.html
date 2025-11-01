@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">{{ title }}</h2>
+        {% if board == 'free' and session.username %}
+            <div>
+                <a href="{{ url_for('write') }}" class="btn">글쓰기</a>
+            </div>
+        {% elif board == 'notice' and session.username == 'admin' %}
+            <div>
+                <a href="{{ url_for('write') }}" class="btn">글쓰기(관리자)</a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if board == 'notice' %}
+    <div style="margin:12px 0 0 0;">
+        <form method="post" style="display:flex; gap:8px; align-items:center;">
+            <input name="q" placeholder="검색어를 입력하세요." style="flex:1; padding:8px;" value="{{ q|e }}">
+            <button type="submit">검색</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <table class="post-table" style="margin-top:16px; width:100%;">
+        <thead>
+            <tr>
+                <th style="width:80px; text-align:left; padding-left:8px;">번 호</th>
+                <th>제 목</th>
+                <th style="width:200px;">작 성 자</th>
+                <th style="width:160px; text-align:right;">작업</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% set total = posts|length %}
+        {% for p in posts %}
+            <tr>
+                <td class="num-cell">{{ total - loop.index0 }}</td>
+                <td><a href="{{ url_for('post', post_id=p.id) }}">{{ p.title }}</a></td>
+
+                <td class="author-cell">
+                    {% if p.author == '관리자' %}
+                        {% set display_author = 'admin' %}
+                    {% else %}
+                        {% set display_author = p.author %}
+                    {% endif %}
+                    {{ display_author }}
+
+                    {% if p.author == 'admin' or p.author == '관리자' %}
+                        <span class="badge badge-admin">관리자</span>
+                    {% elif p.author == 'system' %}
+                        <span class="badge badge-system">시스템</span>
+                    {% else %}
+                        <span class="badge badge-member">일반회원</span>
+                    {% endif %}
+                </td>
+
+                <td class="action-cell">
+                    {% if session.username == p.author or session.username == 'admin' %}
+                        <form method="post" action="{{ url_for('delete', post_id=p.id) }}" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                            <!-- 버튼을 submit으로 바꿔서 JS가 동작하지 않아도 괜찮게 함 -->
+                            <button type="submit" onclick="return confirm('정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">삭제</button>
+                        </form>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        {% if posts|length == 0 %}
+            <tr><td colspan="4">검색결과가 없습니다.</td></tr>
+        {% endif %}
+        </tbody>
+    </table>
+
+    <p style="margin-top:12px;"><a href="{{ url_for('index') }}">← 홈으로 돌아가기</a></p>
+</div>
+{% endblock %}
