@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import Input from '../../components/Input';
 import PostCard from '../../components/community/PostCard';
-import { useCommunityPage } from '../CommunityHome';
+import { useCommunityPage } from '../../components/community/useCommunityPage';
 
 // Data for the posts - this should ideally come from an API
 const posts = [

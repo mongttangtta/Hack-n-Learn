@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useOutletContext } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useRef, useState, useEffect } from 'react';
 import HeroSection from '../components/HeroSection';
 import heroimg from '../assets/images/community2.jpg';
@@ -35,7 +35,7 @@ export default function CommunityHome() {
   }, [location]);
 
   return (
-    <div className="bg-background text-primary-text min-h-screen">
+    <div className="bg-background text-primary-text min-h-screen ">
       <HeroSection
         imageUrl={heroimg}
         title={<span className="">커뮤니티</span>}
@@ -65,20 +65,18 @@ export default function CommunityHome() {
           </nav>
         </div>
 
-        <Outlet context={{ currentPage, handlePageChange, setTotalPages }} />
+        <div className="max-w-[1440px] mx-auto px-10">
+          <Outlet context={{ currentPage, handlePageChange, setTotalPages }} />
 
-        {location.pathname === '/community' && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
+          {location.pathname === '/community' && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </div>
       </main>
     </div>
   );
-}
-
-export function useCommunityPage() {
-  return useOutletContext<{ currentPage: number; handlePageChange: (page: number) => void; setTotalPages: (pages: number) => void }>();
 }
