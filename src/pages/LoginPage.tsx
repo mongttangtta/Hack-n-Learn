@@ -31,7 +31,7 @@ export default function LoginPage() {
             <Button type="submit" variant="primary" className="w-full">
               로그인
             </Button>
-            <p className=" text-primary-text hover:underline">
+            <p className=" text-primary-text">
               계정을 잊으셨나요?
               <a href="#" className="text-accent-primary1 ml-2">
                 →
@@ -41,8 +41,24 @@ export default function LoginPage() {
         </form>
         <div className="space-y-4 mt-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SocialButton provider="google">Google로 로그인</SocialButton>
-            <SocialButton provider="github">Github으로 로그인</SocialButton>
+            <SocialButton
+              provider="google"
+              onClick={() =>
+                (window.location.href =
+                  'https://hacknlearn.site/api/auth/google')
+              }
+            >
+              Google로 로그인
+            </SocialButton>
+            <SocialButton
+              provider="github"
+              onClick={() =>
+                (window.location.href =
+                  'https://hacknlearn.site/api/auth/github')
+              }
+            >
+              Github으로 로그인
+            </SocialButton>
           </div>
         </div>
         <div className="text-center space-x-3.5">
