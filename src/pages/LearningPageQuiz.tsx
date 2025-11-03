@@ -66,12 +66,11 @@ export default function LearningPageQuiz() {
   );
 
   const handleCheckResults = () => {
-    navigate('/quiz-results');
+    navigate('/learning/quiz-results');
   };
 
   return (
     <>
-
       <HeroSection title="개념확인퀴즈" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">

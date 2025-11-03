@@ -125,9 +125,9 @@ export default function LearningPage() {
         subtitle="실습에 앞서, 해킹과 보안의 핵심 이론을 마스터하세요. 아는 만큼 보이고, 보이는 만큼 공격하고 방어할 수 있습니다."
       />
 
-      <div className="container mx-auto max-w-[1440px] px-20">
+      <div className="container mx-auto max-w-[1440px] px-10">
         {/* Search Bar */}
-        <section className="mb-12">
+        <section className="my-12">
           <div className="max-w-full mx-auto">
             <Input
               placeholder="원하시는 강의가 있나요?"
@@ -141,7 +141,11 @@ export default function LearningPage() {
         <main className="pb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {filteredCourses.map((course) => (
-              <CourseCard key={course.title} {...course} onCardClick={handleCardClick} />
+              <CourseCard
+                key={course.title}
+                {...course}
+                onCardClick={handleCardClick}
+              />
             ))}
           </div>
         </main>

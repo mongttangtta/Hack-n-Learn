@@ -12,18 +12,24 @@ import LearningPageMain from './pages/LearningPageMain';
 import ChallengePage from './pages/ChallengePage';
 import ChallengeDetailPage from './pages/ChallengeDetailPage';
 import AboutPage from './pages/AboutPage';
-import CommunityPage from './pages/CommunityPage';
+import CommunityPage from './pages/CommunityHome';
+import SecurityNews from './pages/community/SecurityNews';
+import QnaBoard from './pages/community/QnaBoard';
+import Archive from './pages/community/Archive';
+import CommunityPostDetailPage from './pages/CommunityPostDetailPage';
 import RankingPage from './pages/RankingPage';
-import LoginPage from './pages/LoginPage';
+
 import SignupPage from './pages/SignupPage';
 import ChallengeResultPage from './pages/ChallengeResultPage'; // Import ChallengeResultPage
+import QnaDetailPage from './pages/QnaDetailPage';
+import LoginPage from './pages/LoginPage';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />, // App is now the layout component
+    element: <App />,
     children: [
-      { index: true, element: <LearningPageMain /> }, // Default route for /
+      { index: true, element: <LearningPageMain /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'learning', element: <LearningPageMain /> },
       { path: 'learning-detail', element: <LearningPageDetail /> },
@@ -31,8 +37,18 @@ const router = createBrowserRouter([
       { path: 'learning/quiz-results', element: <LearningPageQuizResult /> },
       { path: 'challenge', element: <ChallengePage /> },
       { path: 'challenge/:id', element: <ChallengeDetailPage /> },
-      { path: 'challenge/result', element: <ChallengeResultPage /> }, // Add ChallengeResultPage route
-      { path: 'community', element: <CommunityPage /> },
+      { path: 'challenge/result', element: <ChallengeResultPage /> },
+      {
+        path: 'community',
+        element: <CommunityPage />,
+        children: [
+          { index: true, element: <SecurityNews /> },
+          { path: 'qna', element: <QnaBoard /> },
+          { path: 'qna/:id', element: <QnaDetailPage /> },
+          { path: 'archive', element: <Archive /> },
+          { path: ':id', element: <CommunityPostDetailPage /> },
+        ],
+      },
       { path: 'ranking', element: <RankingPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'signup', element: <SignupPage /> },
@@ -42,6 +58,6 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} /> {/* Use RouterProvider */}
+    <RouterProvider router={router} />
   </StrictMode>
 );

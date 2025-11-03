@@ -13,7 +13,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 }) => {
   return (
     <section
-      className="w-full max-w-[1920px] h-[420px] bg-cover bg-center bg-no-repeat flex items-center justify-start mb-20"
+      className="w-full max-w-[1920px] h-[420px] bg-cover bg-center bg-no-repeat flex items-center justify-start"
       style={{
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${imageUrl})`,
       }}
