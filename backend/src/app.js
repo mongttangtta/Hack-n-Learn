@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import routes from "./routes/index.js";
 import session from "express-session";
+import cors from "cors";
 import MonogoStore from "connect-mongo";
 import helmet from "helmet";
 import passport from "passport";
@@ -17,6 +18,17 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(helmet());
 app.use(express.json());
 app.use(expressMongoSanitize());
+
+app.use(
+        cors({
+                origin: [
+                        "http://localhost:5173",
+                        "https://hacknlearn.site",
+                ],
+                credentials: true,
+        })
+);
+
 app.use(errorHandler);
 
 app.set("trust proxy", 1);
