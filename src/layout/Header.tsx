@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Bell, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/images/logo.png';
+import { logout } from '../utils/auth'; // Import the logout function
 
 export default function Header() {
   const location = useLocation();
@@ -13,6 +13,10 @@ export default function Header() {
     { name: '커뮤니티', path: '/community' },
     { name: '랭킹', path: '/ranking' },
   ];
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <header className="bg-[#21213f]">
@@ -27,7 +31,9 @@ export default function Header() {
               key={link.name}
               to={link.path}
               className={`hover:text-accent-primary1 transition-colors ${
-                location.pathname.startsWith(link.path) ? 'text-accent-primary1 font-bold' : ''
+                location.pathname.startsWith(link.path)
+                  ? 'text-accent-primary1 font-bold'
+                  : ''
               }`}
             >
               {link.name}
@@ -40,12 +46,12 @@ export default function Header() {
             <User />
             <span>이준수님</span>
           </Link>
-          <Link
-            to="/logout"
+          <button
+            onClick={handleLogout}
             className="text-sm text-secondary-text hover:text-white transition-colors border rounded-[5px] px-1 py-0.5"
           >
             로그아웃
-          </Link>
+          </button>
         </div>
       </nav>
     </header>
