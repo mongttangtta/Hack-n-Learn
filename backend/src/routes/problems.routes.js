@@ -31,7 +31,6 @@ const router = Router();
  *         required: true
  *         schema:
  *           type: string
- *         description: 문제의 slug (예: `sql-injection`, `xss-basic`)
  *     requestBody:
  *       required: true
  *       content:
@@ -86,7 +85,7 @@ const router = Router();
  *         required: true
  *         schema:
  *           type: string
- *         description: 문제의 slug (예: `sql-injection`, `xss-basic`)
+
  *     requestBody:
  *       required: true
  *       content:
@@ -266,8 +265,6 @@ router.get("/running-labs", async (req, res) => { // requireLogin 추가
                 res.status(500).json({ message: "Failed to fetch running labs." });
         }
 });
-
-
 
 
 router.post("/:slug/submit", validateBody('submitFlag'), problemController.submitFlag);
