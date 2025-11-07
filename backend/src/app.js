@@ -16,7 +16,7 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(helmet());
 app.use(express.json());
 app.use(expressMongoSanitize());
-app.use(errorHandler);
+
 
 app.set("trust proxy", 1);
 
@@ -35,7 +35,6 @@ app.use(
                         secure: isProduction,
                         sameSite: "lax",// CSRF 방지
                         maxAge : 60 * 60 * 1000 // 1 hour
-
                 },
         })
 );
@@ -44,5 +43,7 @@ initPassport();
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api", routes);
+
+app.use(errorHandler);
 
 export default app;
