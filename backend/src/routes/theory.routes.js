@@ -26,7 +26,6 @@ const router = express.Router();
  *         required: true
  *         schema:
  *           type: string
- *         description: Technique의 slug (예: sql-injection)
  *     responses:
  *       200:
  *         description: 해당 기법의 퀴즈 목록 반환
