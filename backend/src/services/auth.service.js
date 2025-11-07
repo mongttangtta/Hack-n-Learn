@@ -3,6 +3,7 @@ import crypto from "crypto";
 import User from "../models/user.model.js";
 import EmailVerify from "../models/emailVerify.model.js";
 import PasswordReset from "../models/passwordReset.model.js";
+//import PendingSocial from "../models/pending-social.model.js";
 import { sendEmail } from "../utils/mail.service.js";
 
 const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -44,19 +45,19 @@ export const register = async (id, nickname, password, email) => {
 
         if(Date.now() > verified.expiresAt) throw new Error("Verification expired, please verify again");
 
-        const existingUser = await User.findOne({ 
-                $or: [ 
-                        { id }, 
-                        { nickname: new RegExp(`^${escapeRegex(nickname)}$`, 'i') }, 
+        const existingUser = await User.findOne({
+                $or: [
+                        { id },
+                                                { nickname: new RegExp(`^${escapeRegex(nickname)}$`, 'i') }, 
                         { email } ] });
         if(existingUser) throw new Error("ID, nickname or email already in use");
 
         const passwordHash = await bcrypt.hash(password, 10);
         const user = new User({ id, nickname, passwordHash, email });
-        await user.save();
+await user.save();
 
         await EmailVerify.deleteOne({ email });
-        
+
         return user;
 };
 
@@ -114,7 +115,7 @@ export const createPasswordResetToken = async(id, email) => {
                 expiresAt
         });
 
-        const resetUrl = `${process.env.RESET_PASSWORD_URL}/${token}`;
+        const resetUrl = `${process.env.RESET_PASSWORD_URL}/change-password?token=${token}`;
 
         await sendEmail({
                 to: email,
@@ -147,4 +148,3 @@ export const resetPassword = async(token, newPassword) => {
         return true;
 };
         
-
