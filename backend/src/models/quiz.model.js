@@ -1,10 +1,16 @@
 import mongoose from "mongoose";
 
+const QuestionPartSchema = new mongoose.Schema({
+        type : { type : String, enum: ["text", "highlight"], required: true },
+        content : { type : String, required: true },
+}, { _id : false });
+
 const QuizSchema = new mongoose.Schema({
         techniqueId: { type: mongoose.Schema.Types.ObjectId, ref: "Technique", required: true },
-        question: { type: String, required: true },       // 문제 텍스트
-        choices: { type: [String], required: true, validate: v => v.length >=2 }, // 선택지 배열
-        correctAnswer: { type: Number, required: true }, // 정답 (choices 중 하나)
+        rawQuestion: { type: String, required: true }, // 원문 질문
+        questionParts : { type: [QuestionPartSchema], required: true }, // 질문 파트 배열
+        choices: { type: [String], default : [] }, // 답안 기입
+        correctAnswer: { type: String, required: true }, // 정답
         explanation: { type: String , default: ""},   // 정답 해설
 }, { timestamps: true });
 
