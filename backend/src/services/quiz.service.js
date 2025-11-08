@@ -3,7 +3,7 @@ import Technique from "../models/theory.model.js";
 import Quiz from "../models/quiz.model.js";
 import WrongNote from "../models/wrongNode.model.js";
 import dotenv from "dotenv";
-dotenv.config({path: process.env.ENV_PATH || "/backend/backend/.env"});
+dotenv.config();
 import { analyzeAnswersBatch } from "../utils/ai.client.js";
 
 let UserModel = null;
@@ -133,8 +133,6 @@ export async function buildResultExplanation({ userId, slug}){
         try{
                 aiResult = await analyzeAnswersBatch({
                         payload : aiPayload,
-                        model : process.env.EXPLAIN_MODEL || "gpt-4o",
-                        timeoutMs : parseInt(process.env.EXPLAIN_TIMEOUT_MS) || 12000,
                 });
         }catch(error){
                 console.error("Error analyzing answers:", error);
