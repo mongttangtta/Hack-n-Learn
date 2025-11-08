@@ -3,7 +3,7 @@ import Technique from "../models/theory.model.js";
 import Quiz from "../models/quiz.model.js";
 import WrongNote from "../models/wrongNode.model.js";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({path: process.env.ENV_PATH || "/backend/backend/.env"});
 import { analyzeAnswersBatch } from "../utils/ai.client.js";
 
 let UserModel = null;
@@ -133,7 +133,7 @@ export async function buildResultExplanation({ userId, slug}){
         try{
                 aiResult = await analyzeAnswersBatch({
                         payload : aiPayload,
-                        model : process.env.EXPLAIN_MODEL || "gpt-5",
+                        model : process.env.EXPLAIN_MODEL || "gpt-4o",
                         timeoutMs : parseInt(process.env.EXPLAIN_TIMEOUT_MS) || 12000,
                 });
         }catch(error){
@@ -146,7 +146,7 @@ export async function buildResultExplanation({ userId, slug}){
                                 summary: "AI 응답 실패로 간단 요약만 제공합니다.",
                                 focusAreas: [],
                                 nextSteps: ["모델 호출 오류 — 잠시 후 재시도하세요."],
-                                model: process.env.EXPLAIN_MODEL || "gpt-5",
+                                model: process.env.EXPLAIN_MODEL || "gpt-4o",
                                 stats: { totalCount, correctCount: Math.max(0, totalCount - items.length), wrongCount: items.length },
                                 createdAt: new Date(),
                         },
@@ -190,7 +190,7 @@ export async function buildResultExplanation({ userId, slug}){
                                 : `해당 레벨에서 오답이 없습니다. 학습을 유지하세요.`,
                         focusAreas,
                         nextSteps,
-                        model: process.env.EXPLAIN_MODEL || "gpt-5",
+                        model: process.env.EXPLAIN_MODEL || "gpt-4o",
                         stats: { totalCount, correctCount, wrongCount },
                         createdAt: new Date(),
                         perQuestionResults: results, // raw per-question AI results for frontend if needed  
