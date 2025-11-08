@@ -5,19 +5,68 @@ from flask import Flask, request, render_template, g, session, redirect, url_for
 import sqlite3
 import os
 import secrets
+import json
+from datetime import datetime, timezone
+import threading
+import re
 
 DB = "vuln_bank.db"
 
+# ------------------ Event logging (minimal JSON lines) ------------------
+EVENT_DIR = os.environ.get("EVENT_DIR", "./data")
+EVENT_FILE = os.path.join(EVENT_DIR, os.environ.get("EVENT_FILE", "events.json"))
+os.makedirs(EVENT_DIR, exist_ok=True)
+
+# --- 파일 초기화(실행 시마다): 기본 동작은 초기화(1).
+# 환경변수로 제어 가능: EVENT_CLEAR_ON_START = "0" 으로 설정하면 초기화하지 않음.
+if os.environ.get("EVENT_CLEAR_ON_START", "1") == "1":
+    # 빈 파일로 덮어써서 초기화
+    try:
+        with open(EVENT_FILE, "w", encoding="utf-8") as fh:
+            # optionally write newline or leave empty
+            pass
+    except Exception as e:
+        # 초기화 실패 시 경고 (앱 실행은 계속)
+        print(f"Warning: failed to clear event file {EVENT_FILE}: {e}")
+
+_write_lock = threading.Lock()
+_MAX_PAYLOAD_LEN = 100
+_FLAG_RE = re.compile(r"(FLAG\s*\{)[^\}]*\}", re.IGNORECASE)
+
+def _now_iso():
+    return datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+def _mask_payload(s):
+    if not s:
+        return ""
+    masked = _FLAG_RE.sub(r"\1***\}", s)
+    if len(masked) > _MAX_PAYLOAD_LEN:
+        return masked[:_MAX_PAYLOAD_LEN]
+    return masked
+
+def record_event(action, payload="", result=""):
+    """
+    저장되는 필드(정확히 4개): ts, action, payload, result
+    - 한 줄의 JSON (minified)로 events.json에 append 됩니다.
+    - 단, action이 'page_view'인 경우 저장하지 않습니다.
+    """
+    if action == "page_view":
+        return
+    event = {
+        "ts": _now_iso(),
+        "action": str(action) if action else "",
+        "payload": _mask_payload(str(payload) if payload else ""),
+        "result": str(result) if result else ""
+    }
+    line = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
+    with _write_lock:
+        with open(EVENT_FILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+
 # ------------------ Reverse proxy helper ------------------
 class ReverseProxied:
-    """
-    WSGI middleware that adjusts SCRIPT_NAME and PATH_INFO based on the
-    X-Script-Name header set by a reverse proxy. Use only when the proxy
-    is trusted to provide this header.
-    """
     def __init__(self, app):
         self.app = app
-
     def __call__(self, environ, start_response):
         script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
         if script_name:
@@ -27,7 +76,6 @@ class ReverseProxied:
                 environ['PATH_INFO'] = path_info[len(script_name):]
         return self.app(environ, start_response)
 
-
 # ------------------ Flask app creation ------------------
 app = Flask(
     __name__,
@@ -35,11 +83,7 @@ app = Flask(
     static_url_path='/static',
     template_folder='templates'
 )
-
-# wrap WSGI app with middleware
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-# app configuration
 app.secret_key = secrets.token_hex(16)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -61,7 +105,6 @@ def close_db(e=None):
         db.close()
 
 def init_db(db_conn):
-    """초기 DB / 샘플 데이터 생성 (교육용)"""
     cur = db_conn.cursor()
     cur.executescript("""
     CREATE TABLE IF NOT EXISTS users (
@@ -83,58 +126,34 @@ def init_db(db_conn):
         flag TEXT
     );
     """)
-    # seed users (if not existing)
     try:
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("admin", "admin123", "Administrator", 100000),
-        )
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("alice", "alice123", "Alice", 5000),
-        )
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("bob", "bob123", "Bob", 2000),
-        )
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)",
+                    ("admin","admin123","Administrator",100000))
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)",
+                    ("alice","alice123","Alice",5000))
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)",
+                    ("bob","bob123","Bob",2000))
     except sqlite3.IntegrityError:
         pass
 
-    # seed posts: 공지/자유 게시물 (자유게시판 샘플은 이미지 내용과 동일하게 설정)
     cur.execute("DELETE FROM posts")
     sample_posts = [
-        # notices
-        ("notice", "시스템 점검 내역(예시)", "관리자", "시스템 점검이 완료되었습니다. 기록은 별도 보관됩니다."),
-        ("notice", "중요: 운영시간 안내", "관리자", "운영시간은 평일 09:00 - 18:00 입니다."),
-        ("notice", "DB 초기화 방법", "관리자", "python init_db.py 명령으로 초기화할 수 있습니다."),
-        ("notice", "서버 이용 안내", "관리자", "이 서버는 교육용 실습 환경입니다. 외부에 공개하지 마세요."),
-        # free (이미지에 보이는 항목)
-        ("free", "버그 제보", "bob", "홈 화면에서 간혹 스타일이 깨지는 문제 발견했습니다."),
-        ("free", "로그인 성공했어요", "alice", "계좌 확인 기능까지 잘 됩니다."),
-        ("free", "XSS는 다음 주에 실습하나요?", "bob", "Cross Site Scripting도 기대돼요."),
-        ("free", "오늘 실습 재밌네요!", "alice", "SQL Injection 구조를 직접 보니까 이해가 잘 돼요.")
+        ("notice","시스템 점검 내역(예시)","관리자","시스템 점검이 완료되었습니다."),
+        ("notice","운영시간 안내","관리자","평일 09:00 - 18:00 입니다."),
+        ("free","버그 제보","bob","홈 화면에서 스타일이 깨지는 문제 발견."),
+        ("free","로그인 성공","alice","계좌 확인 기능까지 잘 됩니다."),
     ]
-    cur.executemany("INSERT INTO posts (board, title, author, content) VALUES (?,?,?,?)", sample_posts)
+    cur.executemany("INSERT INTO posts (board,title,author,content) VALUES (?,?,?,?)", sample_posts)
 
-    # seed flag if not exists (초기값)
-    try:
-        cur.execute("SELECT count(*) FROM flags")
-        cnt = cur.fetchone()[0]
-    except Exception:
-        cnt = 0
+    cur.execute("SELECT count(*) FROM flags")
+    cnt = cur.fetchone()[0]
     if cnt == 0:
-        try:
-            # 기본 플래그 (원하시면 여기 값을 바꿔주세요)
-            cur.execute("INSERT INTO flags (flag) VALUES (?)", ("FLAG{JABATDA_YO_NOM}",))
-        except Exception:
-            pass
-
+        cur.execute("INSERT INTO flags (flag) VALUES (?)", ("FLAG{JABATDA_YO_NOM}",))
     db_conn.commit()
 
 # ------------------ util ------------------
 def rows_to_dicts(rows):
     return [dict(r) for r in rows] if rows else []
-
 def row_to_dict(row):
     return dict(row) if row else None
 
@@ -142,10 +161,8 @@ def row_to_dict(row):
 @app.route("/")
 def index():
     db = get_db()
-    notices_rows = db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC LIMIT 5", ("notice",)).fetchall()
-    frees_rows = db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC LIMIT 5", ("free",)).fetchall()
-    notices = rows_to_dicts(notices_rows)
-    frees = rows_to_dicts(frees_rows)
+    notices = rows_to_dicts(db.execute("SELECT * FROM posts WHERE board='notice' ORDER BY id DESC LIMIT 5").fetchall())
+    frees = rows_to_dicts(db.execute("SELECT * FROM posts WHERE board='free' ORDER BY id DESC LIMIT 5").fetchall())
     return render_template("home.html", notices=notices, frees=frees)
 
 # ------------------ 로그인/로그아웃 ------------------
@@ -153,193 +170,166 @@ def index():
 def login():
     if request.method == "POST":
         username = request.form.get("username","").strip()
+        record_event("login_attempt", username, "")
         password = request.form.get("password","")
         db = get_db()
-        cur = db.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-        user_row = cur.fetchone()
-        user = row_to_dict(user_row)
+        user = row_to_dict(db.execute("SELECT * FROM users WHERE username=? AND password=?",(username,password)).fetchone())
         if user:
             session.clear()
             session["username"] = user["username"]
             session["csrf_token"] = secrets.token_hex(16)
-            flash("로그인되었습니다.", "success")
+            record_event("login_success", username, "success")
+            flash("로그인되었습니다.","success")
             return redirect(url_for("index"))
         else:
-            flash("아이디 또는 비밀번호가 틀렸습니다.", "error")
+            record_event("login_fail", username, "fail")
+            flash("아이디 또는 비밀번호가 틀렸습니다.","error")
     return render_template("login.html")
 
 @app.route("/logout")
 def logout():
+    record_event("logout", session.get("username","anon"), "")
     session.clear()
-    flash("로그아웃되었습니다.", "info")
+    flash("로그아웃되었습니다.","info")
     return redirect(url_for("index"))
 
-# ------------------ 게시판 (SQL Injection 방어) ------------------
+# ------------------ 게시판 ------------------
 @app.route("/board/<board>", methods=["GET","POST"])
 def board(board):
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
-
     db = get_db()
     title = "공지사항" if board == "notice" else "자유게시판"
-
     q = ""
-    posts_rows = db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC", (board,)).fetchall()
-
-    # 안전한 검색 (LIKE 기반)
+    posts = rows_to_dicts(db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC",(board,)).fetchall())
     if request.method == "POST":
-        q = request.form.get("q", "").strip()
+        q = request.form.get("q","").strip()
+        record_event("search_query", q, "")
         if q:
             like_q = f"%{q}%"
-            posts_rows = db.execute(
+            posts = rows_to_dicts(db.execute(
                 "SELECT * FROM posts WHERE board=? AND (title LIKE ? OR content LIKE ?) ORDER BY id DESC",
                 (board, like_q, like_q)
-            ).fetchall()
-
-    posts = rows_to_dicts(posts_rows)
+            ).fetchall())
     return render_template("board.html", board=board, posts=posts, title=title, q=q)
 
-# ------------------ 단일 포스트 보기 ------------------
+# ------------------ 포스트 보기 ------------------
 @app.route("/post/<int:post_id>")
 def post(post_id):
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
     db = get_db()
-    row = db.execute("SELECT * FROM posts WHERE id=?", (post_id,)).fetchone()
-    post = row_to_dict(row)
+    post = row_to_dict(db.execute("SELECT * FROM posts WHERE id=?",(post_id,)).fetchone())
     if not post:
         return "글을 찾을 수 없습니다."
-
-    # CTF용: flags 테이블에서 플래그를 가져와 템플릿에 전달
     flag_row = db.execute("SELECT flag FROM flags LIMIT 1").fetchone()
     flag = flag_row["flag"] if flag_row else ""
-
+    record_event("post_view", str(post_id), "")
     return render_template("post.html", post=post, flag=flag)
 
 # ------------------ 글쓰기 ------------------
 @app.route("/write", methods=["GET","POST"])
 def write():
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
-
     if request.method == "POST":
         form_token = request.form.get("csrf_token","")
         if not form_token or form_token != session.get("csrf_token"):
-            flash("CSRF token missing or invalid.", "error")
+            flash("CSRF token invalid.","error")
             return redirect(url_for("write"))
-
         board = request.form.get("board","free")
-        if board != "notice":
-            board = "free"
         if board == "notice" and session.get("username") != "admin":
             board = "free"
-
         title = request.form.get("title","").strip()
         content = request.form.get("content","").strip()
-        author = session.get("username")
+        author = session["username"]
         if not title:
-            flash("제목을 입력하세요.", "warning")
+            flash("제목을 입력하세요.","warning")
             return redirect(url_for("write"))
-
         db = get_db()
-        db.execute("INSERT INTO posts (board, title, author, content) VALUES (?,?,?,?)",
-                   (board, title, author, content))
+        db.execute("INSERT INTO posts (board,title,author,content) VALUES (?,?,?,?)",(board,title,author,content))
         db.commit()
-        flash("글이 등록되었습니다.", "success")
+        # XSS 실습 대비: payload는 content(내용)으로 기록
+        record_event("submit_post", content, "created")
+        flash("글이 등록되었습니다.","success")
         return redirect(url_for("board", board=board))
-
     return render_template("write.html")
 
 # ------------------ 삭제 ------------------
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
-
     form_token = request.form.get("csrf_token","")
     if not form_token or form_token != session.get("csrf_token"):
-        flash("CSRF token missing or invalid.", "error")
+        flash("CSRF token invalid.","error")
         return redirect(url_for("index"))
-
     db = get_db()
-    row = db.execute("SELECT * FROM posts WHERE id=?", (post_id,)).fetchone()
-    post = row_to_dict(row)
+    post = row_to_dict(db.execute("SELECT * FROM posts WHERE id=?",(post_id,)).fetchone())
     if not post:
-        flash("삭제할 글을 찾을 수 없습니다.", "error")
+        flash("삭제할 글을 찾을 수 없습니다.","error")
         return redirect(url_for("index"))
-
     requester = session.get("username")
-
-    def is_author_admin_variant(author_value):
-        if not author_value:
-            return False
-        a = str(author_value).strip().lower()
-        return a in ("admin", "administrator") or author_value in ("관리자", "Admin", "관리자님")
-
-    if requester == post.get("author") or requester == "admin" or is_author_admin_variant(post.get("author")):
-        db.execute("DELETE FROM posts WHERE id=?", (post_id,))
+    if requester == post.get("author") or requester == "admin":
+        db.execute("DELETE FROM posts WHERE id=?",(post_id,))
         db.commit()
-        flash("글이 삭제되었습니다.", "success")
+        record_event("delete_post", str(post_id), "deleted")
+        flash("글이 삭제되었습니다.","success")
         return redirect(url_for("board", board=post.get("board","free")))
     else:
-        app.logger.debug(f"DELETE denied: requester={requester}, post_author={post.get('author')}")
-        flash("삭제 권한이 없습니다.", "error")
+        record_event("delete_post_denied", str(post_id), "denied")
+        flash("삭제 권한이 없습니다.","error")
         return redirect(url_for("board", board=post.get("board","free")))
 
 # ------------------ 계좌 ------------------
 @app.route("/account")
 def account():
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
     username = session["username"]
     db = get_db()
-    cur = db.execute("SELECT * FROM users WHERE username=?", (username,))
-    user_row = cur.fetchone()
-    user = row_to_dict(user_row)
-    if not user:
-        flash("사용자를 찾을 수 없습니다.", "error")
-        return redirect(url_for("index"))
+    user = row_to_dict(db.execute("SELECT * FROM users WHERE username=?",(username,)).fetchone())
+    record_event("account_view", username, "")
     return render_template("account.html", user=user)
 
 # ------------------ 송금 ------------------
 @app.route("/transfer", methods=["GET","POST"])
 def transfer():
     if not session.get("username"):
-        flash("로그인을 하세요.", "warning")
+        flash("로그인을 하세요.","warning")
         return redirect(url_for("login"))
     db = get_db()
     sender = session["username"]
     if request.method == "POST":
         form_token = request.form.get("csrf_token","")
         if not form_token or form_token != session.get("csrf_token"):
-            return render_template("result.html", success=False, msg="CSRF token missing or invalid.")
+            return render_template("result.html", success=False, msg="CSRF token invalid.")
         receiver = request.form.get("receiver","").strip()
         try:
             amount = int(request.form.get("amount","0"))
         except:
             amount = 0
-        cur = db.execute("SELECT * FROM users WHERE username = ?", (sender,))
-        s_row = cur.fetchone()
-        s = row_to_dict(s_row)
-        cur = db.execute("SELECT * FROM users WHERE username = ?", (receiver,))
-        r_row = cur.fetchone()
-        r = row_to_dict(r_row)
+        record_event("transfer_attempt", f"{receiver}:{amount}", "")
+        s = row_to_dict(db.execute("SELECT * FROM users WHERE username=?",(sender,)).fetchone())
+        r = row_to_dict(db.execute("SELECT * FROM users WHERE username=?",(receiver,)).fetchone())
         if not r:
+            record_event("transfer_attempt", f"{receiver}:{amount}", "receiver_not_found")
             return render_template("result.html", success=False, msg="수신자 없음")
         if amount <= 0 or s["balance"] < amount:
-            return render_template("result.html", success=False, msg="잔액 부족 또는 입력 오류")
-        db.execute("UPDATE users SET balance = balance - ? WHERE username = ?", (amount, sender))
-        db.execute("UPDATE users SET balance = balance + ? WHERE username = ?", (amount, receiver))
+            record_event("transfer_attempt", f"{receiver}:{amount}", "insufficient_funds")
+            return render_template("result.html", success=False, msg="잔액 부족")
+        db.execute("UPDATE users SET balance=balance-? WHERE username=?",(amount,sender))
+        db.execute("UPDATE users SET balance=balance+? WHERE username=?",(amount,receiver))
         db.commit()
+        record_event("transfer_attempt", f"{receiver}:{amount}", "success")
         return render_template("result.html", success=True, msg=f"{receiver}에게 {amount}원 송금 완료")
-    else:
-        csrf = session.get("csrf_token","")
-        return render_template("transfer.html", sender=sender, csrf=csrf)
+    csrf = session.get("csrf_token","")
+    return render_template("transfer.html", sender=sender, csrf=csrf)
 
 # ------------------ 실행 ------------------
 if __name__ == "__main__":
