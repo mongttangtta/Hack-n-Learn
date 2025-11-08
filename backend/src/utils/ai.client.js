@@ -8,13 +8,13 @@ if (!OPENAI_API_KEY) { console.warn("Warning: OPENAI_API_KEY is not set in envir
 
 const client = new OPENAI({ apiKey: OPENAI_API_KEY });
 
-const isResponsesPreferred = (model) => /^gpt-5(?!-chat)/.test(model || "");
+const isResponsesPreferred = (model) => /^gpt-4o(?!-chat)/.test(model || "");
 
 /**
  * 일반 챗봇용 호출자
  * @param {Object} p
  * @param {Array<{role:'system'|'user'|'assistant', content:string}>} p.messages
- * @param {string} [p.model=process.env.CHAT_MODEL || 'gpt-5']
+ * @param {string} [p.model=process.env.CHAT_MODEL || 'gpt-4o']
  * @param {number} [p.maxTokens=process.env.CHAT_MAX_TOKENS || 600]
  * @param {number} [p.temperature=1]
  * @returns {Promise<{text:string, model:string, usage?:{prompt:number, completion:number, total:number}}>}
@@ -22,7 +22,7 @@ const isResponsesPreferred = (model) => /^gpt-5(?!-chat)/.test(model || "");
 
 export async function chatCompletion({
         messages,
-        model = process.env.CHAT_MODEL || "gpt-5",
+        model = process.env.CHAT_MODEL || "gpt-4o",
         maxTokens = Number(process.env.CHAT_MAX_TOKENS) || 600,
         temperature = 1,
 }) {
@@ -111,7 +111,7 @@ function buildUserPrompt(payload) {
 
 export async function analyzeAnswersBatch({
         payload,
-        model = process.env.EXPLAIN_MODEL || "gpt-5",
+        model = process.env.EXPLAIN_MODEL || "gpt-4o",
         timeoutMs = parseInt(process.env.EXPLAIN_TIMEOUT_MS) || 12000,
         maxRetries = 1,
 }) {
@@ -120,7 +120,7 @@ export async function analyzeAnswersBatch({
                 throw new Error("Invalid payload: expected { userId, items: [] }");
         }
 
-        const batchMax = 10;
+        const batchMax = 5;
         const items = payload.items;
         console.log("[analyzeAnswersBatch] 총 아이템 개수: %d, 청크 크기: %d", items.length, batchMax);
         const chunks = [];
@@ -169,7 +169,7 @@ export async function analyzeAnswersBatch({
                                                 model,
                                                 messages,
                                                 temperature: 1,
-                                                max_completion_tokens : Number(process.env.AI_MAX_TOKENS) || 1500,
+                                                max_completion_tokens : Number(process.env.AI_MAX_TOKENS) || 500,
                                                 response_format: { type: "json_object" },
                                         },{ signal: controller.signal });
                                         text = String(r.choices?.[0]?.message?.content ?? "");
