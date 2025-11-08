@@ -1,46 +1,61 @@
 {
-  "hash": "ab401fc9",
+  "hash": "c5d5c782",
   "configHash": "eb6d371f",
-  "lockfileHash": "34a66d4c",
-  "browserHash": "61d85a1b",
+  "lockfileHash": "314c014b",
+  "browserHash": "5c738bfc",
   "optimized": {
     "react/jsx-dev-runtime": {
       "src": "../../node_modules/react/jsx-dev-runtime.js",
       "file": "react_jsx-dev-runtime.js",
-      "fileHash": "923a3cfa",
+      "fileHash": "87db2a30",
       "needsInterop": true
     },
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "74be11da",
+      "fileHash": "5547b2b2",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "6c9721f0",
+      "fileHash": "d61a8fd1",
       "needsInterop": true
     },
     "react-router-dom": {
       "src": "../../node_modules/react-router-dom/dist/index.mjs",
       "file": "react-router-dom.js",
-      "fileHash": "e15529b4",
+      "fileHash": "d1b3240a",
       "needsInterop": false
     },
     "lucide-react": {
       "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
       "file": "lucide-react.js",
-      "fileHash": "3be368a0",
+      "fileHash": "46ecdd8a",
+      "needsInterop": false
+    },
+    "react-hook-form": {
+      "src": "../../node_modules/react-hook-form/dist/index.esm.mjs",
+      "file": "react-hook-form.js",
+      "fileHash": "b13de52b",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "89e5025e",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-UNHONQC3": {
-      "file": "chunk-UNHONQC3.js"
+    "chunk-JF7IVAG4": {
+      "file": "chunk-JF7IVAG4.js"
     },
-    "chunk-STX5EQTT": {
-      "file": "chunk-STX5EQTT.js"
+    "chunk-4BPZ7PBZ": {
+      "file": "chunk-4BPZ7PBZ.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
     }
   }
 }

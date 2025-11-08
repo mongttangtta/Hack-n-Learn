@@ -1,7 +1,13 @@
 import { StrictMode } from 'react';
 import './styles/index.css';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'; // Import createBrowserRouter and RouterProvider
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import axios from 'axios'; // Import axios
+import { setupAxiosInterceptor } from './utils/axiosInterceptor'; // Import the interceptor setup
+
+// Configure axios to send cookies with requests
+axios.defaults.withCredentials = true;
+setupAxiosInterceptor(); // Set up the Axios interceptor
 
 // Import all page components
 import App from './App';
@@ -18,11 +24,15 @@ import QnaBoard from './pages/community/QnaBoard';
 import Archive from './pages/community/Archive';
 import CommunityPostDetailPage from './pages/CommunityPostDetailPage';
 import RankingPage from './pages/RankingPage';
+import MyPage from './pages/MyPage';
 
-import SignupPage from './pages/SignupPage';
+import SignupPage from './pages/auth/SignupPage';
 import ChallengeResultPage from './pages/ChallengeResultPage'; // Import ChallengeResultPage
 import QnaDetailPage from './pages/QnaDetailPage';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/auth/LoginPage';
+import PasswordResetPage from './pages/auth/PasswordResetPage';
+import ChangePasswordPage from './pages/auth/ChangePasswordPage';
+import FindIdPage from './pages/auth/FindIdPage';
 
 const router = createBrowserRouter([
   {
@@ -52,6 +62,10 @@ const router = createBrowserRouter([
       { path: 'ranking', element: <RankingPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'signup', element: <SignupPage /> },
+      { path: 'find-id', element: <FindIdPage /> },
+      { path: 'password-reset', element: <PasswordResetPage /> },
+      { path: 'change-password', element: <ChangePasswordPage /> },
+      { path: 'mypage', element: <MyPage /> },
     ],
   },
 ]);

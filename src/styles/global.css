@@ -11,6 +11,13 @@
   --color-accent-caution: #ffeb55;
   --color-edge: #a0a0a0;
 
+  /* Award Colors */
+  --color-award-gold: #FFD700;
+  --color-award-silver: #C0C0C0;
+  --color-award-bronze: #CD7F32;
+  --color-award-platinum: #E5E4E2;
+  --color-award-diamond: #B9F2FF;
+
   /* Code Syntax */
   --color-code-bg: #21213f;
   --color-code-syntax: #f8f8f2;

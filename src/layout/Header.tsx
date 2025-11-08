@@ -1,10 +1,11 @@
-import { useState } from 'react';
 import { Bell, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/images/logo.png';
+import { useAuthStore } from '../store/authStore';
 
 export default function Header() {
   const location = useLocation();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   const navLinks = [
     { name: '서비스 소개', path: '/about' },
@@ -13,6 +14,10 @@ export default function Header() {
     { name: '커뮤니티', path: '/community' },
     { name: '랭킹', path: '/ranking' },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <header className="bg-[#21213f]">
@@ -27,7 +32,9 @@ export default function Header() {
               key={link.name}
               to={link.path}
               className={`hover:text-accent-primary1 transition-colors ${
-                location.pathname.startsWith(link.path) ? 'text-accent-primary1 font-bold' : ''
+                location.pathname.startsWith(link.path)
+                  ? 'text-accent-primary1 font-bold'
+                  : ''
               }`}
             >
               {link.name}
@@ -35,17 +42,34 @@ export default function Header() {
           ))}
         </div>
         <div className="flex items-center space-x-4 text-primary-text">
-          <Bell />
-          <span className="flex">
-            <User />
-            이준수님
-          </span>
-          <Link
-            to="/logout"
-            className="text-sm text-secondary-text hover:text-white transition-colors border rounded-[5px] px-1 py-0.5"
-          >
-            로그아웃
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Bell />
+              <Link to="/mypage" className="flex items-center space-x-1">
+                <User />
+                <span>{user?.nickname}님</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-secondary-text hover:text-white transition-colors border rounded-[5px] px-1 py-0.5"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <button className="text-sm text-secondary-text hover:text-white transition-colors border rounded-[5px] px-2 py-1">
+                  로그인
+                </button>
+              </Link>
+              <Link to="/signup">
+                <button className="text-sm text-white bg-accent-primary1 hover:bg-accent-primary2 transition-colors border rounded-[5px] px-2 py-1">
+                  회원가입
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>
