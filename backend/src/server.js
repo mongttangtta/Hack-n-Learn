@@ -10,10 +10,6 @@ const server = http.createServer(app);
 initNewsSocket(server);
 initCommentSocket(server);
 
-server.requestTimeout = 300000; // 30 seconds
-server.headersTimeout = 310000; // 31 seconds
-server.keepAliveTimeout = 65000; // 61 seconds
-
 connectDB()
   .catch(err => {
     console.log('DB connect fail:', err);
