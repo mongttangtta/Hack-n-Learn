@@ -1,10 +1,6 @@
-import { useParams } from 'react-router-dom';
 import NewsArticle from '../components/community/NewsArticle';
-import Button from '../components/Button';
 
 export default function QnaDetailPage() {
-  const { id } = useParams();
-
   // Dummy data for the post
   const post = {
     title: '리액트에서 상태 관리는 어떻게 하는 것이 가장 좋은가요?',

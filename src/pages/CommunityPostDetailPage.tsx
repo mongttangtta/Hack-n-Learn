@@ -1,10 +1,7 @@
-import { useParams } from 'react-router-dom';
 import NewsArticle from '../components/community/NewsArticle';
 import Button from '../components/Button';
 
 export default function CommunityPostDetailPage() {
-  const { id } = useParams();
-
   // Dummy data for the post
   const post = {
     title: '제로데이 취약점, 긴급 패치 권고',
@@ -62,7 +59,9 @@ export default function CommunityPostDetailPage() {
                   </span>
                 </div>
                 <p>{comment.content}</p>
-                {index < comments.length - 1 && <hr className="text-edge my-4" />}
+                {index < comments.length - 1 && (
+                  <hr className="text-edge my-4" />
+                )}
               </div>
             ))}
           </div>
