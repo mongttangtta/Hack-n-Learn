@@ -111,8 +111,8 @@ function buildUserPrompt(payload) {
 
 export async function analyzeAnswersBatch({
         payload,
-        model = process.env.EXPLAIN_MODEL || "gpt-4o",
-        timeoutMs = parseInt(process.env.EXPLAIN_TIMEOUT_MS) || 12000,
+        model = "gpt-4o",
+        timeoutMs = 60000,
         maxRetries = 1,
 }) {
         console.log("[analyzeAnswersBatch] 시작 - model=%s, timeoutMs=%d, maxRetries=%d", model, timeoutMs, maxRetries);
@@ -169,7 +169,7 @@ export async function analyzeAnswersBatch({
                                                 model,
                                                 messages,
                                                 temperature: 1,
-                                                max_completion_tokens : Number(process.env.AI_MAX_TOKENS) || 500,
+                                                max_completion_tokens : 1000,
                                                 response_format: { type: "json_object" },
                                         },{ signal: controller.signal });
                                         text = String(r.choices?.[0]?.message?.content ?? "");
