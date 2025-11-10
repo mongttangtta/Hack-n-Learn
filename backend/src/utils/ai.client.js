@@ -22,8 +22,8 @@ const isResponsesPreferred = (model) => /^gpt-4o(?!-chat)/.test(model || "");
 
 export async function chatCompletion({
         messages,
-        model = process.env.CHAT_MODEL || "gpt-4o",
-        maxTokens = Number(process.env.CHAT_MAX_TOKENS) || 600,
+        model = "gpt-4o",
+        maxTokens = 600,
         temperature = 1,
 }) {
         const resp = await client.chat.completions.create({
