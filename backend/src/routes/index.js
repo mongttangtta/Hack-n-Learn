@@ -11,6 +11,7 @@ import communityRoutes from './community.routes.js';
 import rankingRoutes from './ranking.routes.js';
 import adminRoutes from './admin.routes.js';
 import mainRoutes from './main.routes.js';
+import chatBotRoutes from './chatBot.routes.js';
 
 
 import newsRoutes from './news.routes.js';
@@ -26,6 +27,7 @@ router.use('/theory', theroryRoutes);
 router.use('/news', newsRoutes);
 router.use('/ranking', rankingRoutes);
 router.use('/problems', problemRoutes);
+router.use('/chatbot', chatBotRoutes);
 
 
 router.use('/history', historyRoutes);
