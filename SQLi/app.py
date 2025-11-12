@@ -78,7 +78,48 @@ app = Flask(
     template_folder='templates'
 )
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(16))
+
+# ======== SECRET_KEY 초기화 (env -> 파일 -> 생성) ========
+# 우선 환경변수 확인
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if SECRET_KEY:
+    app.secret_key = SECRET_KEY
+else:
+    # 키를 저장할 파일 위치 (data 폴더에 저장)
+    SECRET_FILE = os.path.join(EVENT_DIR, "secret.key")
+    try:
+        # 이미 파일이 있으면 읽어 사용
+        if os.path.exists(SECRET_FILE):
+            with open(SECRET_FILE, "r", encoding="utf-8") as sf:
+                SECRET_KEY = sf.read().strip()
+        else:
+            # 없으면 새 키 생성 후 파일에 저장
+            SECRET_KEY = secrets.token_hex(32)  # 64 hex chars (256-bit)
+            # 파일 쓰기(디렉토리는 이미 EVENT_DIR에서 생성됨)
+            with open(SECRET_FILE, "w", encoding="utf-8") as sf:
+                sf.write(SECRET_KEY)
+            # 가능한 경우 파일 권한 제한 (POSIX)
+            try:
+                os.chmod(SECRET_FILE, 0o600)
+            except Exception:
+                # Windows 등에서 실패할 수 있으니 예외는 무시
+                pass
+    except Exception as e:
+        # 읽기/쓰기 실패 시 경고하고 임시키 사용 (개발용)
+        print(f"WARNING: failed to read/write secret file {SECRET_FILE}: {e}")
+        SECRET_KEY = SECRET_KEY or "dev-insecure-key"
+
+    app.secret_key = SECRET_KEY
+
+# 선택적: 세션 쿠키 설정 (필요하면 조정)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    # SESSION_COOKIE_SECURE=True,  # HTTPS 환경이면 True로 설정
+)
+# ==========================================================
+
+
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # ------------------ DB helper ------------------
@@ -375,4 +416,3 @@ def transfer():
 # ------------------ 실행 ------------------
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
-
