@@ -39,11 +39,20 @@ router.get("/history/:threadId", requireLogin, ChatBotController.ChatBotControll
  *             schema:
  *               $ref: '#/components/schemas/ChatAskResponse'
  *             examples:
- *               ok:
+ *               firstMessage:
+ *                 summary: 첫 대화 시작 (threadId 없음)
  *                 value:
  *                   success: true
  *                   data:
  *                     threadId: "671ee9c31a2bfc1c5e0e5f1b"
+ *                     answer: "SQL Injection은 입력값 검증 부족으로 발생합니다."
+ *               followUp:
+ *                 summary: 기존 threadId 사용
+ *                 value:
+ *                   success: true
+ *                   data:
+ *                     threadId: "671ee9c31a2bfc1c5e0e5f1b"
+ *                     answer: "Prepared Statement로 방어할 수 있습니다."
  *                     answer: "SQL 인젝션은 입력값 검증 부족으로 발생합니다. 준비되면 'SQL Injection 기초'로 이동해보세요."
  *       400:
  *         description: 유효하지 않은 입력(빈 값, 과도한 길이 등)
