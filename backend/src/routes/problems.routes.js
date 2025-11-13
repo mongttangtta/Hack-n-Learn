@@ -10,6 +10,7 @@ import Problem from "../models/problem.model.js";
 import requireLogin from "../middlewares/auth.middleware.js";
 import * as problemController from "../controllers/problems.controller.js";
 import { validateBody } from "../middlewares/validateQuery.js";
+import { analyzeEventLog } from "../utils/ai.client.js";
 
 
 const router = Router();
@@ -236,7 +237,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
         }
 });     
 
-router.post("/:id/stop-lab", requireLogin, async( req, res) => {
+router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수정해야됨
         try {
                 const { id } = req.params;
                 const userId = req.user._id;
@@ -299,10 +300,15 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                         return res.status(404).json({ success: false, message: "No event data found." });
                 }
 
-                res.download( tempPath, `${slug}_events.json`, ( err ) => {
-                        if( err ) console.error("Error sending event file:", err);
-                        fs.unlinkSync( tempPath, () => {});
-                });
+                const aiResult = await analyzeEventLog( tempPath );
+
+                try {
+                        fs.unlinkSync( tempPath );
+                } catch (err) {
+                        console.error("Error deleting temp event file:", err);
+                }
+
+                res.json({ success: true, analysis: aiResult });
         } catch (error) {
                 console.error("Error fetching event data:", error);
                 res.status(500).json({ message: "Failed to fetch event data." });

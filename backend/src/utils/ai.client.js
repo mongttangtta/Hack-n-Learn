@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import OPENAI from "openai";
 dotenv.config();
+import fs from "fs";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -219,4 +220,71 @@ export async function analyzeAnswersBatch({
         }
         console.log("[analyzeAnswersBatch] 전체 처리 완료 - 최종 결과 개수: %d", aggregatedResults.length);
         return { results: aggregatedResults };
+}
+
+
+/**
+ * Flask 이벤트 로그(events.json)를 AI로 분석
+ * @param {string} filePath 컨테이너에서 복사된 events.json 경로
+ * @param {Object} [options]
+ * @param {string} [options.model="gpt-4o"]
+ * @param {number} [options.maxTokens=1200]
+ * @param {number} [options.temperature=1]
+ * @returns {Promise<{ text: string, model: string }>}
+ */
+
+export async function analyzeEventLog(
+        filePath,
+        { model = "gpt-4o", maxTokens = 1200, temperature = 1 } = {}
+) {
+        if(!fs.existsSync(filePath)){
+                throw new Error("File not found: " + filePath);
+        }
+
+        const raw = fs.readFileSync(filePath, "utf-8");
+        const lines = raw
+                .split("\n")
+                .filter(Boolean)
+                .map((line) => {
+                        try {
+                                return JSON.parse(line);
+                        } catch {
+                                return null;
+                        }
+                }).filter(Boolean);
+        
+        const recent = lines.slice(-50); // 최근 50개 이벤트만 사용
+
+        const systemPrompt = `
+                당신은 웹 보안 실습 분석 전문가입니다.
+                입력은 사용자의 SQL Injection 실습 로그(events.json)이며, 각 항목은 ts, action, payload, result로 구성됩니다.
+                이 로그를 기반으로 사용자의 시도 과정을 시간순으로 분석하세요.
+
+                필수 분석 항목:
+                1. 주요 시도 흐름 요약 (로그인 시도, 게시판 검색, 송금 시도 등)
+                2. 실패 이유 (예: 따옴표 닫힘 오류, SQL 구문 오류 등)
+                3. 성공으로 이어지지 못한 원인
+                4. 올바른 공격 절차와 개선점
+                5. 학습 조언 (SQL Injection 방어/공격 관점)
+
+                결과는 자연스러운 **한국어 문단** 형태로 작성하세요.
+                `;
+        const userPrompt = `
+                다음은 실습 중 기록된 events.json 내용입니다 (최근 ${recent.length}개 로그):
+
+                ${JSON.stringify(recent, null, 2)}
+
+                이 데이터를 바탕으로 사용자의 시도 흐름과 실습 결과를 분석하세요.
+                `;
+        const { text, model: usedModel } = await chatCompletion({
+                messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt },
+                ],
+                model,
+                maxTokens,
+                temperature,
+        });
+
+        return { text, model: usedModel };
 }
