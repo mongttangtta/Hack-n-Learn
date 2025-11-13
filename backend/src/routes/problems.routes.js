@@ -135,6 +135,66 @@ const router = Router();
  *                       example: 80
  *                       description: 남은 최대 획득 가능 점수
  */
+/**
+ * @swagger
+ * /api/problems/{slug}/events:
+ *   get:
+ *     summary: 실습 컨테이너 이벤트 로그 분석
+ *     tags: [Problems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 이벤트 로그 분석 결과 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 analysis:
+ *                   type: object
+ *                   description: AI 분석 결과
+ *                   example:
+ *                     summary: "SQL Injection 취약점 탐지 성공"
+ *                     steps:
+ *                       - "로그인 페이지 접근"
+ *                       - "payload: ' OR '1'='1' 사용 탐지"
+ *                     score: 95
+ *       404:
+ *         description: 문제 또는 실행 중인 실습이 존재하지 않거나 이벤트 파일이 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No running practice found for this problem."
+ *       500:
+ *         description: 서버 내부 오류 (Docker 복사 실패 등)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch event data."
+ */
+
+
 
 const execPromise = util.promisify(exec);
 
@@ -242,7 +302,21 @@ router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수
                 const { id } = req.params;
                 const userId = req.user._id;
 
-                const practice = await Practice.findOne({ userId, problemId: id, status: 'running' });
+                let problem;
+                if (mongoose.Types.ObjectId.isValid(id)) {
+                        problem = await Problem.findById(id);
+                } else {
+                        problem = await Problem.findOne({ slug: id });
+                }
+
+                if (!problem) {
+                        return res.status(404).json({ 
+                                success: false, 
+                                message: "Problem not found." 
+                        });
+                }
+
+                const practice = await Practice.findOne({ userId, problemId: problem._id, status: 'running' });
                 if (!practice) return res.status(404).json({ success: false, message: "No running lab environment found." });
 
                 await execPromise(`docker stop ${practice.containerName}`);
@@ -253,7 +327,7 @@ router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수
                 practice.stoppedAt = new Date();
                 await practice.save();
 
-                res.json({ success: true, message: "Lab environment stopped successfully." });
+                res.json({ success: true, message: practice.port + " Lab environment stopped successfully." });
         } catch (error) {
                 console.error("Error stopping lab environment:", error);
                 res.status(500).json({ message: "Failed to stop lab environment." });
