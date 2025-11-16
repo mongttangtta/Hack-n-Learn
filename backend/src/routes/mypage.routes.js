@@ -1,11 +1,24 @@
 // 마이페이지 관련 라우트
 import { Router } from "express";
 import passport from "passport";
+import multer from "multer";
 import * as mypageController from "../controllers/mypage.controller.js";
 import requireLogin from "../middlewares/auth.middleware.js";
 
 
 const router = Router();
+const upload = multer({ 
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 2 * 1024 * 1024 }, // 2MB 파일 크기 제한
+        fileFilter: (req, file, cb) => {
+                const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+
+                if(!allowed.includes(file.mimetype)) {
+                        return cb(new Error("Only image files are allowed (png, jpeg, jpg, webp)"));
+                }
+                cb(null, true);
+        }
+}); // 파일 업로드를 위한 multer 미들웨어 설정
 
 router.get("/", requireLogin, mypageController.getMyPage);
 
@@ -24,6 +37,8 @@ router.get("/link/github/callback",
         passport.authorize("github", { failureRedirect: "/api/mypage", failureFlash: false }),
         mypageController.linkGitHubAccount
 );
+router.post("/profile-image", requireLogin, upload.single("image"), mypageController.uploadProfileImage);
+
 
 /**
  * @swagger
@@ -225,6 +240,46 @@ router.get("/link/github/callback",
  *       scheme: bearer
  *       bearerFormat: JWT
  */
+/**
+ * @swagger
+ * /api/mypage/profile-image:
+ *   post:
+ *     summary: 프로필 이미지 업로드 (Cloudflare R2)
+ *     tags: [MyPage]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: 업로드 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 imageUrl:
+ *                   type: string
+ *                   example: "https://pub-xxxxxx.r2.dev/abcd1234.png"
+ *       400:
+ *         description: 파일 누락
+ *       401:
+ *         description: 인증 실패
+ *       500:
+ *         description: 서버 내부 오류
+ */
+
 
 
 

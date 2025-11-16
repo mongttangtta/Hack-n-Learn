@@ -22,7 +22,6 @@ router.use('/problems', problemRoutes);
 router.use('/chatbot', chatBotRoutes);
 router.use('/admin', adminRoutes);
 router.use('/community', communityRoutes);
-
 router.use('/mypage', mypageRoutes);
 
 export default router;

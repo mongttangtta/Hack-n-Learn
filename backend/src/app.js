@@ -46,6 +46,20 @@ app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api", routes);
 app.use("/internal", requireLogin, internalRouter);
 
+app.use((err, req, res, next) => {
+        if(err instanceof multer.MulterError) {
+                return res.status(400).json({ success: false, message: err.message });
+        }
+
+        if (err) {
+                return res.status(400).json({
+                success: false,
+                message: err.message,
+                });
+        }
+        next();
+});
+
 app.use(errorHandler);
 
 export default app;

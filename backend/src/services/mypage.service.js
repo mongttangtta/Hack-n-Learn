@@ -4,13 +4,14 @@ import ProblemPersonal from '../models/problemPersonal.model.js';
 import Technique from '../models/theory.model.js';
 import Quiz from '../models/quiz.model.js';
 import QuizProcess from '../models/quizProcess.model.js';
+import { uploadToR2, deleteFromR2 } from '../utils/uploadToR2.js';
 import mongoose from 'mongoose';
 
 export const getMyPageData = async (userId) => {
         const uid = mongoose.Types.ObjectId(userId);
 
         const profile = await User.findById(uid)
-        .select("nickname tier points createdAt lastLogin isProfileComplete")
+        .select("nickname tier points createdAt lastLogin isProfileComplete profileImageUrl profileImageKey")
         .lean();
 
         const personal = await ProblemPersonal.find({ user: uid })
@@ -176,4 +177,24 @@ export const linkAccount = async (userId, { provider, oauthId, email }) => {
 
         await user.save();
         return user;
+};
+
+export const updateProfileimage = async (userId, file) => {
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+
+        if(user.profileImageKey) {
+                try {
+                        await deleteFromR2(user.profileImageKey);
+                } catch (error) {
+                        console.error("Error deleting old profile image from R2:", error);
+                }
+        }
+
+        const { imageUrl, key } = await uploadToR2(file);
+
+        user.profileImageUrl = imageUrl;
+        user.profileImageKey = key;
+        await user.save();
+        return imageUrl;
 };

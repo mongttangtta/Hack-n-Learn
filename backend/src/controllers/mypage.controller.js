@@ -45,3 +45,23 @@ export const linkGitHubAccount = async (req, res) => {
         return res.status(500).json({ message: "Error linking GitHub account" });
     }
 };
+
+export const uploadProfileImage = async (req, res) => {
+    try {
+        const userId = req.session?.user?._id || req.session?.userId;
+
+        if(!userId) {
+            return res.status(401).json({ success: false, message: "Not authenticated" });
+        }   
+        if(!req.file) {
+            return res.status(400).json({ success: false, message: "Image file is required" });
+        }
+
+        const imageUrl = await mypageService.updateProfileimage(userId, req.file);
+
+        return res.json({ success: true, imageUrl });
+    }catch (error) {
+        console.error("Error uploading profile image:", error);
+        return res.status(500).json({ success: false, message: "Error uploading profile image" });
+    }
+};
