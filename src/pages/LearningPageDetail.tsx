@@ -1,12 +1,10 @@
 import { useState, Fragment } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  learningTopics,
-  type ContentBlock,
-  type InlineContent,
-} from '../data/learningContent';
+import { learningTopics } from '../data/learningContent';
+import { type ContentBlock, type InlineContent } from '../types/learning';
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
+import CodeDisplay from '../components/CodeDisplay';
 import WarningMessage from '../components/WarningMessage';
 
 export default function LearningPageDetail() {
@@ -39,7 +37,18 @@ export default function LearningPageDetail() {
   const renderInlineContent = (content: InlineContent[], keyPrefix: string) => {
     return content.map((item, index) => {
       if (typeof item === 'string') {
-        return <Fragment key={`${keyPrefix}-${index}`}>{item}</Fragment>;
+        const processedText = item
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(
+            /`(.*?)`/g,
+            '<code class="bg-code-bg text-code-keyword p-1 rounded">$1</code>'
+          );
+        return (
+          <span
+            key={`${keyPrefix}-${index}`}
+            dangerouslySetInnerHTML={{ __html: processedText }}
+          />
+        );
       }
       switch (item.type) {
         case 'code':
@@ -79,7 +88,7 @@ export default function LearningPageDetail() {
         );
       case 'p':
         return (
-          <p key={index} className="mb-4">
+          <p key={index} className="mb-4 whitespace-pre-wrap">
             {renderInlineContent(block.content, `p-${index}`)}
           </p>
         );
@@ -87,18 +96,36 @@ export default function LearningPageDetail() {
         return (
           <ul key={index} className="list-disc list-inside mb-4 space-y-2">
             {block.items.map((item, i) => (
-              <li key={i}>{renderInlineContent(item, `ul-${index}-${i}`)}</li>
+              <li key={i} className="whitespace-pre-wrap">
+                {renderInlineContent(item, `ul-${index}-${i}`)}
+              </li>
+            ))}
+          </ul>
+        );
+      case 'nested-list':
+        return (
+          <ul key={index} className="list-disc list-inside mb-4 space-y-2">
+            {block.items.map((item, i) => (
+              <li key={i} className="whitespace-pre-wrap">
+                {renderInlineContent(item.content, `nested-list-${index}-${i}`)}
+                {item.subItems && (
+                  <ul className="list-decimal list-inside ml-8 mt-2 space-y-2">
+                    {item.subItems.map((subItem, j) => (
+                      <li key={j} className="whitespace-pre-wrap">
+                        {renderInlineContent(
+                          subItem,
+                          `nested-list-${index}-${i}-${j}`
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
             ))}
           </ul>
         );
       case 'code':
-        return (
-          <div key={index} className="bg-code-bg p-4 rounded-lg mb-8">
-            <code className="text-code-syntax whitespace-pre-wrap">
-              {block.text}
-            </code>
-          </div>
-        );
+        return <CodeDisplay key={index} code={block.text} className="mb-8" />;
       case 'hr':
         return <hr key={index} className="border-edge my-16" />;
       case 'warning':
@@ -122,8 +149,12 @@ export default function LearningPageDetail() {
               {gridBlock.items.map((item, i) => (
                 <div
                   key={i}
-                  className={`bg-card-background p-6 rounded-lg border-2 border-edge ${
+                  className={`p-6 rounded-lg border-2 border-edge ${
                     item.isToggle ? 'cursor-pointer' : ''
+                  } ${
+                    item.title === openDetailTitle
+                      ? 'bg-navigation'
+                      : 'bg-card-background'
                   }`}
                   onClick={
                     item.isToggle
@@ -141,6 +172,7 @@ export default function LearningPageDetail() {
             </div>
             {openItem?.details && (
               <div className="mt-8 border-t-2 border-edge pt-8">
+                <WarningMessage key="toggled-warning" />
                 {openItem.details.map((detailBlock, detailIndex) =>
                   renderContentBlock(detailBlock, detailIndex)
                 )}
@@ -159,14 +191,14 @@ export default function LearningPageDetail() {
                 onClick={() => handleChecklistClick(i)}
               >
                 <span
-                  className={`mr-3 text-lg ${
+                  className={`mr-3 text-lg whitespace-pre ${
                     checkedItems[i]
                       ? 'text-accent-primary1'
                       : 'text-primary-text'
                   }`}
                 >
-                  [{checkedItems[i] ? '✔' : ' '}]
-                </span>
+                  [{checkedItems[i] ? '✔' : '   '}]
+                </span>{' '}
                 <span
                   className={
                     checkedItems[i]
