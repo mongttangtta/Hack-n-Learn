@@ -825,9 +825,9 @@ if not path.startswith("/srv/public/"):
       items: [
         {
           content: [
-            '절대 ',
+            '**절대** ',
             { type: 'code', text: 'shell=True' },
-            '+ 문자열 결합 금지',
+            '** + 문자열 결합 금지**',
           ],
           subItems: [
             [
@@ -839,7 +839,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['명령 화이트리스트(허용목록) 사용'],
+          content: ['**명령 화이트리스트(허용목록) 사용**'],
           subItems: [
             [
               '실행 가능한 명령/옵션을 미리 정의해 내부 매핑으로만 호출하며 사용자가 직접 명령 문자열을 제공하는 방식은 사용하지 않습니다.',
@@ -847,7 +847,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['입력 검증은 다층으로'],
+          content: ['**입력 검증은 다층으로**'],
           subItems: [
             [
               '타입 검사(숫자/도메인/IP) → 길이 제한 → 정규식(허용 문자만) → 최종 화이트리스트 검증만으로 완벽하지 않음을 인지하고 ',
@@ -857,7 +857,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['최소 권한 원칙'],
+          content: ['**최소 권한 원칙**'],
           subItems: [
             [
               '애플리케이션은 가능한 낮은 권한으로 실행합니다. 컨테이너화 시에도 필요 권한(',
@@ -869,7 +869,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['타임아웃·리소스 제한'],
+          content: ['**타임아웃·리소스 제한**'],
           subItems: [
             [
               '명령 실행시 ',
@@ -883,7 +883,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['출력 검열 및 이스케이프'],
+          content: ['**출력 검열 및 이스케이프**'],
           subItems: [
             [
               '사용자에게 보여주는 명령 출력은 항상 ',
@@ -895,7 +895,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['로그·모니터링·감사'],
+          content: ['**로그·모니터링·감사**'],
           subItems: [
             [
               '의심스러운 입력(세미콜론, 백틱, 네트워크 호출 키워드 등)을 로그에 남겨 탐지. 테스트는 교육용이라도 로깅을 권장합니다.',
@@ -903,7 +903,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['컨테이너·샌드박스화'],
+          content: ['**컨테이너·샌드박스화**'],
           subItems: [
             [
               '외부 명령 실행이 필요한 경우 반드시 컨테이너/가상환경에서 격리·실행하고, seccomp·AppArmor·SELinux 등으로 시스템 콜/권한을 제한합니다.',
@@ -911,7 +911,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['에러 메시지 최소화'],
+          content: ['**에러 메시지 최소화**'],
           subItems: [
             [
               '상세한 시스템 에러/스택트레이스는 클라이언트에 그대로 노출하지 말아야 합니다.(공격자 정보 수집에 악용됨).',
@@ -919,7 +919,7 @@ if not path.startswith("/srv/public/"):
           ],
         },
         {
-          content: ['명령 출력에 대한 길이·패턴 제어'],
+          content: ['**명령 출력에 대한 길이·패턴 제어**'],
           subItems: [
             [
               '응답 길이 제한, 특정 민감 패턴(예: ',
