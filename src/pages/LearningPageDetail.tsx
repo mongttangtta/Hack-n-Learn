@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { learningTopics } from '../data/learningContent';
 import { type ContentBlock, type InlineContent } from '../types/learning';
@@ -126,6 +126,15 @@ export default function LearningPageDetail() {
         );
       case 'code':
         return <CodeDisplay key={index} code={block.text} className="mb-8" />;
+      case 'image':
+        return (
+          <img
+            key={index}
+            src={block.src}
+            alt={block.alt || ''}
+            className="my-8 rounded-lg shadow-lg max-w-1/2 h-auto"
+          />
+        );
       case 'hr':
         return <hr key={index} className="border-edge my-16" />;
       case 'warning':
@@ -211,6 +220,19 @@ export default function LearningPageDetail() {
               </li>
             ))}
           </ul>
+        );
+      case 'image-row':
+        return (
+          <div key={index} className="flex flex-wrap justify-center gap-4 my-8">
+            {block.items.map((imageBlock, imageIndex) => (
+              <img
+                key={imageIndex}
+                src={imageBlock.src}
+                alt={imageBlock.alt || ''}
+                className="max-w-full h-auto rounded-lg shadow-lg"
+              />
+            ))}
+          </div>
         );
       default:
         return null;

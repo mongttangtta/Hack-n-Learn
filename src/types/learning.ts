@@ -1,4 +1,6 @@
-export type InlineContent = string | { type: 'code'; text: string };
+export type InlineContent = string | { type: 'code' | 'strong'; text: string };
+
+export type ImageBlock = { type: 'image'; src: string; alt?: string };
 
 export type NestedListItem = {
   content: InlineContent[];
@@ -15,6 +17,7 @@ export type ContentBlock =
   | { type: 'code'; text: string }
   | { type: 'hr' }
   | { type: 'checklist'; items: InlineContent[][] }
+  | ImageBlock
   | {
       type: 'grid';
       items: {
@@ -26,7 +29,8 @@ export type ContentBlock =
       }[];
     }
   | { type: 'warning'; message?: string }
-  | { type: 'principle'; text: string };
+  | { type: 'principle'; text: string }
+  | { type: 'image-row'; items: ImageBlock[] };
 
 export interface LearningTopic {
   id: string;

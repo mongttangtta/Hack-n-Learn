@@ -27,7 +27,7 @@ const WarningMessage: React.FC<WarningMessageProps> = ({ message }) => {
         <AlertTriangle className="w-6 h-6 mr-2" />
         <strong className="font-bold text-h2">경고</strong>
       </div>
-      <span className="block">{message || defaultMessage}</span>
+      <span className="block whitespace-pre-wrap">{message || defaultMessage}</span>
     </div>
   );
 };
