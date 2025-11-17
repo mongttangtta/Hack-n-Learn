@@ -6,12 +6,6 @@ export class ChatBotController {
                         const userId = req.session?.userId || null;
                         const { message, threadId} = req.body || {};
 
-                        const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
-                                userId,
-                                threadId,
-                                message
-                        });
-
                         if(userId){
                                 res.clearCookie("guestThreadId");
                         } else if(isNewSession){
@@ -21,8 +15,13 @@ export class ChatBotController {
                                         sameSite: "Lax",
                                         maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
                                 }
-                                )
-                        };
+                                )};
+
+                        const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
+                                userId,
+                                threadId,
+                                message
+                        });
 
                         res.status(200).json({
                                 success: true,
