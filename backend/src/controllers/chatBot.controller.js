@@ -3,7 +3,7 @@ import { ChatBotService } from "../services/chatBot.service.js";
 export class ChatBotController {
         static async postAsk(req, res) {
                 try {
-                        const userId = req.user?._id || null;
+                        const userId = req.session?.userId || null;
                         const { message, threadId} = req.body || {};
 
                         const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
