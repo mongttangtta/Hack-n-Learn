@@ -3,20 +3,33 @@ import { ChatBotService } from "../services/chatBot.service.js";
 export class ChatBotController {
         static async postAsk(req, res) {
                 try {
-                        const userId = req.user?._id || req.user?.id;
+                        const userId = req.user?._id || null;
                         const { message, threadId} = req.body || {};
 
-                        const { threadId: tid, answer} = await ChatBotService.ask({
+                        const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
                                 userId,
-                                threadId: threadId,
-                                message: message
+                                threadId,
+                                message
                         });
+
+                        if(userId){
+                                res.clearCookie("guestThreadId");
+                        } else if(isNewSession){
+                                res.cookie("guestThreadId", tid, {
+                                        httpOnly: true,
+                                        secure: process.env.NODE_ENV === "production",
+                                        sameSite: "Lax",
+                                        maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+                                }
+                                )
+                        };
 
                         res.status(200).json({
                                 success: true,
                                 data : { threadId: tid, answer }
                         })
                 } catch (error) {
+                        console.error("Chatbot Error:", error);
                         const msg = String(error?.message || "");
                         if(msg === "Unauthorized"){
                                 res.status(401).json({ success: false, message: "로그인이 필요합니다." });
@@ -34,28 +47,45 @@ export class ChatBotController {
 
         static async getHistory(req, res) {
                 try {
-                        const userId = req.user?._id || req.user?.id;
-                        const { threadId } = req.params;
-                        const limit = Nubmer(req.query.limit) || 50;
+                        const userId = req.session?.userId || null;
+                        const guestThreadId = req.cookies?.guestThreadId;
+                        const limit = Number(req.query.limit) || 50;
 
-                        const messages = await ChatBotService.getHistory({
-                                userId,
-                                threadId,
+                        if(userId){
+                                const data = await ChatBotService.getHistoryByUser({
+                                        userId,
+                                        limit,
+                                });
+
+                                return res.status(200).json({
+                                        success: true,
+                                        data,
+                                });
+                        }
+
+                        
+
+                        if(!guestThreadId){
+                                return res.status(200).json({
+                                        success: true,
+                                        data: [],
+                                });
+                        }
+
+                        const data = await ChatBotService.getHistoryByThread({
+                                threadId: guestThreadId,
                                 limit,
                         });
                         res.status(200).json({
                                 success: true,
-                                data : messages,
+                                data,
                         });
                 } catch (error) {
-                        const msg = String(error?.message || "");
-                        if(msg === "Unauthorized"){
-                                res.status(401).json({ success: false, message: "로그인이 필요합니다." });
-                        }
-                        if(msg === "threadId required"){
-                                res.status(400).json({ success: false, message: "유효하지 않은 대화 세션입니다." });
-                        }
-                        res.status(500).json({ success: false, message: "챗봇 대화 내역 조회 중 오류가 발생했습니다." });
-                }
+                        console.error("Chatbot Error:", error);
+                        return res.status(500).json({
+                                success: false,
+                                message: "히스토리 조회 중 오류가 발생했습니다.",
+                        });
+                } 
         }
 }
