@@ -1,38 +1,66 @@
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useCommunityPage } from '../../components/community/useCommunityPage';
 
-const questions = [
-  {
-    id: 1,
-    title: '리액트에서 상태 관리는 어떻게 하는 것이 가장 좋은가요?',
-    author: '개발자A',
-    date: '2024.07.30',
-    views: 128,
-  },
-  {
-    id: 2,
-    title: '자바스크립트의 비동기 처리에 대한 질문',
-    author: '코린이',
-    date: '2024.07.29',
-    views: 98,
-  },
-  {
-    id: 3,
-    title: 'Tailwind CSS와 Styled-Components 중 어떤 것을 사용해야 할까요?',
-    author: '디자이너B',
-    date: '2024.07.28',
-    views: 256,
-  },
-  // ... more questions
-];
+interface PostItem {
+  id: number;
+  title: string;
+  author: string;
+  date: string;
+  views: number;
+}
 
 export default function QnaBoard() {
   const navigate = useNavigate();
+  const context = useCommunityPage();
+  const currentPage = context?.currentPage || 1;
+  const setTotalPages = context?.setTotalPages;
+  const pageSize = 10; // Assuming a default page size for QnA board
+
+  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get('/api/community/posts', {
+          params: {
+            page: currentPage,
+            limit: pageSize,
+          },
+        });
+        setPosts(response.data.data.items);
+        if (setTotalPages) {
+          setTotalPages(Math.ceil(response.data.data.total / pageSize));
+        }
+      } catch (err) {
+        setError('Failed to fetch posts.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [currentPage, setTotalPages, pageSize]);
 
   const handleRowClick = (id: number) => {
     navigate(`/community/qna/${id}`);
   };
+
+  if (loading) {
+    return <div className="text-center p-20">Loading posts...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-20 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="p-8 text-primary-text">
@@ -55,17 +83,17 @@ export default function QnaBoard() {
           </tr>
         </thead>
         <tbody>
-          {questions.map((q) => (
+          {posts.map((post) => (
             <tr
-              key={q.id}
+              key={post.id}
               className="border-b border-edge hover:bg-card-background cursor-pointer"
-              onClick={() => handleRowClick(q.id)}
+              onClick={() => handleRowClick(post.id)}
             >
-              <td className="p-4">{q.id}</td>
-              <td className="p-4">{q.title}</td>
-              <td className="p-4">{q.author}</td>
-              <td className="p-4">{q.date}</td>
-              <td className="p-4">{q.views}</td>
+              <td className="p-4">{post.id}</td>
+              <td className="p-4">{post.title}</td>
+              <td className="p-4">{post.author}</td>
+              <td className="p-4">{post.date}</td>
+              <td className="p-4">{post.views}</td>
             </tr>
           ))}
         </tbody>

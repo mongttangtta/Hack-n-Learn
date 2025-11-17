@@ -18,7 +18,7 @@ export default function CommunityHome() {
 
   const navLinks = [
     { name: '보안 뉴스', path: '/community' },
-    { name: '문의 게시판', path: '/community/qna' },
+    { name: '자유 게시판', path: '/community/qna' },
     { name: '자료실', path: '/community/archive' },
   ];
 
