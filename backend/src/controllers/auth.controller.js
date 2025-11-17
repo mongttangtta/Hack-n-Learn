@@ -1,5 +1,6 @@
 import * as authService from '../services/auth.service.js';
 import User from '../models/user.model.js';
+import mongoose from 'mongoose';
 
 export const register = async (req, res, next) => {
         try{
@@ -23,6 +24,8 @@ export const login = async (req, res, next) => {
                 }
                 const user = await authService.login(id, password);
                 req.session.userId = user._id;
+
+                req.session.chatThreadId = new mongoose.Types.ObjectId().toHexString();
 
                 res.clearCookie('guestThreadId');
                 res.json({ message: "Login success", userId: user._id, nickname: user.nickname, tier: user.tier });

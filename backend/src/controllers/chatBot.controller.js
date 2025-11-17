@@ -6,22 +6,30 @@ export class ChatBotController {
                         const userId = req.session?.userId || null;
                         const { message, threadId} = req.body || {};
 
+                        let threadIdToUse;
+
                         if(userId){
+                                threadIdToUse = req.session.chatThreadId;
                                 res.clearCookie("guestThreadId");
                         } else if(isNewSession){
+                                threadIdToUse = threadId || new mongoose.Types.ObjectId().toHexString();
+                        };
+
+                        const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
+                                userId,
+                                threadId: threadIdToUse,
+                                message
+                        });
+
+                        if(!userId && isNewSession){
                                 res.cookie("guestThreadId", tid, {
                                         httpOnly: true,
                                         secure: process.env.NODE_ENV === "production",
                                         sameSite: "Lax",
-                                        maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+                                        maxAge: 6 * 60 * 60 * 1000, // 6 hours
                                 }
-                                )};
-
-                        const { threadId: tid, answer, isNewSession } = await ChatBotService.ask({
-                                userId,
-                                threadId,
-                                message
-                        });
+                                );
+                        }
 
                         res.status(200).json({
                                 success: true,
