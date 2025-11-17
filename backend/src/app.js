@@ -4,6 +4,7 @@ dotenv.config();
 import routes from "./routes/index.js";
 import session from "express-session";
 import MonogoStore from "connect-mongo";
+import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { swaggerUi, specs } from "./config/swagger.js";
 import expressMongoSanitize from "@exortek/express-mongo-sanitize";
@@ -16,6 +17,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 app.use(expressMongoSanitize());
 
 

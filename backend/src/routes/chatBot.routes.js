@@ -5,9 +5,9 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post("/ask", requireLogin, chatBotRateLimit, ChatBotController.ChatBotController.postAsk);
+router.post("/ask", chatBotRateLimit, ChatBotController.ChatBotController.postAsk);
 
-router.get("/history/:threadId", requireLogin, ChatBotController.ChatBotController.getHistory);
+router.get("/history", ChatBotController.ChatBotController.getHistory);
 
 
 /**

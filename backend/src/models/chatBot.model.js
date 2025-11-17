@@ -9,7 +9,7 @@ const TokenUsageSchema = new Schema({
 }, { _id : false });
 
 const ChatBotMessagesSchema = new Schema({
-        userId : { type: Types.ObjectId, ref: "User", required: true, index: true },    // 사용자 ID
+        userId : { type: Types.ObjectId, ref: "User", index: true },    // 사용자 ID
         threadId : { type: Types.ObjectId , required: true, index: true },              // 대화 세션 ID
 
         role : {

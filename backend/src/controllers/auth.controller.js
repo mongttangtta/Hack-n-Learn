@@ -23,6 +23,8 @@ export const login = async (req, res, next) => {
                 }
                 const user = await authService.login(id, password);
                 req.session.userId = user._id;
+
+                res.clearCookie('guestThreadId');
                 res.json({ message: "Login success", userId: user._id, nickname: user.nickname, tier: user.tier });
         } catch (error) {
                 next(error);

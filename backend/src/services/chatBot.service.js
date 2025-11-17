@@ -14,25 +14,21 @@ const CONTEXT_LIMIT = Number(process.env.CHAT_CONTEXT_LIMIT) || 10;
 const USER_INPUT_MAX = Number(process.env.CHAT_USER_INPUT_MAX) || 1000;
 
 export class ChatBotService {
-        /**
-         * 플로팅 챗봇 - 질문 처리
-         * @param {Object} p
-         * @param {string} p.userId
-         * @param {string} [p.threadId] - 없으면 신규 ObjectId 생성
-         * @param {string} p.message
-         * @returns {Promise<{threadId: string, answer: string}>}
-         */
+
         static async ask({ userId, threadId, message}){
-                if(!userId) throw new Error("Unauthorized");
                 if(!message) throw new Error("Empty message");
 
                 const clean = sanitize(message);
                 if(!clean) throw new Error("Invalid message");
                 if(clean.length > USER_INPUT_MAX) throw new Error("Message too long");
 
+                let isNewSession = false;
+
                 const sessionId = threadId || new mongoose.Types.ObjectId().toHexString();
 
-                const historyDocs = await ChatBotMessage.find({ userId, threadId: sessionId })
+                if(!threadId) isNewSession = true;
+
+                const historyDocs = await ChatBotMessage.find({ threadId: sessionId })
                         .sort({ createdAt: -1 })
                         .limit(CONTEXT_LIMIT * 2) // Q&A 쌍이므로 2배
                         .lean();
@@ -55,14 +51,14 @@ export class ChatBotService {
                 const dt = Date.now() - t0;
 
                 await ChatBotMessage.create({
-                        userId,
+                        userId: userId || null,
                         threadId: sessionId,
                         role: "user",
                         content: clean,
                 });
 
                 await ChatBotMessage.create({
-                        userId,
+                        userId : userId || null,
                         threadId: sessionId,
                         role: "assistant",
                         content: text || "",
@@ -71,21 +67,25 @@ export class ChatBotService {
                         tokens: usage,
                 });
 
-                return { threadId: sessionId, answer: text  || "" };
+                return { threadId: sessionId, answer: text  || "", isNewSession };
         }
 
-        /**
-         * 히스토리 조회 (UI에서 대화 복원용)
-         * @param {Object} p
-         * @param {string} p.userId
-         * @param {string} p.threadId
-         * @param {number} [p.limit=50]
-         */
-        static async history({ userId, threadId, limit = 50 }){
-                if(!userId) throw new Error("Unauthorized");
-                if(!threadId) throw new Error("threadId required");
+        static async getHistoryByUser({ userId, limit = 50 }){
+                const docs = await ChatBotMessage.find({ userId })
+                        .sort({ createdAt: -1 })
+                        .limit(limit)
+                        .lean();
 
-                const docs = await ChatBotMessage.find({ userId, threadId })
+                return docs.map((d) => ({
+                        role: d.role,
+                        content: d.content,
+                        createdAt: d.createdAt,
+                        threadId: d.threadId,
+                }));
+        }
+
+        static async getHistoryByThread({ threadId, limit }){
+                const docs = await ChatBotMessage.find({ threadId })
                         .sort({ createdAt: -1 })
                         .limit(Math.min(limit, 200))
                         .lean();
