@@ -198,3 +198,30 @@ export const updateProfileimage = async (userId, file) => {
         await user.save();
         return imageUrl;
 };
+
+export const getUserProfile = async (userId) => {
+
+        const uid = new mongoose.Types.ObjectId(userId);
+        //프로필
+        const profile = await User.findById(uid)
+        .select("nickname tier points createdAt lastLogin isProfileComplete profileImageUrl profileImageKey linkedAccounts")
+        .lean();
+
+        if(!profile) throw new Error("User not found");
+
+        //실전
+        const practice = await ProblemPersonal.find({ user: uid })
+        .sort({ solvedAt: -1 })
+        .lean();
+
+        //퀴즈
+        const quiz = await QuizProcess.find({ userId: uid })
+        .sort({ lastAnsweredAt: -1 })
+        .lean();
+
+        return {
+                profile,
+                practice,
+                quiz
+        }
+};

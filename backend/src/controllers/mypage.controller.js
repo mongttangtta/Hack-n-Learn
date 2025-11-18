@@ -14,6 +14,21 @@ export const getMyPage = async (req, res) => {
     }
 };
 
+export const getMyProfile = async (req, res) => {
+    try {
+        const userId = req.session?.user?._id || req.session?.userId;
+        if (!userId) {
+            return res.status(401).json({ success: false, error: "Unauthorized" });
+        }
+        const profile = await mypageService.getUserProfile(userId);
+
+        return res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        return res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+};
+
 export const linkGoogleAccount = async (req, res) => {
     try {
         const userId = req.session?.user?._id || req.session?.userId;

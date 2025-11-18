@@ -37,6 +37,8 @@ router.get("/link/github/callback",
         passport.authorize("github", { failureRedirect: "/api/mypage", failureFlash: false }),
         mypageController.linkGitHubAccount
 );
+router.get("/profile", requireLogin, mypageController.getMyProfile);
+
 router.post("/profile-image", requireLogin, upload.single("image"), mypageController.uploadProfileImage);
 
 
@@ -280,6 +282,161 @@ router.post("/profile-image", requireLogin, upload.single("image"), mypageContro
  *         description: 서버 내부 오류
  */
 
+/**
+ * @swagger
+ * tags:
+ *   name: MyPage
+ *   description: 마이페이지 (사용자 프로필 및 학습 정보)
+ */
+
+/**
+ * @swagger
+ * /api/mypage/profile:
+ *   get:
+ *     summary: 사용자 프로필 + 실전 문제 Raw + 퀴즈 Raw 조회
+ *     description: |
+ *       로그인한 사용자의 **전체 프로필 정보**,  
+ *       **실전 문제 풀이 기록(ProblemPersonal Raw)**,  
+ *       **퀴즈 풀이 기록(QuizProcess Raw)**  
+ *       을 한 번에 가져오는 API입니다.  
+ *       
+ *       ⚠️ 통계/집계 없이 **MongoDB 모델에 저장된 값을 그대로 반환**합니다.
+ *
+ *     tags: [MyPage]
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     responses:
+ *       200:
+ *         description: 전체 프로필 및 풀이 기록 데이터 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     profile:
+ *                       $ref: '#/components/schemas/MyPageFullProfile'
+ *                     practice:
+ *                       type: array
+ *                       description: ProblemPersonal Raw 데이터 리스트
+ *                       items:
+ *                         $ref: '#/components/schemas/MyPagePracticeRaw'
+ *                     quiz:
+ *                       type: array
+ *                       description: QuizProcess Raw 데이터 리스트
+ *                       items:
+ *                         $ref: '#/components/schemas/MyPageQuizRaw'
+ *
+ *       401:
+ *         description: 인증 실패 (세션 없음)
+ *       500:
+ *         description: 서버 내부 오류
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *
+ *     MyPageFullProfile:
+ *       type: object
+ *       description: 유저 기본 프로필 정보
+ *       properties:
+ *         nickname:
+ *           type: string
+ *           example: "juno"
+ *         tier:
+ *           type: string
+ *           enum: [bronze, silver, gold, platinum]
+ *           example: "silver"
+ *         points:
+ *           type: integer
+ *           example: 1520
+ *         profileImageUrl:
+ *           type: string
+ *           example: "https://pub-xxxxxx.r2.dev/abcd123.webp"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         lastLogin:
+ *           type: string
+ *           format: date-time
+ *         isProfileComplete:
+ *           type: boolean
+ *           example: true
+ *
+ *     MyPagePracticeRaw:
+ *       type: object
+ *       description: ProblemPersonal Raw 데이터 (가공 없음)
+ *       properties:
+ *         _id:
+ *           type: string
+ *         user:
+ *           type: string
+ *         problem:
+ *           type: string
+ *         penalty:
+ *           type: integer
+ *           example: 0
+ *         userHints:
+ *           type: integer
+ *           example: 1
+ *         score:
+ *           type: integer
+ *           example: 90
+ *         result:
+ *           type: string
+ *           enum: [unsolved, success, fail]
+ *           example: "success"
+ *         solvedAt:
+ *           type: string
+ *           format: date-time
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     MyPageQuizRaw:
+ *       type: object
+ *       description: QuizProcess Raw 데이터 (가공 없음)
+ *       properties:
+ *         _id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         techniqueId:
+ *           type: string
+ *         quizId:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [not_started, in_progress, solved]
+ *         lastAnswer:
+ *           type: string
+ *           nullable: true
+ *         lastCorrect:
+ *           type: boolean
+ *         attempts:
+ *           type: integer
+ *           example: 3
+ *         lastAnsweredAt:
+ *           type: string
+ *           format: date-time
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 
 
 
