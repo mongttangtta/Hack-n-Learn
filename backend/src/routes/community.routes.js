@@ -92,11 +92,6 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  * /api/community/posts/{id}:
  *   get:
  *     summary: 게시글 상세 조회 (조회수 증가 및 조회 기록 저장)
- *     description: |
- *       - 게시글 상세 정보를 반환합니다.  
- *       - 로그인한 사용자가 처음 조회하는 경우 **views(조회수)가 1 증가**합니다.  
- *       - 또한 사용자의 조회 기록(PostView)이 저장되며, 이후 재조회 시 조회수는 증가하지 않습니다.  
- *       - 비로그인 사용자는 조회 기록이 저장되지 않으며 조회수도 증가하지 않습니다.
  *     tags: [Community]
  *     parameters:
  *       - in: path
@@ -121,9 +116,6 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  * /api/community/posts/{id}/viewed:
  *   get:
  *     summary: 특정 게시글을 사용자가 조회했는지 확인
- *     description: |
- *       지정된 게시글을 **현재 로그인한 사용자가 본 적이 있는지 확인**합니다.  
- *       PostView 데이터 기반으로 true/false 반환합니다.
  *     tags: [Community]
  *     security: [{ bearerAuth: [] }]
  *     parameters:
