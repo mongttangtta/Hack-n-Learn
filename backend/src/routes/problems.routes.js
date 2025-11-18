@@ -25,6 +25,11 @@ const router = Router();
  * /api/problems/progress:
  *   get:
  *     summary: 실습 문제 진행 상태 목록 조회
+ *     description: |
+ *       사용자가 푼 실습 문제의 상태를 반환합니다.  
+ *       각 문제에 대해 제목, 난이도, 정답률(answerRate), 사용자의 풀이 상태(result)를 포함하여 제공합니다.  
+ *       - result: "unsolved" | "success" | "fail"
+ *       - answerRate: 전체 활성 사용자 대비 정답자 비율 (0 ~ 1)
  *     tags: [Problems]
  *     security:
  *       - bearerAuth: []
@@ -38,23 +43,46 @@ const router = Router();
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 data:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       slug: { type: string }
- *                       title: { type: string }
+ *                       slug:
+ *                         type: string
+ *                         example: "xss-basic"
+ *                       title:
+ *                         type: string
+ *                         example: "XSS 기초"
  *                       difficulty:
  *                         type: string
  *                         enum: [easy, medium, hard]
+ *                         example: "easy"
  *                       result:
  *                         type: string
  *                         enum: [unsolved, success, fail]
+ *                         example: "success"
+ *                         description: 사용자의 풀이 상태
  *                       answerRate:
  *                         type: number
- *                         example: 0.52
+ *                         example: 0.42
+ *                         description: 전체 활성 사용자 중 정답을 맞춘 사용자 비율 (0~1)
+ *       401:
+ *         description: 인증 실패 (Bearer Token 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
  */
+
 /**
  * @swagger
  * /api/problems/{slug}/submit:

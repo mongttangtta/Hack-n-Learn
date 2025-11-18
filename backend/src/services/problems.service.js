@@ -54,6 +54,21 @@ export const submitFlag = async ({userId, problemId, flag}) => {
                                 { $inc : { points: finalScore}},
                                 { session }
                         );
+
+                        const totalUsers = await User.countDocuments({ isActive: true }).session(session);
+
+                        const successCount = await ProblemPersonal.countDocuments({ 
+                                problem: problem._id, 
+                                result: "success"
+                        }).session(session);
+
+                        const updateRate = totalUsers === 0 ? 0 : successCount / totalUsers;
+
+                        await Problem.findByIdAndUpdate(
+                                problem._id,
+                                { answerRate: updateRate },
+                                { session }
+                        );
                 }
                 await session.commitTransaction();
                 session.endSession();
