@@ -294,14 +294,6 @@ router.post("/profile-image", requireLogin, upload.single("image"), mypageContro
  * /api/mypage/profile:
  *   get:
  *     summary: 사용자 프로필 + 실전 문제 Raw + 퀴즈 Raw 조회
- *     description: |
- *       로그인한 사용자의 **전체 프로필 정보**,  
- *       **실전 문제 풀이 기록(ProblemPersonal Raw)**,  
- *       **퀴즈 풀이 기록(QuizProcess Raw)**  
- *       을 한 번에 가져오는 API입니다.  
- *       
- *       ⚠️ 통계/집계 없이 **MongoDB 모델에 저장된 값을 그대로 반환**합니다.
- *
  *     tags: [MyPage]
  *     security:
  *       - bearerAuth: []
