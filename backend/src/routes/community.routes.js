@@ -1,5 +1,6 @@
 // 문의 게시판 관련 라우트
 import { Router } from "express";
+import PostView from "../models/postView.model.js";
 import * as communityController from "../controllers/community.controller.js";
 import { requireLogin } from "../middlewares/auth.middleware.js";
 
@@ -10,6 +11,14 @@ router.get("/posts/:id", communityController.getPostById);
 router.post("/posts", requireLogin, communityController.createPost);
 router.delete("/posts/:id", requireLogin, communityController.deletePost);
 router.put("/posts/:id", requireLogin, communityController.updatePost);
+
+router.get("/posts/:id/viewed", requireLogin, async (req, res) => {
+        const checked = await PostView.exists({
+                postId: req.params.id,
+                userId: req.session.userId
+        });
+        res.json({ success: true, viewed : Boolean(checked) });
+});
 
 router.get("/posts/:id/comments", communityController.getCommentsTree);
 router.post("/posts/:id/comments", requireLogin, communityController.createComment);
@@ -82,60 +91,59 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  * @swagger
  * /api/community/posts/{id}:
  *   get:
- *     summary: 게시글 상세 조회
+ *     summary: 게시글 상세 조회 (조회수 증가 및 조회 기록 저장)
+ *     description: |
+ *       - 게시글 상세 정보를 반환합니다.  
+ *       - 로그인한 사용자가 처음 조회하는 경우 **views(조회수)가 1 증가**합니다.  
+ *       - 또한 사용자의 조회 기록(PostView)이 저장되며, 이후 재조회 시 조회수는 증가하지 않습니다.  
+ *       - 비로그인 사용자는 조회 기록이 저장되지 않으며 조회수도 증가하지 않습니다.
  *     tags: [Community]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema: { type: string }
  *         required: true
+ *         description: 조회할 게시글의 ID
  *     responses:
  *       200:
- *         description: 게시글 상세
+ *         description: 게시글 상세 정보
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 success: { type: boolean }
- *                 data: { $ref: '#/components/schemas/Post' }
- *
- *   put:
- *     summary: 게시글 수정
- *     tags: [Community]
- *     security: [{ bearerAuth: [] }]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema: { type: string }
- *         required: true
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title: { type: string, example: "수정된 제목" }
- *               content: { type: string, example: "수정된 내용" }
- *               secret: { type: boolean, example: true }
- *     responses:
- *       200:
- *         description: 수정된 게시글 반환
- *
- *   delete:
- *     summary: 게시글 삭제
- *     tags: [Community]
- *     security: [{ bearerAuth: [] }]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema: { type: string }
- *         required: true
- *     responses:
- *       200:
- *         description: 삭제 성공 메시지
+ *                 data:
+ *                   $ref: '#/components/schemas/Post'
  */
+/**
+ * @swagger
+ * /api/community/posts/{id}/viewed:
+ *   get:
+ *     summary: 특정 게시글을 사용자가 조회했는지 확인
+ *     description: |
+ *       지정된 게시글을 **현재 로그인한 사용자가 본 적이 있는지 확인**합니다.  
+ *       PostView 데이터 기반으로 true/false 반환합니다.
+ *     tags: [Community]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema: { type: string }
+ *         required: true
+ *         description: 확인할 게시글 ID
+ *     responses:
+ *       200:
+ *         description: 조회 여부 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 viewed: { type: boolean, example: true }
+ */
+
 
 /**
  * @swagger
@@ -268,8 +276,11 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *         author:
  *           type: object
  *           properties:
- *             _id: { type: string, example: "64feabcd1234567890ef1111" }
- *             username: { type: string, example: "juno" }
+ *             _id: { type: string }
+ *             username: { type: string }
+ *         views:              # 🔥 신규 필드
+ *           type: integer
+ *           example: 15
  *         createdAt: { type: string, format: date-time }
  *         updatedAt: { type: string, format: date-time }
  *
@@ -292,6 +303,14 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *             replies:
  *               type: array
  *               items: { $ref: '#/components/schemas/CommentTree' }
+ * 
+ * 
+ *     PostView:
+ *       type: object
+ *       properties:
+ *         postId: { type: string, example: "652fe1aaa111bbb222ccc333" }
+ *         userId: { type: string, example: "64feabcd1234567890ef1111" }
+ *         viewedAt: { type: string, format: date-time }
  *
  *     PostType:
  *       type: object

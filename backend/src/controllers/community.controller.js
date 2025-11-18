@@ -1,5 +1,7 @@
 import * as communityService from "../services/community.service.js";
 import { sendCommentNotification } from "../socket/commentSocket.js";
+import Post from "../models/post.model.js";
+import Comment from "../models/comment.model.js";
 import xss from "xss";
 
 export const createPost = async (req, res) => {
@@ -8,7 +10,6 @@ export const createPost = async (req, res) => {
                         type : req.body.type,
                         title : xss(req.body.title),
                         content : xss(req.body.content),
-                        secret : req.body.secret || false,
                         author : req.session.userId
                 };
                 const post = await communityService.createPost(data);
@@ -37,7 +38,6 @@ export const updatePost = async (req, res) => {
                         type : req.body.type,
                         title : xss(req.body.title),
                         content : xss(req.body.content),
-                        secret : req.body.secret
                 };
                 const post = await communityService.updatePost(req.params.id, req.session.userId, data);
                 if(!post) return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
@@ -60,7 +60,8 @@ export const getPosts = async (req, res) => {
 
 export const getPostById = async (req, res) => {
         try {
-                const post = await communityService.getPostById(req.params.id);
+                const userId = req.session?.userId || null; 
+                const post = await communityService.getPostById(req.params.id, userId);
                 if(!post) return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
                 res.json({ success: true, data: post });
         } catch (error) {
@@ -99,7 +100,7 @@ export const createComment = async (req, res) => {
 export const updateComment = async (req, res) => {
         const data = { content : xss(req.body.content) };
         try {
-                const comment = await communityService.updateComment(req.params.id, req.session.userId, data);
+                const comment = await communityService.updateComment(req.params.commentId, req.session.userId, data);
 
                 if(!comment) return res.status(404).json({ success: false, message: "댓글을 찾을 수 없습니다." });
                 if(comment === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
@@ -112,7 +113,7 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
         try {
-                const result = await communityService.deleteComment(req.params.id, req.session.userId);
+                const result = await communityService.deleteComment(req.params.commentId, req.session.userId);
 
                 if(!result) return res.status(404).json({ success: false, message: "댓글을 찾을 수 없습니다." });
                 if(result === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
@@ -127,7 +128,7 @@ export const createReply = async (req, res) => {
         try {
                 const data = {
                         postId : req.params.id,
-                        parentCommentId : req.body.commentId,
+                        parentComment: req.params.commentId,
                         content : xss(req.body.content),
                         author : req.session.userId
                 };

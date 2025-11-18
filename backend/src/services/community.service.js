@@ -1,13 +1,15 @@
 import Post from "../models/post.model.js";
+import PostView from "../models/postView.model.js";
 import Comment from "../models/comment.model.js";
 import { getPagination } from "../utils/pagination.js";
+
 
 export const createPost = async (data) => {
         const post = new Post(data);
         return await post.save();
 };
 
-export const deletePost = async (id, userId, data) => {
+export const deletePost = async (id, userId) => {
         const post = await Post.findById(id);
         if(!post) return null;
         if(post.author.toString() !== userId.toString()) return "unauthorized";
@@ -15,10 +17,10 @@ export const deletePost = async (id, userId, data) => {
         await Comment.deleteMany({ postId: id });
         return await Post.findByIdAndDelete(id);
 };
-export const updatePost = async (id, data) => {
+export const updatePost = async (id, userId, data) => {
         const post = await Post.findById(id);
         if(!post) return null;
-        if(data.author && post.author.toString() !== data.author.toString()) return "unauthorized";
+        if(post.author.toString() !== userId.toString()) return "unauthorized";
 
         return await Post.findByIdAndUpdate(id, data, { new: true });
 };
@@ -46,8 +48,28 @@ export const getPosts = async (page, limit, type, keyword) => {
         return { total, page, limit, totalPages: Math.ceil(total / limit), items };
 };
 
-export const getPostById = async (id) => {
-        return await Post.findById(id).populate("author", "username");
+
+export const getPostById = async (id,userId) => {
+        const post = await Post.findById(id).populate("author", "username");
+        if(!post) return null;
+        if(userId) {
+                const isFirstView = await PostView.findOne({ postId: id, userId });
+
+                if(!isFirstView) {
+                        await Post.findByIdAndUpdate(id, { $inc: { views: 1 } });
+                        await PostView.create({ postId: id, userId });
+                } else {
+                        await PostView.updateOne(
+                                {
+                                        postId: id,
+                                        userId: userId
+                                },
+                                { viewedAt: new Date() },
+                        );
+                }
+                
+        }
+        return post;
 };
 
 export const createComment = async (data) => {
