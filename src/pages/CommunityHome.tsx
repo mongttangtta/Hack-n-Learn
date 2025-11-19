@@ -35,7 +35,7 @@ export default function CommunityHome() {
   }, [location]);
 
   return (
-    <div className="bg-background text-primary-text min-h-screen ">
+    <div className=" text-primary-text min-h-screen ">
       <HeroSection
         imageUrl={heroimg}
         title={<span className="">커뮤니티</span>}

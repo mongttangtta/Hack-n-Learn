@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './layout/Header';
+import Footer from './layout/Footer'; // 1. Footer 컴포넌트 import
 import AIChatBot from './components/AIChatBot';
 import { useAuthStore } from './store/authStore';
 
@@ -46,6 +47,8 @@ export default function App() {
           <AIChatBot />
         </div>
       )}
+      {/* 2. Header와 동일한 조건으로 Footer 추가 */}
+      {!isChallengePage && <Footer />}
     </>
   );
 }
