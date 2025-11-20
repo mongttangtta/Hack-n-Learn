@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Bot } from 'lucide-react';
+import axios from 'axios';
+import { useAuthStore } from '../store/authStore'; // authStore 임포트
 
-// 메시지 객체 타입을 정의합니다.
+// 메시지 객체 타입 정의
 interface Message {
   id: number;
   text: string;
@@ -12,23 +14,29 @@ interface ChatWindowProps {
   messages: Message[];
   onSend: (text: string) => void;
   onClose: () => void;
+  isLoading: boolean;
 }
 
 /**
- * 챗봇 창 컴포넌트 (UI 분리)
+ * 챗봇 창 컴포넌트 (UI)
  */
-const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
+const ChatWindow = ({
+  messages,
+  onSend,
+  onClose,
+  isLoading,
+}: ChatWindowProps) => {
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<null | HTMLDivElement>(null); // 타입 명시
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
-  // 새 메시지가 오면 항상 맨 아래로 스크롤
+  // 메시지 추가 시 스크롤 하단 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
+    if (input.trim() && !isLoading) {
       onSend(input);
       setInput('');
     }
@@ -36,7 +44,7 @@ const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
 
   return (
     <div className="fixed bottom-24 right-8 w-96 h-[600px] bg-[#2C2C3A] rounded-2xl shadow-2xl flex flex-col border-2 border-[#3A3A4A] z-40">
-      {/* 1. 헤더 */}
+      {/* 헤더 */}
       <div className="flex justify-between items-center p-4 border-b border-[#3A3A4A]">
         <h3 className="text-primary-text font-bold text-lg flex items-center ">
           AI Coach
@@ -50,7 +58,7 @@ const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
         </button>
       </div>
 
-      {/* 2. 메시지 영역 */}
+      {/* 메시지 영역 */}
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">
         {messages.map((msg: Message) => (
           <div
@@ -75,11 +83,35 @@ const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
             </div>
           </div>
         ))}
-        {/* 스크롤을 위한 빈 div */}
+
+        {/* 로딩 표시 */}
+        {isLoading && (
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 p-2 bg-[#1E1E2E] rounded-full">
+              <Bot className="w-5 h-5 text-accent-primary2" />
+            </div>
+            <div className="bg-[#3A3A4A] text-primary-text p-3 rounded-lg">
+              <div className="flex space-x-1">
+                <div
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '0ms' }}
+                />
+                <div
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '150ms' }}
+                />
+                <div
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '300ms' }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 3. 입력 영역 */}
+      {/* 입력 영역 */}
       <form
         onSubmit={handleSubmit}
         className="p-4 border-t border-[#3A3A4A] relative"
@@ -88,8 +120,9 @@ const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="메시지 입력..."
-          className="w-full px-4 py-2 pr-12 bg-[#1E1E2E] text-primary-text rounded-full border border-gray-600 focus:outline-none focus:border-accent-primary1"
+          placeholder={isLoading ? '답변을 생성 중입니다...' : '메시지 입력...'}
+          disabled={isLoading}
+          className="w-full px-4 py-2 pr-12 bg-[#1E1E2E] text-primary-text rounded-full border border-gray-600 focus:outline-none focus:border-accent-primary1 disabled:opacity-50"
         />
       </form>
     </div>
@@ -97,13 +130,16 @@ const ChatWindow = ({ messages, onSend, onClose }: ChatWindowProps) => {
 };
 
 /**
- * 메인 챗봇 컴포넌트 (상태 관리)
+ * 메인 챗봇 컴포넌트 (로직 관리)
  */
 export default function AIChatBot() {
-  // 1. 챗봇창 열림/닫힘 상태
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [threadId, setThreadId] = useState<string | null>(null);
 
-  // 2. 채팅 메시지 목록 상태
+  // useAuthStore에서 현재 로그인한 유저 정보 가져오기
+  const { user } = useAuthStore(); //
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -112,42 +148,78 @@ export default function AIChatBot() {
     },
   ]);
 
-  // 3. 메시지 전송 핸들러
-  const handleSend = (text: string) => {
-    // 사용자 메시지 추가
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      text,
-      sender: 'user',
-    };
-    setMessages((prev) => [...prev, newUserMessage]);
+  const handleSend = async (text: string) => {
+    // 1. 사용자 메시지 즉시 화면에 표시
+    const userMsg: Message = { id: Date.now(), text, sender: 'user' };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsLoading(true);
 
-    // (시뮬레이션) 봇 응답
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: messages.length + 2,
-        text: `'${text}'에 대한 힌트를 검색 중입니다...`,
+    try {
+      // 2. 요청 데이터 구성 (message, threadId, userId)
+      const requestData: {
+        message: string;
+        threadId?: string;
+        userId?: string;
+      } = {
+        message: text,
+      };
+
+      // 스레드 ID가 있으면 추가
+      if (threadId) {
+        requestData.threadId = threadId;
+      }
+
+      // 로그인한 유저가 있으면 userId 추가
+      if (user && user.id) {
+        requestData.userId = user.id;
+        console.log(user.id);
+      }
+
+      // 3. API 호출
+      const response = await axios.post('/api/chatbot/ask', requestData);
+
+      // 4. 응답 처리
+      const { success, data } = response.data;
+
+      if (success && data) {
+        const botMsg: Message = {
+          id: Date.now() + 1,
+          text: data.answer,
+          sender: 'bot',
+        };
+        setMessages((prev) => [...prev, botMsg]);
+
+        // threadId 업데이트 (대화 맥락 유지)
+        if (data.threadId) {
+          setThreadId(data.threadId);
+        }
+      }
+    } catch (error) {
+      console.error('Chatbot API Error:', error);
+      const errorMsg: Message = {
+        id: Date.now() + 1,
+        text: '오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
         sender: 'bot',
       };
-      setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
-      {/* 챗봇 창 (isOpen이 true일 때만 렌더링) */}
       {isOpen && (
         <ChatWindow
           messages={messages}
           onSend={handleSend}
           onClose={() => setIsOpen(false)}
+          isLoading={isLoading}
         />
       )}
 
-      {/* 챗봇 토글 버튼 (기존 코드 활용) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        // z-index로 항상 위에, transition으로 부드러운 효과 추가
         className="fixed bottom-8 right-8 z-50 bg-card-background border-2 border-edge w-[70px] h-[70px] rounded-[20px] flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 hover:border-accent-primary2"
       >
         <h1 className="text-accent-primary2 font-bold mr-2 mb-2 relative text-h1">
