@@ -1,3 +1,4 @@
+//이미지 전용 업로드 미들웨어
 import multer from "multer";
 import path from "path";
 import fs from "fs";
