@@ -79,47 +79,34 @@ app = Flask(
 )
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-# ======== SECRET_KEY 초기화 (env -> 파일 -> 생성) ========
-# 우선 환경변수 확인
+# ======== SECRET_KEY 초기화 ========
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if SECRET_KEY:
     app.secret_key = SECRET_KEY
 else:
-    # 키를 저장할 파일 위치 (data 폴더에 저장)
     SECRET_FILE = os.path.join(EVENT_DIR, "secret.key")
     try:
-        # 이미 파일이 있으면 읽어 사용
         if os.path.exists(SECRET_FILE):
             with open(SECRET_FILE, "r", encoding="utf-8") as sf:
                 SECRET_KEY = sf.read().strip()
         else:
-            # 없으면 새 키 생성 후 파일에 저장
-            SECRET_KEY = secrets.token_hex(32)  # 64 hex chars (256-bit)
-            # 파일 쓰기(디렉토리는 이미 EVENT_DIR에서 생성됨)
+            SECRET_KEY = secrets.token_hex(32)
             with open(SECRET_FILE, "w", encoding="utf-8") as sf:
                 sf.write(SECRET_KEY)
-            # 가능한 경우 파일 권한 제한 (POSIX)
             try:
                 os.chmod(SECRET_FILE, 0o600)
             except Exception:
-                # Windows 등에서 실패할 수 있으니 예외는 무시
                 pass
     except Exception as e:
-        # 읽기/쓰기 실패 시 경고하고 임시키 사용 (개발용)
-        print(f"WARNING: failed to read/write secret file {SECRET_FILE}: {e}")
+        print(f"WARNING: {e}")
         SECRET_KEY = SECRET_KEY or "dev-insecure-key"
 
     app.secret_key = SECRET_KEY
 
-# 선택적: 세션 쿠키 설정 (필요하면 조정)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    # SESSION_COOKIE_SECURE=True,  # HTTPS 환경이면 True로 설정
 )
-# ==========================================================
-
-
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # ------------------ DB helper ------------------
@@ -156,44 +143,27 @@ def init_db(db_conn):
         author TEXT,
         content TEXT
     );
-    CREATE TABLE IF NOT EXISTS flags (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        flag TEXT
-    );
+    CREATE TABLE IF NOT EXISTS flags (id INTEGER PRIMARY KEY AUTOINCREMENT, flag TEXT);
     """)
-    # seed users (if not existing)
+    # seed users
     try:
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("admin", "admin123", "Administrator", 100000),
-        )
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("alice", "alice123", "Alice", 5000),
-        )
-        cur.execute(
-            "INSERT INTO users (username, password, display_name, balance) VALUES (?,?,?,?)",
-            ("bob", "bob123", "Bob", 2000),
-        )
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)", ("admin","admin123","Administrator",100000))
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)", ("alice","alice123","Alice",5000))
+        cur.execute("INSERT INTO users (username,password,display_name,balance) VALUES (?,?,?,?)", ("bob","bob123","Bob",2000))
     except sqlite3.IntegrityError:
         pass
 
-    # seed posts (ensure some defaults)
     cur.execute("DELETE FROM posts")
     sample_posts = [
-        ("notice", "시스템 점검 완료 안내", "관리자", "정기 점검이 정상적으로 완료되었습니다."),
-        ("notice", "영업시간 안내", "관리자", "창구 영업시간이 평일 09:00~17:30으로 변경되었습니다."),
-        ("free", "계좌 등록 문의", "alice", "새 카드로 계좌 등록 가능한가요?"),
-        ("free", "이체 한도 문의", "bob", "모바일 하루 이체 한도가 어떻게 되나요?")
+        ("notice","시스템 점검 완료 안내","관리자","정기 점검이 정상적으로 완료되었습니다."),
+        ("notice","영업시간 안내","관리자","창구 영업시간이 평일 09:00~17:30으로 변경되었습니다."),
+        ("free","계좌 등록 문의","alice","새 카드로 계좌 등록 가능한가요?"),
+        ("free","이체 한도 문의","bob","모바일 하루 이체 한도가 어떻게 되나요?")
     ]
-    cur.executemany("INSERT INTO posts (board, title, author, content) VALUES (?,?,?,?)", sample_posts)
+    cur.executemany("INSERT INTO posts (board,title,author,content) VALUES (?,?,?,?)", sample_posts)
 
-    # seed flag if not exists
-    try:
-        cur.execute("SELECT count(*) FROM flags")
-        cnt = cur.fetchone()[0]
-    except Exception:
-        cnt = 0
+    cur.execute("SELECT count(*) FROM flags")
+    cnt = cur.fetchone()[0] if cur.fetchone else 0
     if cnt == 0:
         cur.execute("INSERT INTO flags (flag) VALUES (?)", ("FLAG{HackAndLearn}",))
     db_conn.commit()
@@ -227,7 +197,7 @@ def login():
         record_event("login_attempt", username, "")
         password = request.form.get("password","")
         db = get_db()
-        user = row_to_dict(db.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password)).fetchone())
+        user = row_to_dict(db.execute("SELECT * FROM users WHERE username=? AND password=?", (username,password)).fetchone())
         if user:
             session.clear()
             session["username"] = user["username"]
@@ -255,7 +225,9 @@ def board(board):
         return redirect(url_for("login"))
     db = get_db()
     title = "공지사항" if board == "notice" else "자유게시판"
-    posts = rows_to_dicts(db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC", (board,)).fetchall())
+    posts = rows_to_dicts(
+        db.execute("SELECT * FROM posts WHERE board=? ORDER BY id DESC", (board,)).fetchall()
+    )
     q = ""
     if request.method == "POST":
         q = request.form.get("q","")
@@ -268,8 +240,7 @@ def board(board):
                     ORDER BY id DESC
                 """
                 posts = rows_to_dicts(db.execute(vulnerable_sql).fetchall())
-            except Exception as e:
-                print("SQL Error:", e)
+            except:
                 posts = []
                 flash("검색 중 오류 발생.", "error")
     return render_template("board.html", board=board, posts=posts, title=title, q=q)
@@ -315,7 +286,7 @@ def write():
         return redirect(url_for("board", board=board))
     return render_template("write.html")
 
-# ------------------ 삭제 (간단) ------------------
+# ------------------ 삭제 ------------------
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
     if not session.get("username"):
@@ -332,48 +303,40 @@ def delete(post_id):
         flash("삭제할 글을 찾을 수 없습니다.", "error")
         return redirect(url_for("index"))
     requester = session.get("username")
-    def is_author_admin_variant(author_value):
-        if not author_value:
-            return False
-        a = str(author_value).strip().lower()
-        return a in ("admin", "administrator") or author_value in ("관리자", "Admin", "관리자님")
-    if requester == post.get("author") or requester == "admin" or is_author_admin_variant(post.get("author")):
+    if requester == post.get("author") or requester == "admin":
         db.execute("DELETE FROM posts WHERE id=?", (post_id,))
         db.commit()
         flash("글이 삭제되었습니다.", "success")
         record_event("delete_post", str(post_id), "deleted")
         return redirect(url_for("board", board=post.get("board","free")))
     else:
-        app.logger.debug(f"DELETE denied: requester={requester}, post_author={post.get('author')}")
         flash("삭제 권한이 없습니다.", "error")
         record_event("delete_post_denied", str(post_id), "denied")
         return redirect(url_for("board", board=post.get("board","free")))
 
-# ------------------ 계좌 (간단) ------------------
+# ------------------ 계좌 (템플릿 적용된 버전 — 수정 완료) ------------------
 @app.route("/account")
 def account():
-    # 로그인 여부 확인
     if not session.get("username"):
         flash("로그인을 하세요.", "warning")
         return redirect(url_for("login"))
+
     username = session["username"]
     db = get_db()
     cur = db.execute("SELECT * FROM users WHERE username=?", (username,))
     user_row = cur.fetchone()
     user = row_to_dict(user_row)
+
     if not user:
         flash("사용자를 찾을 수 없습니다.", "error")
         return redirect(url_for("index"))
-    # account_view 이벤트 기록 (payload에 username을 넣지 않음 — 규칙에 따라 필요 시 변경)
-    record_event("account_view", "", "")
-    # 간단 HTML 반환 (템플릿 없이)
-    return f"""
-    <h1>{user['display_name']}님의 계좌</h1>
-    <p>잔액: {user['balance']}원</p>
-    <a href='{url_for('index')}'>홈으로</a>
-    """
 
-# ------------------ 송금 (간단) ------------------
+    record_event("account_view", "", "")
+
+    # 여기 수정됨: 문자열 리턴 → 템플릿 렌더링
+    return render_template("account.html", user=user)
+
+# ------------------ 송금 ------------------
 @app.route("/transfer", methods=["GET","POST"])
 def transfer():
     if not session.get("username"):
@@ -390,25 +353,30 @@ def transfer():
             amount = int(request.form.get("amount","0"))
         except:
             amount = 0
-        # 기록: transfer_attempt (payload receiver:amount)
+
         record_event("transfer_attempt", f"{receiver}:{amount}", "")
+
         cur = db.execute("SELECT * FROM users WHERE username = ?", (sender,))
         s_row = cur.fetchone()
         s = row_to_dict(s_row)
         cur = db.execute("SELECT * FROM users WHERE username = ?", (receiver,))
         r_row = cur.fetchone()
         r = row_to_dict(r_row)
+
         if not r:
             record_event("transfer_attempt", f"{receiver}:{amount}", "receiver_not_found")
             return render_template("result.html", success=False, msg="수신자 없음")
         if amount <= 0 or s["balance"] < amount:
             record_event("transfer_attempt", f"{receiver}:{amount}", "insufficient_funds")
             return render_template("result.html", success=False, msg="잔액 부족 또는 입력 오류")
+
         db.execute("UPDATE users SET balance = balance - ? WHERE username = ?", (amount, sender))
         db.execute("UPDATE users SET balance = balance + ? WHERE username = ?", (amount, receiver))
         db.commit()
+
         record_event("transfer_attempt", f"{receiver}:{amount}", "success")
         return render_template("result.html", success=True, msg=f"{receiver}에게 {amount}원 송금 완료")
+
     else:
         csrf = session.get("csrf_token","")
         return render_template("transfer.html", sender=sender, csrf=csrf)
