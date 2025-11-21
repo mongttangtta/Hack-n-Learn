@@ -1,10 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>계좌 정보</h2>
+<div class="card" style="max-width:480px; margin:0 auto; padding:24px;">
+  <h2 style="margin-bottom:16px;">💳 내 계좌 정보</h2>
 
-<p>안녕하세요, <strong>{{ user.display_name }}</strong>님</p>
-<p>아이디: <b>{{ user.username }}</b></p>
-<p>잔액: <b>{{ user.balance }}원</b></p>
+  <div style="
+    background:#f8f9fc;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #e2e6ee;
+    margin-bottom:20px;">
+    <p style="font-size:18px; font-weight:600; margin:0;">
+      {{ user.display_name }}님의 잔액
+    </p>
+    <p style="font-size:32px; margin:4px 0 0 0; color:#0054a6; font-weight:700;">
+      {{ "{:,}".format(user.balance) }}원
+    </p>
+  </div>
 
+  <div style="display:flex; justify-content:space-between; gap:12px;">
+    <a href="{{ url_for('transfer') }}"
+       style="flex:1; padding:12px; text-align:center;
+              background:#0054a6; color:white; border-radius:8px; font-weight:600;">
+      송금하기
+    </a>
+    <a href="{{ url_for('index') }}"
+       style="flex:1; padding:12px; text-align:center;
+              background:#d0d5dd; color:black; border-radius:8px; font-weight:600;">
+      홈으로
+    </a>
+  </div>
+</div>
 {% endblock %}
-
