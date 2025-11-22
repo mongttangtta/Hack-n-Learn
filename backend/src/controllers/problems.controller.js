@@ -7,10 +7,10 @@ export const submitFlag = async (req, res, next) => {
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
                 }
-                const { problemId } = req.params;
+                const { slug } = req.params;
                 const { flag } = req.body; // 사용자가 제출한 플래그
 
-                const result = await problemsService.submitFlag({ userId, problemId, flag });
+                const result = await problemsService.submitFlag({ userId, slug, flag });
                 res.json ({ success: true, data : result });
         } catch (error) {
                 next(error);
@@ -24,10 +24,10 @@ export const requestHint = async (req, res, next) => {
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
                 }
-                const { problemId } = req.params;
+                const { slug } = req.params;
                 const { stage } = req.body; // 요청하는 힌트 단계
 
-                const hint = await problemsService.requestHint({ userId, problemId, stage });
+                const hint = await problemsService.requestHint({ userId, slug, stage });
                 res.json({ success: true, data: hint });
         } catch (error) {
                 next(error);
