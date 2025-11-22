@@ -42,7 +42,7 @@ export default function CommunityHome() {
         subtitle="Hack 'n' Learn의 지식이 모이는 허브입니다."
       />
 
-      <main className="">
+      <main className="pb-20">
         {/* Navigation Tabs */}
         <div className="bg-navigation p-2 flex justify-center">
           <nav className="relative flex items-center gap-30" ref={navRef}>

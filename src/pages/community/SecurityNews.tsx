@@ -1,17 +1,22 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import PostCard from '../../components/community/PostCard';
 import { useCommunityPage } from '../../components/community/useCommunityPage';
 
 interface NewsItem {
+  id: string;
   title: string;
   link: string;
   summary: string;
+  image: string;
+  date: string;
 }
 
 export default function SecurityNews() {
+  const navigate = useNavigate();
   const context = useCommunityPage();
   const currentPage = context?.currentPage || 1;
   const setTotalPages = context?.setTotalPages;
@@ -49,8 +54,8 @@ export default function SecurityNews() {
     fetchNews();
   }, [currentPage, setTotalPages, pageSize, sortBy]); // Add sortBy to dependencies
 
-  const handlePostClick = (link: string) => {
-    window.open(link, '_blank'); // Open the news link in a new tab
+  const handlePostClick = (id: string) => {
+    navigate(`/community/${id}`);
   };
 
   const handleSortByLatest = () => {
@@ -87,11 +92,11 @@ export default function SecurityNews() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {news.map((post) => (
           <PostCard
-            key={post.link} // Using link as key, assuming it's unique
-            imageUrl="https://placehold.co/288x288" // Placeholder image
+            key={post.id} // Using id as key
+            imageUrl={post.image} // Using API provided image
             title={post.title}
-            date="N/A" // Placeholder date
-            onClick={() => handlePostClick(post.link)}
+            date={post.date} // Using API provided date
+            onClick={() => handlePostClick(post.id)}
           />
         ))}
       </div>

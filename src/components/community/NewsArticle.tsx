@@ -25,7 +25,6 @@ export default function NewsArticle({ post }: NewsArticleProps) {
         <p>{post.summary}</p>
       </div>
       <div className="mb-8">
-        <h2 className="text-body font-bold mb-2">관련 이미지</h2>
         <img
           src={post.imageUrl}
           alt={post.title}
