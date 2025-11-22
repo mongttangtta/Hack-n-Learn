@@ -1,4 +1,4 @@
-# init_db.py (CSRF 실습 전용)
+# init_db.py (Directory Traversal + File Upload 실습 전용)
 import sqlite3, os
 
 DB = "vuln_bank.db"
@@ -53,31 +53,33 @@ def init():
             u
         )
 
-    # 🔐 CSRF 전용 FLAG (오직 flags 테이블에만 저장)
-    FLAG = "Base64(RkxBR3tDU1JGX0FUVEFDS19TVUNDRVNTfQ)"
+    # 🔐 CSRF + File Upload 실습용 FLAG
+    FLAG = "FLAG{profile_upload_traversal_success}"
     c.execute("INSERT INTO flags (flag) VALUES (?)", (FLAG,))
 
     # 공지사항/자유게시판 글들 (플래그 관련 텍스트는 절대 넣지 않음)
     notices = [
+        ("notice", "업데이트 안내", "관리자",
+         "프로필 사진 기능이 업데이트 되었습니다. 이용해보시고 불편하신 사항은 고객센터로 문의주세요."),
+        ("notice", "보안사고 대응 안내", "관리자",
+         "최근 HallymBank에서 보안사고가 터져 중요한 문서는 private 폴더로 이동되었습니다. 불편을 겪으신 고객분들 모두 죄송합니다."),
         ("notice", "서버 이용 안내", "관리자",
          "이 서버는 교육용 실습 환경입니다. 외부에 공개하지 마세요."),
         ("notice", "보안 안내", "관리자",
          "의심스러운 링크나 첨부파일은 열지 마세요."),
-        ("notice", "영업시간 안내", "관리자",
-         "창구 영업시간은 평일 09:00 - 17:30 입니다."),
-        ("notice", "시스템 점검 내역(예시)", "관리자",
-         "정기 점검이 정상적으로 완료되었습니다. 기록은 내부 시스템에 보관됩니다.")
     ]
+
     frees = [
-        ("free", "오늘 실습 재밌네요!", "alice",
-         "계좌 송금 화면이 실제 인터넷뱅킹 같아요."),
-        ("free", "송금 기능 테스트", "bob",
-         "테스트 송금 했는데 잔액이 잘 반영됩니다."),
-        ("free", "로그인 성공했어요", "alice",
-         "홈 화면에서 내 계좌 잔액까지 확인했습니다."),
-        ("free", "버그 제보", "bob",
-         "가끔 모바일 화면에서 버튼 정렬이 깨지는 것 같아요.")
+        ("free", "프로필기능 업데이트?????", "alice",
+         "개발자님 느낌 있으시네요.. 점점 사이트가 진화하는 느낌 아주 좋아요 "),
+        ("free", "프로필에 취약점있음", "bob",
+         "아ㅋㅋ 프로필 사진 업로드에 File Upload 취약점 있는거 찾았다ㅋㅋ private 폴더 안에 볼 수 있음ㅋㅋ"),
+        ("free", "월급...", "alice",
+         "왜 내 월급만 동결이지...? 물가는 오르는데... 뭐먹고 살으라고..."),
+        ("free", "프로필 업데이트", "bob",
+         "프로필기능 업데이트 된거 취약점 있나 체크해볼게요~ 아, 벤더에 이미 말씀드렸으니까 여러분도 해보고싶으시면 말씀드려보세요!!")
     ]
+
     for p in notices + frees:
         c.execute(
             "INSERT INTO posts (board, title, author, content) VALUES (?,?,?,?)",
@@ -87,7 +89,7 @@ def init():
     conn.commit()
     conn.close()
     print("DB initialized:", DB)
-    print("CSRF FLAG stored in flags table (NOT in posts).")
+    print("FLAG stored in flags table.")
 
 if __name__ == "__main__":
     init()
