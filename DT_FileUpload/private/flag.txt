@@ -1,1 +1,1 @@
-hello buddy
+FLAG{WAIT..HOW_DID_YOU_FIND_THIS!?}
