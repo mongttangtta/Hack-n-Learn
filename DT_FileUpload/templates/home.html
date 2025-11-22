@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="home-grid">
+
+  <!-- 📌 게시판 영역 (왼쪽 그대로) -->
+  <section class="boards">
+    <div class="board card">
+      <h3>📢 공지사항</h3>
+      <ul class="posts">
+        {% for p in notices %}
+        <li><a href="{{ url_for('post', post_id=p['id']) }}"><strong>{{ p['title'] }}</strong></a> — {{ p['author'] }}</li>
+        {% endfor %}
+      </ul>
+      <p class="more"><a href="{{ url_for('board', board='notice') }}">더보기 →</a></p>
+    </div>
+
+    <div class="board card">
+      <h3>💬 자유게시판</h3>
+      <ul class="posts">
+        {% for p in frees %}
+        <li><a href="{{ url_for('post', post_id=p['id']) }}"><strong>{{ p['title'] }}</strong></a> — {{ p['author'] }}</li>
+        {% endfor %}
+      </ul>
+      <p class="more"><a href="{{ url_for('board', board='free') }}">더보기 →</a></p>
+    </div>
+
+    <div class="board card actions">
+      <h3>💳 빠른 이동</h3>
+      <div class="btn-row">
+        <a href="{{ url_for('account') }}">내 계좌</a>
+        <a href="{{ url_for('transfer') }}">송금하기</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ✅ 로그인/프로필 영역 (오른쪽) -->
+  <aside class="sidebar card" style="text-align:center; padding:24px;">
+
+    {% if session.username %}
+      <div style="display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:16px;">
+        {% if user_profile_image(session.username) %}
+          <img src="{{ url_for('static', filename='profile/' ~ user_profile_image(session.username)) }}"
+              style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid #ddd;">
+        {% else %}
+          <img src="{{ url_for('static', filename='default_profile.png') }}"
+              style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #ddd;">
+        {% endif %}
+
+        <div style="text-align:left;">
+          <h2 style="margin:0 0 4px 0;">환영합니다 🎉</h2>
+          <p style="margin:0; font-size:15px;"><b>{{ session.username }}</b>님 로그인 중입니다.</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:12px;">
+        <a href="{{ url_for('profile') }}" 
+          style="flex:1; padding:12px; background:#1d4ed8; color:white; border-radius:8px; font-weight:600;">
+          프로필 수정
+        </a>
+        <a href="{{ url_for('logout') }}"
+          style="flex:1; padding:12px; background:#dc2626; color:white; border-radius:8px; font-weight:600;">
+          로그아웃
+        </a>
+      </div>
+
+    {% else %}
+      <!-- 로그인 폼 (비로그인 시 그대로 유지) -->
+      <h3>로그인</h3>
+      <form method="post" action="{{ url_for('login') }}" class="login-form">
+        <label>아이디</label>
+        <input name="username" placeholder="username" required>
+        <label>비밀번호</label>
+        <input name="password" type="password" required>
+        <button type="submit">로그인</button>
+      </form>
+    {% endif %}
+  </aside>
+
+</div>
+{% endblock %}
+

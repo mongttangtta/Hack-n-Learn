@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:480px; margin:0 auto; padding:24px;">
+  <h2 style="margin-bottom:16px;">💸 송금하기</h2>
+
+  <form method="post" action="{{ url_for('transfer') }}" style="display:flex; flex-direction:column; gap:12px;">
+    {% if csrf %}
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    {% endif %}
+
+    <label>
+      <strong>보내는 사람:</strong>
+      <div style="padding:10px; background:#f0f2f7; border-radius:8px;">
+        {{ sender }}
+      </div>
+    </label>
+
+    <label>
+      <strong>받는 사람 아이디</strong>
+      <input type="text" name="receiver" required
+             style="width:100%; padding:10px; border-radius:8px; border:1px solid #d0d5dd;">
+    </label>
+
+    <label>
+      <strong>금액</strong>
+      <input type="number" name="amount" min="1" required
+             style="width:100%; padding:10px; border-radius:8px; border:1px solid #d0d5dd;">
+    </label>
+
+    <button type="submit"
+            style="padding:12px; background:#0054a6; color:white; 
+                   border-radius:8px; font-weight:600; margin-top:8px;">
+      송금하기
+    </button>
+
+    <a href="{{ url_for('account') }}" 
+       style="padding:10px; text-align:center; margin-top:8px;
+              background:#d0d5dd; color:black; border-radius:8px;">
+      돌아가기
+    </a>
+  </form>
+</div>
+{% endblock %}
+

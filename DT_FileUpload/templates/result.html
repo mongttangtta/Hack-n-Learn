@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:520px; margin:0 auto; padding:28px; text-align:center;">
+
+  {% if success %}
+    <div style="font-size:40px; margin-bottom:8px;">✅</div>
+    <h2 style="margin:0 0 12px 0;">송금 결과</h2>
+
+    <p style="font-size:16px; color:#4b5563; margin-bottom:20px;">
+      아래와 같이 처리되었습니다.
+    </p>
+
+    <div style="
+      padding:16px 20px;
+      border-radius:12px;
+      background:#f3f6ff;
+      border:1px solid #d0daf7;
+      font-size:17px;
+      font-weight:600;
+      color:#1f3a93;
+      word-break:break-word;
+    ">
+      {{ msg }}
+    </div>
+
+  {% else %}
+    <div style="font-size:40px; margin-bottom:8px;">⚠️</div>
+    <h2 style="margin:0 0 12px 0; color:#b91c1c;">송금 실패</h2>
+
+    <div style="
+      padding:16px 20px;
+      border-radius:12px;
+      background:#fef2f2;
+      border:1px solid #fecaca;
+      font-size:16px;
+      color:#7f1d1d;
+      word-break:break-word;
+    ">
+      {{ msg }}
+    </div>
+  {% endif %}
+
+  <div style="margin-top:24px; display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+    <a href="{{ url_for('account') }}"
+       style="min-width:130px; padding:10px 18px; border-radius:999px;
+              background:#0054a6; color:white; font-weight:600; text-decoration:none;">
+      내 계좌로 돌아가기
+    </a>
+    <a href="{{ url_for('index') }}"
+       style="min-width:130px; padding:10px 18px; border-radius:999px;
+              background:#e5e7eb; color:#111827; font-weight:500; text-decoration:none;">
+      홈으로
+    </a>
+  </div>
+</div>
+{% endblock %}
+

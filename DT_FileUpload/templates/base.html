@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HallymBank - Edu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="left">
+      <a class="home-btn" href="{{ url_for('index') }}">HallymBank</a>
+    </div>
+
+    <div class="right-nav">
+      {% if session.username %}
+        {% set img = user_profile_image(session.username) %}
+        {% if img %}
+          <img src="{{ url_for('static', filename='profile/' ~ img) }}"
+               style="width:36px;height:36px;border-radius:50%;object-fit:cover;margin-right:10px;">
+        {% else %}
+          <img src="{{ url_for('static', filename='default_profile.png') }}"
+               style="width:36px;height:36px;border-radius:50%;object-fit:cover;margin-right:10px;">
+        {% endif %}
+
+        <span class="who">{{ session.username }}님 반갑습니다 😊</span>
+      {% else %}
+        <a class="nav-link" href="{{ url_for('login') }}">로그인</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="main-container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>{{ post['title'] }}</h2>
+
+  <p>
+    <strong>작성자:</strong>
+    {% if post['author'] == '관리자' %}
+      {% set display_author = 'admin' %}
+    {% else %}
+      {% set display_author = post['author'] %}
+    {% endif %}
+    {{ display_author }}
+
+    {% if post['author'] == 'admin' or post['author'] == '관리자' %}
+      <span class="badge badge-admin">관리자</span>
+    {% elif post['author'] == 'system' %}
+      <span class="badge badge-system">시스템</span>
+    {% else %}
+      <span class="badge badge-member">일반회원</span>
+    {% endif %}
+
+    &nbsp;&nbsp; <strong>게시판:</strong> {{ post['board'] }}
+  </p>
+
+  <div style="white-space:pre-wrap; border-top:1px solid #eee; padding-top:8px; margin-top:8px;">
+    {{ post['content'] }}
+  </div>
+
+  <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+    {% if session.username == post['author'] or session.username == 'admin' %}
+      <form method="post" action="{{ url_for('delete', post_id=post['id']) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <button type="submit" onclick="return confirm('정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">삭제</button>
+      </form>
+    {% endif %}
+    <a href="{{ url_for('board', board=post['board']) }}" style="margin-left:24px;">목록으로</a>
+  </div>
+</div>
+{% endblock %}
+
