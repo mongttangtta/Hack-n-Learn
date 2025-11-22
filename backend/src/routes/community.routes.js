@@ -30,8 +30,11 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  * @swagger
  * tags:
  *   name: Community
- *   description: 커뮤니티 게시판 (사용자 API)
+ *   description: 커뮤니티 게시판 API
  */
+
+
+
 
 /**
  * @swagger
@@ -46,6 +49,12 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: type
+ *         schema: { type: string, description: "PostType ObjectId" }
+ *       - in: query
+ *         name: keyword
+ *         schema: { type: string, description: "제목/내용 검색" }
  *     responses:
  *       200:
  *         description: 게시글 목록 반환
@@ -58,13 +67,14 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *                 data:
  *                   type: object
  *                   properties:
- *                     total: { type: integer, example: 2 }
- *                     page: { type: integer, example: 1 }
- *                     limit: { type: integer, example: 10 }
- *                     totalPages: { type: integer, example: 1 }
+ *                     total: { type: integer }
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     totalPages: { type: integer }
  *                     items:
  *                       type: array
- *                       items: { $ref: '#/components/schemas/Post' }
+ *                       items:
+ *                         $ref: '#/components/schemas/Post'
  *
  *   post:
  *     summary: 게시글 작성
@@ -78,27 +88,28 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *             type: object
  *             required: [type, title, content]
  *             properties:
- *               type: { type: string, description: "PostType ObjectId", example: "65001aaa111bbb222ccc000" }
+ *               type: { type: string, example: "65001aaa111bbb222ccc000" }
  *               title: { type: string, example: "로그인 오류 발생" }
  *               content: { type: string, example: "로그인 시 500 에러가 발생합니다." }
- *               secret: { type: boolean, example: false }
  *     responses:
  *       201:
- *         description: 생성된 게시글 반환
+ *         description: 생성된 게시글
  */
+
+
+
 
 /**
  * @swagger
  * /api/community/posts/{id}:
  *   get:
- *     summary: 게시글 상세 조회 (조회수 증가 및 조회 기록 저장)
+ *     summary: 게시글 상세 조회 (조회수 증가 & 조회 기록 저장)
  *     tags: [Community]
  *     parameters:
  *       - in: path
  *         name: id
- *         schema: { type: string }
  *         required: true
- *         description: 조회할 게시글의 ID
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: 게시글 상세 정보
@@ -110,12 +121,9 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *                 success: { type: boolean }
  *                 data:
  *                   $ref: '#/components/schemas/Post'
- */
-/**
- * @swagger
- * /api/community/posts/{id}/viewed:
- *   get:
- *     summary: 특정 게시글을 사용자가 조회했는지 확인
+ *
+ *   delete:
+ *     summary: 게시글 삭제
  *     tags: [Community]
  *     security: [{ bearerAuth: [] }]
  *     parameters:
@@ -123,46 +131,11 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *         name: id
  *         schema: { type: string }
  *         required: true
- *         description: 확인할 게시글 ID
  *     responses:
- *       200:
- *         description: 조회 여부 반환
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean, example: true }
- *                 viewed: { type: boolean, example: true }
- */
-
-
-/**
- * @swagger
- * /api/community/posts/{id}/comments:
- *   get:
- *     summary: 게시글 댓글/답글 트리 조회
- *     tags: [Community]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema: { type: string }
- *         required: true
- *     responses:
- *       200:
- *         description: 댓글 트리 구조 반환
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean }
- *                 data:
- *                   type: array
- *                   items: { $ref: '#/components/schemas/CommentTree' }
+ *       200: { description: 삭제 성공 }
  *
- *   post:
- *     summary: 댓글 작성
+ *   put:
+ *     summary: 게시글 수정
  *     tags: [Community]
  *     security: [{ bearerAuth: [] }]
  *     parameters:
@@ -176,13 +149,90 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               type: { type: string }
+ *               title: { type: string }
+ *               content: { type: string }
+ *     responses:
+ *       200: { description: 수정된 게시글 }
+ */
+
+
+
+/**
+ * @swagger
+ * /api/community/posts/{id}/viewed:
+ *   get:
+ *     summary: 사용자가 이 게시글을 조회했는지 조회 기록 확인
+ *     tags: [Community]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema: { type: string }
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: 조회 여부 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 viewed: { type: boolean }
+ */
+
+
+
+/**
+ * @swagger
+ * /api/community/posts/{id}/comments:
+ *   get:
+ *     summary: 게시글의 전체 댓글/답글 트리 조회
+ *     tags: [Community]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema: { type: string }
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: 댓글 트리 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CommentTree'
+ *
+ *   post:
+ *     summary: 댓글 작성
+ *     tags: [Community]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
  *             required: [content]
  *             properties:
  *               content: { type: string, example: "저도 궁금합니다!" }
  *     responses:
- *       201:
- *         description: 생성된 댓글 반환
+ *       201: { description: 생성된 댓글 }
  */
+
+
 
 /**
  * @swagger
@@ -210,9 +260,10 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *             properties:
  *               content: { type: string, example: "혹시 콘솔 로그 확인해보셨나요?" }
  *     responses:
- *       201:
- *         description: 생성된 답글 반환
+ *       201: { description: 생성된 답글 }
  */
+
+
 
 /**
  * @swagger
@@ -233,10 +284,9 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *           schema:
  *             type: object
  *             properties:
- *               content: { type: string, example: "수정된 댓글 내용입니다." }
+ *               content: { type: string }
  *     responses:
- *       200:
- *         description: 수정된 댓글 반환
+ *       200: { description: 수정된 댓글 }
  *
  *   delete:
  *     summary: 댓글 삭제
@@ -245,12 +295,13 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *     parameters:
  *       - in: path
  *         name: commentId
- *         schema: { type: string }
  *         required: true
+ *         schema: { type: string }
  *     responses:
- *       200:
- *         description: 삭제 성공 메시지
+ *       200: { description: 삭제 성공 }
  */
+
+
 
 /**
  * @swagger
@@ -259,22 +310,26 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *     Post:
  *       type: object
  *       properties:
- *         _id: { type: string, example: "652fe1aaa111bbb222ccc333" }
+ *         _id: { type: string }
  *         type:
  *           $ref: '#/components/schemas/PostType'
- *         title: { type: string, example: "로그인 오류가 발생합니다" }
- *         content: { type: string, example: "로그인 시 500 에러가 납니다." }
- *         secret: { type: boolean, example: false }
+ *         title: { type: string }
+ *         content: { type: string }
  *         author:
  *           type: object
  *           properties:
  *             _id: { type: string }
  *             username: { type: string }
- *         views:              # 🔥 신규 필드
- *           type: integer
- *           example: 15
+ *         views: { type: number }
  *         createdAt: { type: string, format: date-time }
  *         updatedAt: { type: string, format: date-time }
+ *
+ *     PostType:
+ *       type: object
+ *       properties:
+ *         _id: { type: string }
+ *         name: { type: string }
+ *         active: { type: boolean }
  *
  *     Comment:
  *       type: object
@@ -282,8 +337,12 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *         _id: { type: string }
  *         postId: { type: string }
  *         parentComment: { type: string, nullable: true }
- *         content: { type: string, example: "댓글 내용입니다." }
- *         author: { type: string }
+ *         content: { type: string }
+ *         author:
+ *           type: object
+ *           properties:
+ *             _id: { type: string }
+ *             username: { type: string }
  *         createdAt: { type: string, format: date-time }
  *         updatedAt: { type: string, format: date-time }
  *
@@ -294,24 +353,16 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *           properties:
  *             replies:
  *               type: array
- *               items: { $ref: '#/components/schemas/CommentTree' }
- * 
- * 
+ *               items:
+ *                 $ref: '#/components/schemas/CommentTree'
+ *
  *     PostView:
  *       type: object
  *       properties:
- *         postId: { type: string, example: "652fe1aaa111bbb222ccc333" }
- *         userId: { type: string, example: "64feabcd1234567890ef1111" }
+ *         postId: { type: string }
+ *         userId: { type: string }
  *         viewedAt: { type: string, format: date-time }
  *
- *     PostType:
- *       type: object
- *       properties:
- *         _id: { type: string, example: "65001aaa111bbb222ccc000" }
- *         name: { type: string, example: "질문" }
- *         active: { type: boolean, example: true }
- *         createdAt: { type: string, format: date-time }
- *         updatedAt: { type: string, format: date-time }
  *
  *   securitySchemes:
  *     bearerAuth:
@@ -319,6 +370,7 @@ router.put("/comments/:commentId", requireLogin, communityController.updateComme
  *       scheme: bearer
  *       bearerFormat: JWT
  */
+
 
 
 export default router;
