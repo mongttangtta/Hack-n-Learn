@@ -46,16 +46,6 @@ export const fetchBoanNewsList = async (page = 1, limit = 10) => {
         // 🔥 요약문
         const summary = aTag.nextAll("a").first().text().trim();
 
-        // 🔥 기자명 + 날짜
-        const writerText = $el.find(".news_writer").text().trim();
-        let writer = null;
-        let date = null;
-
-        if (writerText) {
-            const parts = writerText.split("|").map(v => v.trim());
-            writer = parts[0] || null;
-            date = parts[1] || null;
-        }
 
         if (id && title && link) {
             newsList.push({
@@ -63,8 +53,6 @@ export const fetchBoanNewsList = async (page = 1, limit = 10) => {
                 title,
                 link,
                 image: imgSrc,      // ← 반드시 인코딩된 값!!
-                writer,
-                date,
                 summary
             });
         }
@@ -128,11 +116,27 @@ export const fetchBoanNewsDetail = async (id) => {
         images.push(src);
     });
 
+    //날짜 반환
+    let date = $("#news_util01").text().trim();
+    if(date){
+        date = date.replace("입력 :", "").trim();
+    } else {
+        date = null;
+    }
+
+
+    //기자명 추출
+    let writer = $("#news_util05 b").text().trim();
+
+    writer = writer || null;
+
     return {
         id,
         title,
         content,
-        images   // 👈 딱 이것만 추가됨
+        images,  // 👈 딱 이것만 추가됨
+        date,
+        writer
     };
 };
 
