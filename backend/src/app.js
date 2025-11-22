@@ -6,6 +6,7 @@ import session from "express-session";
 import MonogoStore from "connect-mongo";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import multer from "multer";
 import { swaggerUi, specs } from "./config/swagger.js";
 import expressMongoSanitize from "@exortek/express-mongo-sanitize";
 import { errorHandler, requireLogin } from "./middlewares/auth.middleware.js";
