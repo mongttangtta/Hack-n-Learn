@@ -1,108 +1,69 @@
 import { ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import Input from '../../components/Input';
 import PostCard from '../../components/community/PostCard';
 import { useCommunityPage } from '../../components/community/useCommunityPage';
 
-// Data for the posts - this should ideally come from an API
-const posts = [
-  // ... (assuming more posts here)
-  {
-    id: 1,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 2,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 3,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 4,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 5,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 6,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 7,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 8,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 9,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 10,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 11,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-  {
-    id: 12,
-    imageUrl: 'https://placehold.co/288x288',
-    title: '제로데이 취약점, 긴급 패치 권고',
-    date: '2024.07.25',
-  },
-];
+interface NewsItem {
+  title: string;
+  link: string;
+  summary: string;
+}
 
 export default function SecurityNews() {
-  const navigate = useNavigate();
   const context = useCommunityPage();
   const currentPage = context?.currentPage || 1;
   const setTotalPages = context?.setTotalPages;
   const pageSize = 8;
 
-  useEffect(() => {
-    if (setTotalPages) {
-      setTotalPages(Math.ceil(posts.length / pageSize));
-    }
-  }, [setTotalPages]);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>(null); // State for sorting
 
-  const handlePostClick = (postId: number) => {
-    navigate(`/community/${postId}`);
+  useEffect(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get('/api/news', {
+          params: {
+            page: currentPage,
+            limit: pageSize,
+            ...(sortBy && { sortBy }), // Conditionally add sortBy parameter
+          },
+        });
+        setNews(response.data.data.items);
+        if (setTotalPages) {
+          setTotalPages(Math.ceil(response.data.data.total / pageSize));
+        }
+      } catch (err) {
+        setError('Failed to fetch news.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, [currentPage, setTotalPages, pageSize, sortBy]); // Add sortBy to dependencies
+
+  const handlePostClick = (link: string) => {
+    window.open(link, '_blank'); // Open the news link in a new tab
   };
 
-  const paginatedPosts = posts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const handleSortByLatest = () => {
+    setSortBy('latest'); // Set sortBy to 'latest'
+  };
+
+  if (loading) {
+    return <div className="text-center p-20">Loading news...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-20 text-red-500">{error}</div>;
+  }
 
   return (
     <>
@@ -113,19 +74,24 @@ export default function SecurityNews() {
 
       {/* Sort Options */}
       <div className="flex justify-end items-center mb-6">
-        <button className="flex items-center gap-2 text-primary-text">
-          조회순
+        <button
+          className="flex items-center gap-2 text-primary-text"
+          onClick={handleSortByLatest} // Attach onClick handler
+        >
+          최신순
           <ChevronDown className="w-5 h-5" />
         </button>
       </div>
 
       {/* Posts Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {paginatedPosts.map((post) => (
+        {news.map((post) => (
           <PostCard
-            key={post.id}
-            {...post}
-            onClick={() => handlePostClick(post.id)}
+            key={post.link} // Using link as key, assuming it's unique
+            imageUrl="https://placehold.co/288x288" // Placeholder image
+            title={post.title}
+            date="N/A" // Placeholder date
+            onClick={() => handlePostClick(post.link)}
           />
         ))}
       </div>

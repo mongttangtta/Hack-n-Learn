@@ -18,7 +18,7 @@ export default function CommunityHome() {
 
   const navLinks = [
     { name: '보안 뉴스', path: '/community' },
-    { name: '문의 게시판', path: '/community/qna' },
+    { name: '자유 게시판', path: '/community/qna' },
     { name: '자료실', path: '/community/archive' },
   ];
 
@@ -35,7 +35,7 @@ export default function CommunityHome() {
   }, [location]);
 
   return (
-    <div className="bg-background text-primary-text min-h-screen ">
+    <div className=" text-primary-text min-h-screen ">
       <HeroSection
         imageUrl={heroimg}
         title={<span className="">커뮤니티</span>}

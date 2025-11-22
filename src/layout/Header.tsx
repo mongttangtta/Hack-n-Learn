@@ -2,6 +2,7 @@ import { Bell, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/images/logo.png';
 import { useAuthStore } from '../store/authStore';
+import GooeyNav from '@/components/GooeyNav';
 
 export default function Header() {
   const location = useLocation();
@@ -19,28 +20,35 @@ export default function Header() {
     await logout();
   };
 
+  const gooeyNavItems = navLinks.map((link) => ({
+    label: link.name,
+    href: link.path,
+  }));
+
+  const currentPathIndex = navLinks.findIndex((link) =>
+    location.pathname.startsWith(link.path)
+  );
+
   return (
     <header className="bg-[#21213f]">
-      <nav className="container mx-auto py-4 flex justify-between items-center">
+      <nav className="container mx-auto py-2 flex justify-between items-center">
         <Link to="/">
           <img src={logo} alt="Hack 'n' Learn" className="h-6" />
         </Link>
 
-        <div className="hidden md:flex items-center space-x-15 text-body1 text-primary-text">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className={`hover:text-accent-primary1 transition-colors ${
-                location.pathname.startsWith(link.path)
-                  ? 'text-accent-primary1 font-bold'
-                  : ''
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+        <div className="hidden md:flex items-center justify-center flex-1">
+          <GooeyNav
+            particleCount={15}
+            particleDistances={[90, 10]}
+            particleR={100}
+            animationTime={600}
+            timeVariance={300}
+            colors={['#B19EEF', '#ffffff', '#B19EEF', '#ffffff']}
+            items={gooeyNavItems}
+            initialActiveIndex={currentPathIndex !== -1 ? currentPathIndex : 0}
+          />
         </div>
+
         <div className="flex items-center space-x-4 text-primary-text">
           {isAuthenticated ? (
             <>

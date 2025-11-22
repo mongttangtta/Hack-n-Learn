@@ -11,6 +11,7 @@ setupAxiosInterceptor(); // Set up the Axios interceptor
 
 // Import all page components
 import App from './App';
+import LandingPage from './pages/LandingPage';
 import LearningPageDetail from './pages/LearningPageDetail';
 import LearningPageQuiz from './pages/LearningPageQuiz';
 import LearningPageQuizResult from './pages/LearningPageQuizResult';
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <LearningPageMain /> },
+      { index: true, element: <LandingPage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'learning', element: <LearningPageMain /> },
       { path: 'learning/:topicId', element: <LearningPageDetail /> },

@@ -12,11 +12,11 @@
   --color-edge: #a0a0a0;
 
   /* Award Colors */
-  --color-award-gold: #FFD700;
-  --color-award-silver: #C0C0C0;
-  --color-award-bronze: #CD7F32;
-  --color-award-platinum: #E5E4E2;
-  --color-award-diamond: #B9F2FF;
+  --color-award-gold: #ffd700;
+  --color-award-silver: #c0c0c0;
+  --color-award-bronze: #cd7f32;
+  --color-award-platinum: #e5e4e2;
+  --color-award-diamond: #b9f2ff;
 
   /* Code Syntax */
   --color-code-bg: #21213f;
