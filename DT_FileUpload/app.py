@@ -1,5 +1,5 @@
 # app.py
-# HallymBank CSRF 실습용 (SQLi 제거 + 이벤트 로깅)
+# HallymBank 실습용 (SQLi 제거 + 이벤트 로깅)
 
 from flask import Flask, request, render_template, g, session, redirect, url_for, flash
 import sqlite3
@@ -401,6 +401,7 @@ def account():
 
 
 
+#-----------------profile 라우트------
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
     if not session.get("username"):
@@ -410,12 +411,14 @@ def profile():
     username = session["username"]
     db = get_db()
 
+    # -------------------- POST: 업로드 처리 --------------------
     if request.method == "POST":
         f = request.files.get("photo")
         raw_name = request.form.get("filename", "").strip()
 
         # 파일 선택 안 했을 때
         if not f or f.filename == "":
+            record_event("profile_upload", username, "no_file_selected")
             return render_template(
                 "profile.html",
                 user={"username": username, "profile_image": None},
@@ -423,19 +426,17 @@ def profile():
             )
 
         # 사용자가 입력한 파일명이 있으면 그걸 그대로 사용 (취약점 포인트)
-        # 없으면 원래 파일 이름 사용
         filename = raw_name if raw_name else f.filename
 
         # 평소엔 static/profile 밑에 저장 시도
         save_path = os.path.join("static", "profile", filename)
 
-        # 중간 디렉토리가 없어도 에러 안 나게, 실패해도 그냥 무시
         try:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             f.save(save_path)
+            result = "saved"
         except Exception as e:
-            # 여기서 에러 떠도 그냥 지나감 (중요한 건 DB에 filename이 들어가는 것)
-            print("[profile] save error:", e)
+            result = f"save_error:{e}"
 
         # ★ DB에는 사용자가 입력한 filename 그대로 저장
         db.execute(
@@ -444,17 +445,30 @@ def profile():
         )
         db.commit()
 
+        # ✅ 프로필 업로드 이벤트 기록
+        record_event("profile_upload", filename, result)
+
         flash("프로필이 변경되었습니다.", "success")
         return redirect(url_for("profile"))
 
-    # GET: 현재 프로필 정보
+    # -------------------- GET: 프로필 보기 --------------------
     row = db.execute(
         "SELECT username, display_name, profile_image FROM users WHERE username=?",
         (username,),
     ).fetchone()
     user = row_to_dict(row) if row else {"username": username, "profile_image": None}
 
+    # ✅ 프로필 조회 이벤트 기록
+    record_event("profile_view", username, "ok")
+
     return render_template("profile.html", user=user, error=None)
+
+
+
+
+
+
+
 
 #-----------------view-file 라우트-------
 from flask import Response
