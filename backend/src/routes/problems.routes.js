@@ -331,8 +331,8 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
 
                 console.log(`Starting container: ${containerName} on port ${port}`);
 
-                const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 30분 후 만료
-                const practice = await Practice.create({
+                const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60분 후 만료
+                await Practice.create({
                         userId,
                         problemId: problem._id,
                         containerName,
