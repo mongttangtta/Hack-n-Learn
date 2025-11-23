@@ -319,7 +319,130 @@ const router = Router();
  *                   example: "Problem not found"
  */
 
-
+/**
+ * @swagger
+ * /api/problems/{id}/start-lab:
+ *   post:
+ *     summary: 실습 환경(Lab) 시작
+ *     tags: [Problems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 문제 ID(ObjectId) 또는 slug
+ *     responses:
+ *       200:
+ *         description: 실습 환경이 시작되었거나 이미 실행 중일 때 반환되는 URL/포트 정보
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 url:
+ *                   type: string
+ *                   example: "https://hacknlearn.site/lab/8123/"
+ *                 port:
+ *                   type: integer
+ *                   example: 8123
+ *                 expiresAt:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: 문제를 찾을 수 없음
+ *       429:
+ *         description: 동시 실행 가능한 Lab 개수를 초과함
+ *       503:
+ *         description: 전체 서버 Lab 리소스가 모두 사용 중
+ *       500:
+ *         description: Docker 실행 실패 또는 서버 내부 오류
+ */
+/**
+ * @swagger
+ * /api/problems/{id}/stop-lab:
+ *   post:
+ *     summary: 실습 환경(Lab) 종료
+ *     tags: [Problems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 문제 ID(ObjectId) 또는 slug
+ *     responses:
+ *       200:
+ *         description: Lab 환경을 성공적으로 종료
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "8123 Lab environment stopped successfully."
+ *       404:
+ *         description: 실행 중인 Lab 환경을 찾을 수 없음
+ *       500:
+ *         description: Lab 종료 실패 (docker stop/rm 에러 등)
+ */
+/**
+ * @swagger
+ * /api/problems/running-labs:
+ *   get:
+ *     summary: 실행 중인 Lab 환경 목록 조회
+ *     tags: [Problems]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 해당 사용자가 실행 중인 모든 Lab 리스트
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 runningLabs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "68fd0c37fec1b36292efeabc"
+ *                       problemId:
+ *                         type: string
+ *                       containerName:
+ *                         type: string
+ *                         example: "practice_xss_user_17325920123"
+ *                       port:
+ *                         type: integer
+ *                         example: 8123
+ *                       status:
+ *                         type: string
+ *                         example: "running"
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       expiresAt:
+ *                         type: string
+ *                         format: date-time
+ *       500:
+ *         description: 서버 내부 오류
+ */
 
 
 
