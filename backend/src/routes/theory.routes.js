@@ -14,6 +14,60 @@ const router = express.Router();
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     QuizChoice:
+ *       type: object
+ *       properties:
+ *         label:
+ *           type: string
+ *           example: "A"
+ *         content:
+ *           type: string
+ *           example: "시스템 명령 실행 및 파일 조작"
+
+ *     QuizItem:
+ *       type: object
+ *       description: 단답형/객관식 퀴즈 모두 공통
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: "690df3f44e6f437f67c2f144"
+ *         rawQuestion:
+ *           type: string
+ *           example: "Command Injection으로 인해 발생할 수 있는 피해는 무엇일까?"
+ *         questionParts:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [text, highlight]
+ *                 example: "text"
+ *               content:
+ *                 type: string
+ *                 example: "Command Injection으로 인해 발생할 수 있는 피해는 무엇일까?"
+ *         questionType:
+ *           type: string
+ *           enum: [short, choice]
+ *           example: "choice"
+ *         choices:
+ *           type: array
+ *           description: 선택형일 때만 존재
+ *           items:
+ *             $ref: '#/components/schemas/QuizChoice'
+ *         correctAnswer:
+ *           type: string
+ *           description: 선택형은 A/B/C, 단답형은 텍스트
+ *           example: "A"
+ *         explanation:
+ *           type: string
+ *           example: "공격자는 쉘 명령 실행으로 파일 조작·권한 상승 등 시스템 제어가 가능하다."
+ */
+
+/**
+ * @swagger
  * /api/theory/quiz/{slug}:
  *   get:
  *     summary: 특정 Technique의 전체 퀴즈 목록 조회
@@ -26,9 +80,10 @@ const router = express.Router();
  *         required: true
  *         schema:
  *           type: string
+ *         description: Technique 식별자(slug)
  *     responses:
  *       200:
- *         description: 해당 기법의 퀴즈 목록 반환
+ *         description: 해당 기법의 전체 퀴즈 목록 반환
  *         content:
  *           application/json:
  *             schema:
@@ -41,16 +96,27 @@ const router = express.Router();
  *                   type: object
  *                   properties:
  *                     technique:
- *                       $ref: '#/components/schemas/TechniqueBasic'
- *                     level:
- *                       $ref: '#/components/schemas/LevelSummary'
+ *                       type: object
+ *                       description: 기법 기본 정보
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "69098c1b11a69182bdd7de7b"
+ *                         slug:
+ *                           type: string
+ *                           example: "command-injection"
+ *                         title:
+ *                           type: string
+ *                           example: "Command Injection"
  *                     quizzes:
  *                       type: array
- *                       description: 해당 기법의 퀴즈 목록
+ *                       description: 퀴즈 리스트
  *                       items:
- *                         $ref: '#/components/schemas/QuizSummary'
- *     description: |
- *       특정 학습 기법(slug)에 등록된 모든 퀴즈 목록을 반환합니다.
+ *                         $ref: '#/components/schemas/QuizItem'
+ *       404:
+ *         description: Technique 또는 퀴즈 없음
+ *       500:
+ *         description: 서버 오류
  */
 
 /**

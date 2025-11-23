@@ -1,7 +1,7 @@
 import * as quizService from "../services/quiz.service.js";
 
 
-// GET /api/theory/quiz/:slug/:order
+// GET /api/theory/quiz/:slug
 export async function getQuizzesBySlug(req, res, next) {
         try {
                 const { slug } = req.params;

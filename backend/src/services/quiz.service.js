@@ -34,7 +34,7 @@ export async function listQuizzesBySlug(slug){
 
         const { technique } = ref;
         const quizzes = await Quiz.find({ techniqueId: technique._id })
-        .select("techniqueId questionParts correctAnswer explanation")
+        .select("techniqueId rawQuestion questionParts questionType choices correctAnswer explanation")
         .sort({ createdAt: -1 })
         .lean();
         return { technique, quizzes };
