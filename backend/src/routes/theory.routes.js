@@ -121,6 +121,58 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/theory/quiz-process/{slug}:
+ *   get:
+ *     summary: 특정 Technique에 대한 사용자의 QuizProcess 조회
+ *     tags: [Quiz]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Technique slug
+ *     responses:
+ *       200:
+ *         description: QuizProcess 리스트 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       quizId:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [unsolved, in_progress, solved]
+ *                       attempts:
+ *                         type: integer
+ *                       lastCorrect:
+ *                         type: boolean
+ *                       lastAnswer:
+ *                         type: string
+ *                       lastAnsweredAt:
+ *                         type: string
+ *                         format: date-time
+ *       404:
+ *         description: Technique not found
+ *       401:
+ *         description: Unauthorized
+ */
+
+
+/**
+ * @swagger
  * /api/theory/quiz/{quizId}/check:
  *   post:
  *     summary: 퀴즈 정답 제출 및 채점
@@ -335,6 +387,9 @@ const router = express.Router();
 
 // GET /api/theory/quiz/:slug
 router.get("/quiz/:slug", requireLogin, quizController.getQuizzesBySlug);
+
+// GET /api/theory/quiz-process/:slug
+router.get("/quiz-process/:slug", requireLogin, quizController.getQuizProcessBySlug);
 
 // 퀴즈 정답 제출 및 채점 ( 한 문제 한 문제에 대한 답안 제출 )
 // POST /api/theory/quiz/:quizId/check

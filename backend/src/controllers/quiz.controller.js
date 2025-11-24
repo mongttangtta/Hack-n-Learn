@@ -15,6 +15,21 @@ export async function getQuizzesBySlug(req, res, next) {
         }        
 }
 
+// GET /api/theory/quiz-process/:slug
+export async function getQuizProcessBySlug(req, res, next) {
+        try {
+                const userId = req.session?.userId;
+                if(!userId) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+                const { slug } = req.params;
+                const result = await quizService.listQuizProcessBySlug({ userId, slug });
+                if(result?.notFound){
+                        return res.status(404).json({ success: false, message: "데이터가 존재하지 않습니다." });
+                }
+                return res.json({ success: true, data: result.quizProcesses });
+        } catch(err){
+                next(err);
+        }        
+}
 
 // POST /api/theory/quiz/:quizId/check
 export async function checkAnswerAndAward(req, res, next) {

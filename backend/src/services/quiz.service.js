@@ -158,6 +158,18 @@ export async function listWrongNotes({ userId, slug,page=1, size =20 }){
 
         return { items, meta: { page, size, total }};
 }
+export async function listQuizProcessBySlug({ userId, slug}) {
+        const ref = await findTechniqueBySlug({ slug });
+        if(ref.notFound) return { notFound: true };
+
+        const { technique } = ref;
+
+        const quizProcesses = await QuizProcess.find({ userId, techniqueId: technique._id })
+                .select("quizId techniqueId attempts lastAnswer lastCorrect lastAnsweredAt status")
+                .lean();
+
+        return { technique, quizProcesses };
+}
 
 
 export async function buildResultExplanation({ userId, slug}){
