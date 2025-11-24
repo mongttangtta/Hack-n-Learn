@@ -40,12 +40,44 @@ export async function listQuizzesBySlug(slug){
         return { technique, quizzes };
 }
 
+function normalizeAnswer(str) {
+        if (!str) return "";
+
+        let s = str.trim().toLowerCase();
+
+        s = s.replace(/[\(\)\[\]]/g, ""); //괄호 제거
+
+        const hasXss = s.includes("xss");
+        const hasCSRF = s.includes("csrf");
+
+        if(s.includes("state")) return "state_parameter";
+        if(s.includes("경로") || s.includes("path")) return "path_redirect";
+        if(s.includes("쿼리") || s.includes("query")) return "query_redirect";
+
+        if(hasXss){
+                if(s.includes("dom")) return "dom_xss";
+                if(s.includes("reflected") || s.includes("반사")) return "reflected_xss";
+                if(s.includes("stored") || s.includes("저장")) return "stored_xss";
+                return "xss";
+        }
+        return s.replace(/\s+/g, "_");
+}
+
 export async function checkAnswerAndAward({ userId, quizId, userAnswer }){
         if(!isValidObjectId(quizId)) return { notFound: true };
         const quiz =  await Quiz.findById(quizId).lean();
         if(!quiz) return { notFound: true };
 
-        const correct = quiz.correctAnswer === userAnswer;
+        let correct = false;
+
+        if(quiz.questionType === "choice"){
+                correct = quiz.correctAnswer === userAnswer;
+        } else {
+                const normUser = normalizeAnswer(userAnswer);
+                const normCorrect = normalizeAnswer(quiz.correctAnswer);
+
+                correct = normUser === normCorrect;
+        }
 
         //진행상황에 기록
         try {
