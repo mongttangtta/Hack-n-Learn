@@ -4,7 +4,11 @@ import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
 import { quizService } from '../services/quizService'; // Import quizService
+import { fetchMyPageData } from '../services/userService'; // Import fetchMyPageData
 import type { AIExplanationResponse, UserAnswer } from '../types/quiz'; // Import new types
+import { learningTopics } from '../data/learningContent'; // Import learningTopics
+import CountUp from '@/components/CountUp';
+import StarBorder from '@/components/StarBorder';
 
 const LearningPageQuizResult: React.FC = () => {
   const navigate = useNavigate();
@@ -17,12 +21,31 @@ const LearningPageQuizResult: React.FC = () => {
       allUserAnswers: UserAnswer[];
     };
 
+  const learningTopic = topicId ? learningTopics[topicId] : undefined;
+  const learningTopicTitle = learningTopic
+    ? learningTopic.title
+    : '알 수 없는 학습';
+
   const [aiExplanation, setAiExplanation] =
     useState<AIExplanationResponse | null>(null);
   const [loadingExplanation, setLoadingExplanation] = useState<boolean>(true);
   const [errorExplanation, setErrorExplanation] = useState<string | null>(null);
+  const [totalUserPoints, setTotalUserPoints] = useState<number>(0);
 
   useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const data = await fetchMyPageData();
+        if (data.success && data.data && data.data.profile) {
+          setTotalUserPoints(data.data.profile.points);
+        }
+      } catch (error) {
+        console.error('Failed to fetch total user points:', error);
+      }
+    };
+
+    fetchPoints();
+
     const fetchAIExplanation = async () => {
       if (!topicId || !allUserAnswers) {
         setErrorExplanation('Insufficient data to generate AI explanation.');
@@ -66,30 +89,53 @@ const LearningPageQuizResult: React.FC = () => {
     );
   }
 
-  const scorePercentage =
-    totalProblems > 0 ? (totalEarnedPoints / (totalProblems * 10)) * 100 : 0;
-  // Assuming each problem is worth 10 points for a percentage calculation, adjust as needed
-
   return (
     <>
       <HeroSection title="퀴즈 결과" imageUrl={HeroImg} />
       <div className="min-h-screen py-12 px-10">
         <div className="max-w-[1440px] mx-auto">
           <h2 className="text-h2 font-bold text-primary-text mb-10">
-            퀴즈 결과 확인
+            모든 이론 학습 과정이 끝났습니다. 수고하셨습니다
           </h2>
-          <p className="text-primary-text text-base mb-4">
-            총 문제 수: <span className="font-bold">{totalProblems}</span>
+          <p className="text-primary-text text-base mb-10">
+            당신은 {learningTopicTitle} 학습을 완료했습니다!
           </p>
-          <p className="text-primary-text text-base mb-4">
-            획득 점수: <span className="font-bold">{totalEarnedPoints}점</span>
-          </p>
-          <p className="text-primary-text text-base mb-6">
-            점수 비율:{' '}
-            <span className="font-bold">{scorePercentage.toFixed(2)}%</span>
-          </p>
+          <div className="flex space-x-10">
+            <div>
+              <p className="text-primary-text text-h3 text-base mb-6">
+                획득 점수:{' '}
+                <CountUp
+                  from={0}
+                  to={totalEarnedPoints}
+                  separator=","
+                  direction="up"
+                  duration={1}
+                  className="count-up-text text-h1 text-bold"
+                />
+              </p>
+            </div>
+            <div>
+              <p className="text-primary-text text-h3 text-base mb-6">
+                총점:{' '}
+                <CountUp
+                  from={0}
+                  to={totalUserPoints}
+                  separator=","
+                  direction="up"
+                  duration={1}
+                  className="count-up-text text-h1 text-bold"
+                />
+              </p>
+            </div>
+          </div>
 
-          <div className="bg-card-background rounded-lg p-8 mt-10 mb-10 border-2 border-edge ">
+          {/* <div className="bg-card-background rounded-lg p-8 mt-10 mb-10 border-2 border-edge "> */}
+          <StarBorder
+            as="div"
+            className="custom-class w-full "
+            color="cyan"
+            speed="5s"
+          >
             <h3 className="text-h2 font-bold text-primary-text mb-4">
               AI 종합 해설
             </h3>
@@ -199,8 +245,8 @@ const LearningPageQuizResult: React.FC = () => {
                 AI 해설을 불러올 수 없습니다.
               </p>
             )}
-          </div>
-
+          </StarBorder>
+          {/* </div> */}
           <div className="flex justify-center mt-8">
             <Button variant="secondary" onClick={handleGoBack} className="">
               돌아가기
