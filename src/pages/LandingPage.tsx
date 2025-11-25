@@ -8,12 +8,21 @@ import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
   const [showPrompt, setShowPrompt] = useState(false);
+  const [asciiText, setAsciiText] = useState("Hack'n'Learn  ");
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPrompt(true);
     }, 3000);
-    return () => clearTimeout(timer);
+
+    const textTimer = setTimeout(() => {
+      setAsciiText("Hack'n'Learn");
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(textTimer);
+    };
   }, []);
 
   return (
@@ -54,7 +63,7 @@ export default function LandingPage() {
           />
           <div className="relative w-full h-[400px] pointer-events-auto">
             <ASCIIText
-              text="Hack'n'Learn"
+              text={asciiText}
               enableWaves={true}
               asciiFontSize={6}
             />
