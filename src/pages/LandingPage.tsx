@@ -7,14 +7,30 @@ import Button from '@/components/Button';
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
-  const [showPrompt, setShowPrompt] = useState(false);
+  const hasVisited = sessionStorage.getItem('hasVisitedLandingPage');
+
+  const [showPrompt, setShowPrompt] = useState(!!hasVisited);
+  const [asciiText, setAsciiText] = useState(
+    hasVisited ? "Hack'n'Learn" : "Hack'n'Learn "
+  );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowPrompt(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!hasVisited) {
+      const timer = setTimeout(() => {
+        setShowPrompt(true);
+        sessionStorage.setItem('hasVisitedLandingPage', 'true');
+      }, 3000);
+
+      const textTimer = setTimeout(() => {
+        setAsciiText("Hack'n'Learn");
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(textTimer);
+      };
+    }
+  }, [hasVisited]);
 
   return (
     <>
@@ -53,11 +69,7 @@ export default function LandingPage() {
             sequential={true}
           />
           <div className="relative w-full h-[400px] pointer-events-auto">
-            <ASCIIText
-              text="Hack'n'Learn"
-              enableWaves={true}
-              asciiFontSize={6}
-            />
+            <ASCIIText text={asciiText} enableWaves={true} asciiFontSize={6} />
           </div>
           {showPrompt && (
             <>
