@@ -7,6 +7,7 @@ import HeroSection from '../components/HeroSection';
 import ElectricBorder from '../components/ElectricBorder';
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore
 import axios from 'axios'; // Import axios for API call
+import { Check } from 'lucide-react';
 
 interface CourseCardProps {
   id: string;
@@ -61,8 +62,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const CardContent = () => (
     <>
       <div className="flex-grow">
-        <h3 className="text-2xl font-bold text-primary-text mb-2">
-          {title} {isInProgress && '[V]'}
+        <h3 className="text-2xl font-bold text-primary-text mb-2 flex items-center">
+          {title}{' '}
+          {(isInProgress || isCompleted) && (
+            <Check className="text-accent-primary1 ml-2" />
+          )}
         </h3>
         <p className="text-secondary-text mb-4">{description}</p>
       </div>

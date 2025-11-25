@@ -21,6 +21,9 @@ export default function LearningPageQuiz() {
   const [totalEarnedPoints, setTotalEarnedPoints] = useState<number>(0);
   const [submittedProblemIds, setSubmittedProblemIds] = useState<Set<string>>(new Set());
   const [allUserAnswers, setAllUserAnswers] = useState<UserAnswer[]>([]); // New state to store all user answers
+  const [previouslySolvedIds, setPreviouslySolvedIds] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     const fetchQuizProblems = async () => {
@@ -32,8 +35,13 @@ export default function LearningPageQuiz() {
       setLoading(true);
       setError(null);
       try {
-        const data = await quizService.getQuizBySlug(topicId);
+        const [data, solvedIds] = await Promise.all([
+          quizService.getQuizBySlug(topicId),
+          quizService.getQuizProcess(topicId).catch(() => []),
+        ]);
+
         setProblemsData(data);
+        setPreviouslySolvedIds(new Set(solvedIds));
         // Reset states when new quiz is loaded
         setTotalEarnedPoints(0);
         setSubmittedProblemIds(new Set());
@@ -50,8 +58,14 @@ export default function LearningPageQuiz() {
   }, [topicId]);
 
   // Modified handleProblemSubmit to track earned points and user answers
-  const handleProblemSubmit = (problemId: string, earnedPoints: number, userAnswer: string) => {
-    setTotalEarnedPoints((prev) => prev + earnedPoints);
+  const handleProblemSubmit = (
+    problemId: string,
+    earnedPoints: number,
+    userAnswer: string
+  ) => {
+    if (!previouslySolvedIds.has(problemId)) {
+      setTotalEarnedPoints((prev) => prev + earnedPoints);
+    }
     setSubmittedProblemIds((prev) => new Set(prev).add(problemId));
     setAllUserAnswers((prev) => [...prev, { problemId, answer: userAnswer }]);
   };
@@ -107,6 +121,7 @@ export default function LearningPageQuiz() {
               problem={problem}
               onProblemSubmit={handleProblemSubmit} // This will be updated to pass userAnswer
               problemNumber={index + 1}
+              isSolved={previouslySolvedIds.has(problem._id)}
             />
           ))}
           <div className="flex justify-center mt-8">
