@@ -4,6 +4,7 @@ import type {
   SingleProblemCheckResponse,
   AIExplanationResponse,
   UserAnswer,
+  QuizProcessResponse,
 } from '../types/quiz'; // Import new types
 
 interface QuizApiResponse {
@@ -28,6 +29,15 @@ export const quizService = {
     return response.data.data.quizzes;
   },
 
+  getQuizProcess: async (slug: string): Promise<string[]> => {
+    const response = await axios.get<QuizProcessResponse>(
+      `/api/theory/quiz-process/${slug}`
+    );
+    return response.data.data
+      .filter((entry) => entry.lastCorrect)
+      .map((entry) => entry.quizId);
+  },
+
   checkProblemAnswer: async (
     problemId: string,
     userAnswer: string
@@ -36,8 +46,6 @@ export const quizService = {
       `/api/theory/quiz/${problemId}/check`,
       { userAnswer }
     );
-    console.log(problemId);
-    console.log(userAnswer);
     return response.data;
   },
 

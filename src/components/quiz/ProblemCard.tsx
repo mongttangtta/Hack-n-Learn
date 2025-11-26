@@ -8,20 +8,28 @@ import AnswerBlock from './AnswerBlock'; // Re-import AnswerBlock
 interface ProblemCardProps {
   problem: Problem;
   problemNumber: number;
-  onProblemSubmit: (problemId: string, earnedPoints: number, userAnswer: string) => void; // Modified prop
+  onProblemSubmit: (
+    problemId: string,
+    earnedPoints: number,
+    userAnswer: string
+  ) => void; // Modified prop
+  isSolved?: boolean;
 }
 
 const ProblemCard: React.FC<ProblemCardProps> = ({
   problem,
   problemNumber,
   onProblemSubmit,
+  isSolved,
 }) => {
-  const [selectedChoiceLabel, setSelectedChoiceLabel] = useState<string | null>(null);
+  const [selectedChoiceLabel, setSelectedChoiceLabel] = useState<string | null>(
+    null
+  );
   const [inputValue, setInputValue] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false); // Track if this specific problem has been submitted
   const [isChecking, setIsChecking] = useState(false); // New state for API call loading
-  const [checkResult, setCheckResult] = useState<SingleProblemCheckResponse | null>(null); // To store the result from the backend
-
+  const [checkResult, setCheckResult] =
+    useState<SingleProblemCheckResponse | null>(null); // To store the result from the backend
 
   const handleSubmit = async () => {
     let answerToSubmit: string | null = null;
@@ -44,13 +52,16 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
       setIsChecking(true);
       try {
         const { quizService } = await import('../../services/quizService'); // Dynamic import to avoid circular dependency
-        const result = await quizService.checkProblemAnswer(problem._id, answerToSubmit);
+        const result = await quizService.checkProblemAnswer(
+          problem._id,
+          answerToSubmit
+        );
         setCheckResult(result);
         setIsSubmitted(true);
         onProblemSubmit(problem._id, result.data.earned, answerToSubmit); // Pass problemId, earnedPoints, and userAnswer
       } catch (error) {
-        console.error("Failed to check problem answer:", error);
-        alert("정답 확인 중 오류가 발생했습니다.");
+        console.error('Failed to check problem answer:', error);
+        alert('정답 확인 중 오류가 발생했습니다.');
       } finally {
         setIsChecking(false);
       }
@@ -61,9 +72,14 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   return (
     <div className="bg-card-background rounded-lg p-8 mb-6 border-2 border-edge shadow-lg">
-      <h3 className="text-xl font-bold  mb-4">
+      <h3 className="text-xl font-bold  mb-4 flex items-center">
         문제 {problemNumber} -{' '}
         {problem.questionType === 'short' ? '주관식' : '객관식'}
+        {isSolved && (
+          <span className="text-accent-primary1 text-sm ml-3 border border-accent-primary1 px-2 py-0.5 rounded-full">
+            해결한 문제
+          </span>
+        )}
       </h3>
       <p className="text-lg text-gray-300 mb-6">
         {problem.questionParts.map((part, index) => {
@@ -140,7 +156,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
             className="bg-accent-primary1 font-bold py-2 px-6 rounded-full hover:bg-accent-primary1 transition-colors !w-auto !h-auto"
             disabled={isSubmitDisabled}
           >
-            {isChecking ? "확인 중..." : "정답 제출"}
+            {isChecking ? '확인 중...' : '정답 제출'}
           </Button>
         )}
       </div>

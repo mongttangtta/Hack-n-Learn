@@ -70,3 +70,19 @@ export interface UserAnswer {
   problemId: string;
   answer: string; // The user's selected choice label (string) or short answer text (string)
 }
+
+export interface QuizProcessEntry {
+  _id: string;
+  quizId: string;
+  attempts: number;
+  lastAnswer: string;
+  lastAnsweredAt: string;
+  lastCorrect: boolean;
+  status: string;
+  techniqueId: string;
+}
+
+export interface QuizProcessResponse {
+  success: boolean;
+  data: QuizProcessEntry[];
+}
