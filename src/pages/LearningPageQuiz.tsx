@@ -13,13 +13,17 @@ import { quizService } from '../services/quizService'; // Import the quizService
 export default function LearningPageQuiz() {
   const navigate = useNavigate();
   const { topicId } = useParams<{ topicId: string }>();
-  const [problemsData, setProblemsData] = useState<Problem[] | undefined>(undefined);
+  const [problemsData, setProblemsData] = useState<Problem[] | undefined>(
+    undefined
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // New states for tracking overall quiz progress and score
   const [totalEarnedPoints, setTotalEarnedPoints] = useState<number>(0);
-  const [submittedProblemIds, setSubmittedProblemIds] = useState<Set<string>>(new Set());
+  const [submittedProblemIds, setSubmittedProblemIds] = useState<Set<string>>(
+    new Set()
+  );
   const [allUserAnswers, setAllUserAnswers] = useState<UserAnswer[]>([]); // New state to store all user answers
   const [previouslySolvedIds, setPreviouslySolvedIds] = useState<Set<string>>(
     new Set()
@@ -27,7 +31,7 @@ export default function LearningPageQuiz() {
 
   // Block navigation if user has started answering but not finishing
   const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
+    ({ nextLocation }) =>
       allUserAnswers.length > 0 &&
       nextLocation.pathname !== '/learning/quiz-results'
   );
@@ -48,7 +52,7 @@ export default function LearningPageQuiz() {
   useEffect(() => {
     const fetchQuizProblems = async () => {
       if (!topicId) {
-        setError("No topic ID provided.");
+        setError('No topic ID provided.');
         setLoading(false);
         return;
       }
@@ -67,7 +71,7 @@ export default function LearningPageQuiz() {
         setSubmittedProblemIds(new Set());
         setAllUserAnswers([]); // Reset user answers
       } catch (err) {
-        setError("Failed to load quiz problems.");
+        setError('Failed to load quiz problems.');
         console.error(err);
       } finally {
         setLoading(false);
@@ -90,8 +94,8 @@ export default function LearningPageQuiz() {
     setAllUserAnswers((prev) => [...prev, { problemId, answer: userAnswer }]);
   };
 
-  const allProblemsSubmitted = problemsData?.every(
-    (problem) => submittedProblemIds.has(problem._id)
+  const allProblemsSubmitted = problemsData?.every((problem) =>
+    submittedProblemIds.has(problem._id)
   );
 
   const handleCheckResults = () => {
@@ -125,7 +129,9 @@ export default function LearningPageQuiz() {
   if (!problemsData || problemsData.length === 0) {
     return (
       <div className="min-h-screen py-12 px-10 flex items-center justify-center">
-        <p className="text-2xl text-gray-600">No quiz found for topic: {topicId}</p>
+        <p className="text-2xl text-gray-600">
+          No quiz found for topic: {topicId}
+        </p>
       </div>
     );
   }
