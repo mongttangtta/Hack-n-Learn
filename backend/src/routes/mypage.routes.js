@@ -41,7 +41,8 @@ router.get("/profile", requireLogin, mypageController.getMyProfile);
 
 router.post("/profile-image", requireLogin, upload.single("image"), mypageController.uploadProfileImage);
 
-
+router.get("/check-nickname", requireLogin, mypageController.checkNickname);
+router.post("/nickname", requireLogin, mypageController.updateNickname);
 /**
  * @swagger
  * tags:
@@ -276,6 +277,61 @@ router.post("/profile-image", requireLogin, upload.single("image"), mypageContro
  *                   example: "https://pub-xxxxxx.r2.dev/abcd1234.png"
  *       400:
  *         description: 파일 누락
+ *       401:
+ *         description: 인증 실패
+ *       500:
+ *         description: 서버 내부 오류
+ */
+
+/**
+ * @swagger
+ * /api/mypage/check-nickname:
+ *   get:
+ *     summary: 닉네임 사용 가능 여부 확인
+ *     tags: [MyPage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: nickname
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 닉네임 사용 가능 여부 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 available:
+ *                   type: boolean
+ *                   example: true
+ */
+/**
+ * @swagger
+ * /api/mypage/nickname:
+ *   post:
+ *     summary: 사용자 닉네임 수정
+ *     tags: [MyPage]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nickname:
+ *                 type: string
+ *                 example: "new_nickname"
+ *     responses:
+ *       200:
+ *         description: 닉네임 변경 성공
+ *       400:
+ *         description: 잘못된 요청 또는 닉네임 중복
  *       401:
  *         description: 인증 실패
  *       500:

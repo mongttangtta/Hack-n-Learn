@@ -80,3 +80,47 @@ export const uploadProfileImage = async (req, res) => {
         return res.status(500).json({ success: false, message: "Error uploading profile image" });
     }
 };
+
+export const checkNickname = async (req, res) => {
+    try {
+        const { nickname } = req.query;
+        if(!nickname || typeof nickname !== 'string' || nickname.trim().length < 2 || nickname.trim().length > 20) {
+            return res.status(400).json({ success: false, message: "Invalid nickname. It must be between 2 and 20 characters." });
+        }
+
+        const available = await mypageService.isNicknameAvailable(nickname.trim());
+
+        return res.json({ success: true, available });
+    } catch (error) {
+        console.error("Error checking nickname availability:", error);
+        return res.status(500).json({ success: false, message: "Error checking nickname availability" });
+    }
+};
+
+export const updateNickname = async (req, res) => {
+    try {
+        const userId = req.session?.user?._id || req.session?.userId;
+        if(!userId) {
+            return res.status(401).json({ success: false, message: "Not authenticated" });
+        }
+
+        const { nickname } = req.body;
+
+        const updated = await mypageService.updateNickname(userId, nickname.trim());
+
+        if(updated.cooldown){
+            return res.status(400).json({ 
+                success: false,
+                error: "Nickname change cooldown active",
+                nextAvailableAt: updated.nextAvailableAt,
+                remainHours : updated.remainHours    
+            });
+        }
+
+        return res.json({ success: true, nickname: updated.nickname });
+
+    } catch (error) {
+        console.error("Error updating nickname:", error);
+        return res.status(500).json({ success: false, message: "Error updating nickname" });
+    }
+};

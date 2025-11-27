@@ -262,3 +262,41 @@ export const getUserProfile = async (userId) => {
                 quiz
         }
 };
+
+export const isNicknameAvailable = async (nickname) => {
+        const exists = await User.exists({ nickname });
+        return !exists;
+};
+
+export const updateNickname = async (userId, nickname) => {
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+
+        const COOLDOWN_MS = 24  * 60 * 60 * 1000;
+        const now = new Date();
+
+
+        //cooldown 체크
+        if(user.lastNicknameChangeAt) {
+                const diff = now - user.lastNicknameChangeAt.getTime();
+
+                if( diff < COOLDOWN_MS) {
+                        const remainMs = COOLDOWN_MS - diff;
+                        const remainHours = Math.ceil(remainMs / 1000 / 60 / 60);
+
+                        return {
+                                cooldown: true,
+                                nextAvailableAt: new Date(now + remainMs),
+                                remainHours
+                        };
+                }
+        }
+        user.nickname = nickname;
+        user.lastNicknameChangeAt = now;
+        await user.save();
+
+        return {
+                cooldown: false,
+                nickname: user.nickname
+        }
+};

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
         id: { type: String, required: true, unique: true },
         nickname: { type: String, required: true },
+        lastNicknameChangeAt: { type: Date, default: null },
         passwordHash: { type: String },
         email: { type: String, unique: true, sparse: true, required: true },
         provider: { type: String, enum: ['local', 'google', 'github'], default: 'local' },
