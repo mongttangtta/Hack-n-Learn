@@ -106,28 +106,29 @@ export const fetchBoanNewsDetail = async (id) => {
     // 제목
     const title = $("#news_title02 h1").text().trim();
 
-    // 기존처럼 텍스트 본문만 추출
-    const rawHtml = $("#news_content").html() || "";
+    let rawHtml = $("#news_content").html() || "";
+
     // <br> → 줄바꿈
     rawHtml = rawHtml.replace(/<br\s*\/?>/gi, "\n");
 
     // </p> → 문단 구분
     rawHtml = rawHtml.replace(/<\/p>/gi, "\n\n");
-
-    // <p>는 그대로 제거
     rawHtml = rawHtml.replace(/<p[^>]*>/gi, "");
 
-    // <div>도 문단 구분
+    // <div> → 문단 구분
     rawHtml = rawHtml.replace(/<\/div>/gi, "\n\n");
     rawHtml = rawHtml.replace(/<div[^>]*>/gi, "");
+
+    // &nbsp; 제거
+    rawHtml = rawHtml.replace(/&nbsp;/g, " ");
 
     // 기타 HTML 태그 제거
     rawHtml = rawHtml.replace(/<[^>]+>/g, "");
 
-    // 특수 공백 제거
-    rawHtml = rawHtml.replace(/&nbsp;/g, " ");
-    // 연속된 빈 줄은 2줄로 제한
-    const content = rawHtml.replace(/\n{3,}/g, "\n\n").trim();
+    // 개행 정리: 3줄 이상 → 2줄
+    const content = rawHtml
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
 
     // 🔥 기사 내 모든 이미지 배열
     const images = [];
