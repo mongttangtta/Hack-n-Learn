@@ -1,16 +1,78 @@
-import NewsArticle from '../components/community/NewsArticle';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Button from '../components/Button'; // Assuming Button component is needed for delete
+import type { Post } from '../types/community'; // Import the shared Post interface
+import QnaPost from '@/components/community/qnaPost';
+// Import the shared Post interface
 
 export default function QnaDetailPage() {
-  // Dummy data for the post
-  const post = {
-    title: '리액트에서 상태 관리는 어떻게 하는 것이 가장 좋은가요?',
-    author: '개발자A',
-    date: '2024.07.30',
-    views: 128,
-    summary: '리액트에서 상태 관리는 어떻게 하는 것이 가장 좋은가요?',
-    imageUrl: 'https://placehold.co/1920x421',
-    content:
-      "[ 문의글 본문 텍스트 내용 ]<br/>... 안녕하세요, 로그인을 시도할 때마다 '비밀번호가 일치하지 않습니다'라는 오류메시지가 계속 뜨고 있습니다. ...",
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate(); // Initialize useNavigate
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(`/api/community/posts/${id}`);
+        setPost(response.data.data);
+      } catch (err) {
+        setError('Failed to fetch post.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!id) return;
+    if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+      try {
+        await axios.delete(`/api/community/posts/${id}`);
+        alert('게시글이 삭제되었습니다.');
+        navigate('/community/qna'); // Navigate back to QnA board
+      } catch (err) {
+        setError('게시글 삭제에 실패했습니다.');
+        console.error(err);
+      }
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center p-20">Loading post...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-20 text-red-500">{error}</div>;
+  }
+
+  if (!post) {
+    return <div className="text-center p-20">Post not found.</div>;
+  }
+
+  // Adapt the fetched post data to the format expected by NewsArticle
+  const newsArticlePost = {
+    title: post.title,
+    author:
+      typeof post.author === 'string'
+        ? post.author
+        : post.author.username ||
+          post.author.name ||
+          post.author.nickname ||
+          'Unknown',
+    date: new Date(post.createdAt).toLocaleDateString(),
+    summary: '', // Post interface from community.ts does not have summary
+    content: post.content,
+    views: post.views,
   };
 
   const adminAnswer = {
@@ -23,8 +85,26 @@ export default function QnaDetailPage() {
   return (
     <div className=" text-primary-text min-h-screen">
       <div className=" mx-auto p-8">
-        <NewsArticle post={post} />
-        <hr className="text-edge" />
+        <QnaPost post={newsArticlePost} />
+
+        <div className="flex justify-end mt-4 space-x-2">
+          <Button
+            variant="secondary" // Assuming a 'secondary' variant for edit button
+            onClick={() => navigate(`/community/qna/${id}/edit`)}
+            className="w-auto px-4 py-2 font-bold rounded-lg"
+          >
+            수정
+          </Button>
+          <Button
+            variant="danger" // Assuming a 'danger' variant for delete button
+            onClick={handleDelete}
+            className="w-auto px-4 py-2 text-white font-bold rounded-lg"
+          >
+            삭제
+          </Button>
+        </div>
+
+        <hr className="text-edge mt-4" />
 
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">관리자 답변</h2>
