@@ -39,14 +39,14 @@ export default function LoginPage() {
     try {
       const success = await login(data.username, data.password);
       if (success) {
-        navigate('/'); // Redirect to home page or dashboard
+        navigate('/learning'); // Redirect to home page or dashboard
       } else {
         const errorMsg =
           '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
         setErrorMessage(errorMsg); // Generic error for failed login
         alert(errorMsg); // Show alert for failed login
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       let errorMsg = '로그인 요청에 실패했습니다.';
       if (axios.isAxiosError(err) && err.response) {
@@ -55,7 +55,7 @@ export default function LoginPage() {
         } else {
           errorMsg = err.response.data.message || err.message;
         }
-      } else {
+      } else if (err instanceof Error) {
         errorMsg = err.message;
       }
       setErrorMessage(errorMsg);

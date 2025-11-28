@@ -70,4 +70,13 @@
   .caption {
     @apply text-caption text-secondary-text;
   }
+
+  /* Syntax Highlighting Utility Classes */
+  .token-keyword { color: var(--color-code-keyword); }
+  .token-string { color: var(--color-code-string); }
+  .token-number { color: var(--color-code-number); }
+  .token-comment { color: var(--color-code-comment); }
+  .token-function { color: var(--color-code-function-call); }
+  .token-builtin { color: var(--color-code-builtin); }
+  .token-parameter { color: var(--color-code-parameter); }
 }

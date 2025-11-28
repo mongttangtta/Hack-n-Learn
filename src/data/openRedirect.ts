@@ -2,7 +2,7 @@ import heroImage from '../assets/images/이론학습 상세.png';
 import type { LearningTopic } from '../types/learning';
 
 export const openRedirect: LearningTopic = {
-  id: 'open-redirect',
+  id: 'open-redirection',
   title: 'Open Redirect (오픈 리다이렉션)',
   subtitle:
     '정상 사이트의 URL을 이용해 공격자가 원하는 악성 사이트로 리다이렉트시키는 취약점.',
