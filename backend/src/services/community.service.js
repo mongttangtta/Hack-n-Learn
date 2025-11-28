@@ -97,7 +97,7 @@ export const createReply = async (data) => {
 };
 
 export const getCommentsTree = async (postId) => {
-        const comments = await Comment.find({ postId }).sort({ createdAt: -1 }).populate("author", "username").lean();
+        const comments = await Comment.find({ postId }).sort({ createdAt: -1 }).populate("author", "nickname").lean();
 
         const commentMap = {};
         comments.forEach(comment => {
