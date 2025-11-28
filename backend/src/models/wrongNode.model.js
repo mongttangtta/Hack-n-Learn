@@ -18,7 +18,7 @@ const WrongNoteSchema = new mongoose.Schema({
         choices: {
                 type: [
                 {
-                        label: { type: String, enum: ["A", "B"], required: true },
+                        label: { type: String, enum: ["A", "B","C"], required: true },
                         content: { type: String, required: true },
                 },
                 ],
