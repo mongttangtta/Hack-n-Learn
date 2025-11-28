@@ -41,7 +41,7 @@ export const getPosts = async (page, limit, type, keyword) => {
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)
-                        .populate("author", "username")
+                        .populate("author", "nickname")
                         .populate("type", "name")
         ]);
 
@@ -50,7 +50,7 @@ export const getPosts = async (page, limit, type, keyword) => {
 
 
 export const getPostById = async (id,userId) => {
-        const post = await Post.findById(id).populate("author", "username");
+        const post = await Post.findById(id).populate("author", "nickname").populate("type", "name");
         if(!post) return null;
         if(userId) {
                 const isFirstView = await PostView.findOne({ postId: id, userId });
