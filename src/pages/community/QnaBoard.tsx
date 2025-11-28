@@ -7,30 +7,45 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { communityService } from '../../services/communityService';
 
+const POST_TYPES = [
+  { id: 'all', label: '전체' },
+  { id: '692212bf9791aa282263d57d', label: '자유' },
+  { id: '692212bf9791aa282263d58d', label: '질문' },
+  { id: '692212bf9791aa282263d59d', label: '정보' },
+];
+
 export default function QnaBoard() {
   const navigate = useNavigate();
   const context = useCommunityPage();
   const currentPage = context?.currentPage || 1;
   const setTotalPages = context?.setTotalPages;
+  const handlePageChange = context?.handlePageChange;
   const pageSize = 10; // Assuming a default page size for QnA board
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'latest' | 'views'>('latest');
   const [totalCount, setTotalCount] = useState(0);
   const [viewedPosts, setViewedPosts] = useState<Record<string, boolean>>({});
+  const [inputValue, setInputValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       setError(null);
       try {
+        const params: any = {
+          page: currentPage,
+          limit: pageSize,
+          keyword: searchQuery,
+        };
+        if (selectedType !== 'all') {
+          params.type = selectedType;
+        }
+
         const response = await axios.get('/api/community/posts', {
-          params: {
-            page: currentPage,
-            limit: pageSize,
-            sort: sortBy,
-          },
+          params,
         });
         const fetchedPosts: Post[] = response.data.data.items;
         setPosts(fetchedPosts);
@@ -61,11 +76,26 @@ export default function QnaBoard() {
     };
 
     fetchPosts();
-  }, [currentPage, setTotalPages, pageSize, sortBy]);
+  }, [currentPage, setTotalPages, pageSize, searchQuery, selectedType]);
 
   const handleRowClick = (id: string) => {
     navigate(`/community/qna/${id}`);
   };
+
+  const handleSearch = () => {
+    setSearchQuery(inputValue);
+    if (handlePageChange) {
+      handlePageChange(1);
+    }
+  };
+
+  const handleTypeSelect = (typeId: string) => {
+    setSelectedType(typeId);
+    if (handlePageChange) {
+      handlePageChange(1);
+    }
+  };
+
   if (loading) {
     return <div className="text-center p-20">Loading posts...</div>;
   }
@@ -82,32 +112,34 @@ export default function QnaBoard() {
     <div className="p-8 text-primary-text">
       <div className="p-12 mb-10">
         <div className="w-full ">
-          <Input placeholder="궁금한 것을 검색해보세요..." />
+          <Input
+            placeholder="궁금한 것을 검색해보세요..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+          />
         </div>
-        <div className="flex justify-between items-end mt-8">
-          <div className="flex space-x-2 mb-2">
-            <button
-              onClick={() => setSortBy('latest')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                sortBy === 'latest'
-                  ? 'bg-accent-primary1 text-black'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              최신순
-            </button>
-            <button
-              onClick={() => setSortBy('views')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                sortBy === 'views'
-                  ? 'bg-accent-primary1 text-black'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              조회순
-            </button>
-          </div>
 
+        <div className="flex justify-between items-end mt-8">
+          <div className="flex gap-2">
+            {POST_TYPES.map((type) => (
+              <Button
+                key={type.id}
+                onClick={() => handleTypeSelect(type.id)}
+                className={`rounded-lg w-full h-full px-3 py-1 transition-colors ${
+                  selectedType === type.id
+                    ? 'bg-accent-primary1 '
+                    : 'bg-card-background text-primary-text hover:bg-edge'
+                }`}
+              >
+                {type.label}
+              </Button>
+            ))}
+          </div>
           <Button onClick={() => navigate('/community/qna/create')}>
             질문하기
           </Button>

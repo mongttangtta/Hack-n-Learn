@@ -26,7 +26,10 @@ export default function NewsArticle({ post }: NewsArticleProps) {
         />
       </div>
       <div className="mb-8 ">
-        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div
+          className="whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </div>
     </div>
   );
