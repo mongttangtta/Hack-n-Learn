@@ -34,3 +34,16 @@ export interface HintRequestResponse {
   data: HintRequestData;
   message?: string; // Still useful for error messages
 }
+
+export interface ContainerEvent {
+  _id: string;
+  timestamp: string;
+  type: string;
+  details: string;
+}
+
+export interface EventLogResponse {
+  success: boolean;
+  data: ContainerEvent[];
+  message?: string;
+}

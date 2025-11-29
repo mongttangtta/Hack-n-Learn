@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'; // Add useCallback
-import { useBlocker, useNavigate, useParams } from 'react-router-dom'; // Import useBlocker, useNavigate
+import { useState, useEffect, useRef } from 'react'; // Add useCallback, useRef
+import { useNavigate, useParams } from 'react-router-dom'; // Import useBlocker, useNavigate
 import LogBox from '../components/Challenge/Logbox';
 import ChallengeHeader from '../components/Challenge/ChallengeHeader';
 import type { LogEntry } from '../types/logs';
 import Button from '../components/Button';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail } from '../types/problem';
+import type { ProblemDetail, ContainerEvent } from '../types/problem';
+
+// const CORRECT_FLAG = 'test_flag'; // Define CORRECT_FLAG for testing - no longer needed with API
+
+// Removed hardcoded hintDatabase as hints will now be fetched from the API
 
 export default function ChallengeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,8 +23,10 @@ export default function ChallengeDetailPage() {
   const [flagValue, setFlagValue] = useState<string>('');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [nextHintIndex, setNextHintIndex] = useState<number>(0); // Represents the next hint stage to request (1-indexed)
-  const [shouldBlock, setShouldBlock] = useState<boolean>(true); // State to control blocking
+  const [, setShouldBlock] = useState<boolean>(true); // State to control blocking
   const navigate = useNavigate(); // Initialize useNavigate
+
+  const lastEventTimestampRef = useRef<string | null>(null);
 
   // Fetch problem details
   useEffect(() => {
@@ -49,41 +55,59 @@ export default function ChallengeDetailPage() {
     fetchProblemDetail();
   }, [id]);
 
-  // Use useBlocker for in-app navigation
-  const blocker = useBlocker(useCallback(() => shouldBlock, [shouldBlock]));
+  // Poll for container events
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const autoConfirm = window.confirm(
-        '변경사항이 저장되지 않을 수 있습니다. 정말로 페이지를 떠나시겠습니까?'
-      );
-      if (autoConfirm) {
-        // User confirmed, proceed with navigation
-        setShouldBlock(false); // Allow navigation
-        blocker.proceed();
-      } else {
-        // User cancelled, reset blocker
-        blocker.reset();
-      }
-    }
-  }, [blocker, shouldBlock]);
+    let intervalId: NodeJS.Timeout;
 
-  // Keep useEffect for browser tab close/external navigation
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (shouldBlock) {
-        // Only block if shouldBlock is true
-        event.preventDefault();
-        event.returnValue =
-          '변경사항이 저장되지 않을 수 있습니다. 정말로 페이지를 떠나시겠습니까?';
+    const fetchEvents = async () => {
+      if (!id) return;
+      try {
+        const response = await problemService.getContainerEvents(id);
+        if (response.success && response.data.length > 0) {
+          const newEvents = response.data.filter(
+            (event: ContainerEvent) => {
+              if (!lastEventTimestampRef.current) return true;
+              return (
+                new Date(event.timestamp) >
+                new Date(lastEventTimestampRef.current)
+              );
+            }
+          );
+
+          if (newEvents.length > 0) {
+            // Update last timestamp
+            lastEventTimestampRef.current =
+              newEvents[newEvents.length - 1].timestamp;
+
+            // Add new events to logs
+            setLogs((prev) => {
+              const newLogEntries: LogEntry[] = newEvents.map((event: ContainerEvent) => ({
+                type: 'info', // Or determine type based on event.type
+                text: `[${new Date(event.timestamp).toLocaleTimeString()}] ${
+                  event.type
+                }: ${event.details}`,
+                cost: 0,
+              }));
+              return [...prev, ...newLogEntries];
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch container events:', err);
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    if (id && !isLoading && !error) {
+      fetchEvents(); // Initial fetch
+      intervalId = setInterval(fetchEvents, 5000); // Poll every 5 seconds
+    }
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [shouldBlock]); // Add shouldBlock to dependency array
+  }, [id, isLoading, error]);
+
+  // Use useBlocker for in-app navigation
 
   /** 힌트 요청 처리 */
   const handleHintRequest = async () => {

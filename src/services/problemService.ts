@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ProblemDetailApiResponse, ProblemSubmissionResponse, HintRequestResponse } from '../types/problem';
+import type { ProblemDetailApiResponse, ProblemSubmissionResponse, HintRequestResponse, EventLogResponse } from '../types/problem';
 
 export const problemService = {
   getProblemDetail: async (slug: string): Promise<ProblemDetailApiResponse> => {
@@ -24,6 +24,13 @@ export const problemService = {
     const response = await axios.post<HintRequestResponse>(
       `/api/problems/${slug}/request-hint`,
       { stage }
+    );
+    return response.data;
+  },
+
+  getContainerEvents: async (slug: string): Promise<EventLogResponse> => {
+    const response = await axios.get<EventLogResponse>(
+      `/api/problems/${slug}/events`
     );
     return response.data;
   },

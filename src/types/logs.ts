@@ -6,7 +6,7 @@
  * - feedback: 사용자의 정답 제출 결과 (성공/실패)
  * - action: 사용자가 수행한 행동 (예: 힌트 요청)
  */
-export type LogType = 'hint' | 'feedback' | 'action';
+export type LogType = 'hint' | 'feedback' | 'action' | 'info';
 
 export interface LogEntry {
   type: LogType;
