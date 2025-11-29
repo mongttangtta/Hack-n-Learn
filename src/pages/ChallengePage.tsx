@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import HeroSection from '../components/HeroSection';
 import HeroImg from '../assets/images/실전문제.jpg';
-import Carousel, { type CarouselItem } from '../components/Carousel'; // Carousel 컴포넌트 import
-import { useProblemStore } from '../store/problemStore'; // Store import
-import { CheckCircle, XCircle, AlertCircle, Lock } from 'lucide-react'; // 아이콘 import
+import Carousel, { type CarouselItem } from '../components/Carousel';
+import { useProblemStore } from '../store/problemStore';
+import { CheckCircle, XCircle, AlertCircle, Lock } from 'lucide-react';
+import Squares from '../components/Squares'; // Squares 컴포넌트 import
 
 const ChallengePage: React.FC = () => {
   const { problemProgress, isLoading, error, fetchProblemProgress } =
@@ -57,7 +58,7 @@ const ChallengePage: React.FC = () => {
       }
 
       return {
-        id: index, // CarouselItem은 id로 number를 사용
+        id: index,
         title: problem.title,
         description: `Difficulty: ${difficultyEmoji} | Answer Rate: ${problem.answerRate}% | Status: ${statusText}`,
         icon: icon,
@@ -72,14 +73,26 @@ const ChallengePage: React.FC = () => {
         imageUrl={HeroImg}
         subtitle="가상 세계의 방어선을 뚫고 목표를 쟁취하세요. 모든 공격과 방어의 흔적이 당신의 경험이 됩니다."
       />
-      <div className="min-h-screen py-12 px-10">
-        <div className="max-w-[1440px] mx-auto">
+      {/* 메인 컨테이너: 배경 위치 기준점 설정 (relative) */}
+      <div className="min-h-screen py-12 px-10 relative overflow-hidden">
+        {/* Squares 배경: absolute로 위치 잡고 z-index로 뒤로 보냄 */}
+        <div className="absolute inset-0 -z-10">
+          <Squares
+            speed={0.5}
+            squareSize={40}
+            direction="diagonal"
+            borderColor="#555" // 어두운 테마에 맞는 격자 색상
+            hoverFillColor="#222" // 호버 시 채워질 색상
+          />
+        </div>
+
+        {/* 기존 콘텐츠 */}
+        <div className="max-w-[1440px] mx-auto relative z-10">
           <section className="mb-12 flex flex-col items-center">
             <h2 className="text-2xl font-bold mb-8 text-primary-text">
               문제 진행 상황
             </h2>
 
-            {/* 로딩 및 에러 상태 처리 */}
             {isLoading && (
               <div className="text-center py-10">Loading progress...</div>
             )}
@@ -87,7 +100,6 @@ const ChallengePage: React.FC = () => {
               <div className="text-center py-10 text-red-500">{error}</div>
             )}
 
-            {/* 데이터가 있을 때만 캐러셀 렌더링 */}
             {!isLoading && !error && carouselItems.length > 0 ? (
               <div
                 style={{
