@@ -41,7 +41,7 @@ export const getProgressList = async (req, res, next) => {
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
                 }
-                const data = await problemsService.getUserProblemProgressList(userId);
+                const data = await problemsService.getProblemProgressList(userId);
                 res.json({ success: true, data });
         } catch (error) {
                 next(error);
