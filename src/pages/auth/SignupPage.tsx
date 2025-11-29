@@ -47,8 +47,12 @@ export default function SignupPage() {
       await axios.post('/api/auth/send-verification-code', { email });
 
       alert('인증번호가 발송되었습니다. 이메일을 확인해주세요.');
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        alert(err.response.data.message || err.message);
+      } else if (err instanceof Error) {
+        alert(err.message);
+      }
     } finally {
       setIsVerifying(false);
     }

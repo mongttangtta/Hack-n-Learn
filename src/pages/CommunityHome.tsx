@@ -18,7 +18,7 @@ export default function CommunityHome() {
 
   const navLinks = [
     { name: '보안 뉴스', path: '/community' },
-    { name: '문의 게시판', path: '/community/qna' },
+    { name: '자유 게시판', path: '/community/qna' },
     { name: '자료실', path: '/community/archive' },
   ];
 
@@ -35,14 +35,14 @@ export default function CommunityHome() {
   }, [location]);
 
   return (
-    <div className="bg-background text-primary-text min-h-screen ">
+    <div className=" text-primary-text min-h-screen ">
       <HeroSection
         imageUrl={heroimg}
         title={<span className="">커뮤니티</span>}
         subtitle="Hack 'n' Learn의 지식이 모이는 허브입니다."
       />
 
-      <main className="">
+      <main className="pb-20">
         {/* Navigation Tabs */}
         <div className="bg-navigation p-2 flex justify-center">
           <nav className="relative flex items-center gap-30" ref={navRef}>
@@ -68,7 +68,8 @@ export default function CommunityHome() {
         <div className="max-w-[1440px] mx-auto px-10">
           <Outlet context={{ currentPage, handlePageChange, setTotalPages }} />
 
-          {location.pathname === '/community' && (
+          {(location.pathname === '/community' ||
+            location.pathname === '/community/qna') && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

@@ -11,6 +11,7 @@ setupAxiosInterceptor(); // Set up the Axios interceptor
 
 // Import all page components
 import App from './App';
+import LandingPage from './pages/LandingPage';
 import LearningPageDetail from './pages/LearningPageDetail';
 import LearningPageQuiz from './pages/LearningPageQuiz';
 import LearningPageQuizResult from './pages/LearningPageQuizResult';
@@ -25,10 +26,13 @@ import Archive from './pages/community/Archive';
 import CommunityPostDetailPage from './pages/CommunityPostDetailPage';
 import RankingPage from './pages/RankingPage';
 import MyPage from './pages/MyPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import SignupPage from './pages/auth/SignupPage';
 import ChallengeResultPage from './pages/ChallengeResultPage'; // Import ChallengeResultPage
 import QnaDetailPage from './pages/QnaDetailPage';
+import CreatePostPage from './pages/community/CreatePostPage'; // Import CreatePostPage
+import EditPostPage from './pages/community/EditPostPage'; // Import EditPostPage
 import LoginPage from './pages/auth/LoginPage';
 import PasswordResetPage from './pages/auth/PasswordResetPage';
 import ChangePasswordPage from './pages/auth/ChangePasswordPage';
@@ -39,10 +43,17 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <LearningPageMain /> },
+      { index: true, element: <LandingPage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'learning', element: <LearningPageMain /> },
-      { path: 'learning/:topicId', element: <LearningPageDetail /> },
+      {
+        path: 'learning/:topicId',
+        element: (
+          <ProtectedRoute>
+            <LearningPageDetail />
+          </ProtectedRoute>
+        ),
+      },
       { path: 'learning/quiz/:topicId', element: <LearningPageQuiz /> },
       { path: 'learning/quiz-results', element: <LearningPageQuizResult /> },
       { path: 'challenge', element: <ChallengePage /> },
@@ -54,7 +65,9 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <SecurityNews /> },
           { path: 'qna', element: <QnaBoard /> },
+          { path: 'qna/create', element: <CreatePostPage /> }, // Add CreatePostPage route
           { path: 'qna/:id', element: <QnaDetailPage /> },
+          { path: 'qna/:id/edit', element: <EditPostPage /> }, // Add EditPostPage route
           { path: 'archive', element: <Archive /> },
           { path: ':id', element: <CommunityPostDetailPage /> },
         ],

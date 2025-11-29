@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Copy } from 'lucide-react';
+import { highlightCode } from '../utils/syntaxHighlight';
 
 interface CodeDisplayProps {
   code: string;
   className?: string;
+  language?: string;
 }
 
-export default function CodeDisplay({ code, className }: CodeDisplayProps) {
+export default function CodeDisplay({ code, className, language }: CodeDisplayProps) {
   const [isCopied, setIsCopied] = useState(false);
+
+  const tokens = useMemo(() => highlightCode(code), [code]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -32,7 +36,16 @@ export default function CodeDisplay({ code, className }: CodeDisplayProps) {
         )}
       </button>
       <pre className="overflow-x-auto">
-        <code>{code}</code>
+        <code className={language ? `language-${language}` : ''}>
+          {tokens.map((token, index) => {
+            if (token.type === 'plain') return token.content;
+            return (
+              <span key={index} className={`token-${token.type}`}>
+                {token.content}
+              </span>
+            );
+          })}
+        </code>
       </pre>
     </div>
   );

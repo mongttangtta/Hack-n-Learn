@@ -9,7 +9,7 @@ import type { LearningTopic } from '../types/learning';
 
 export const learningTopics: { [key: string]: LearningTopic } = {
   xss,
-  'open-redirect': openRedirect,
+  'open-redirection': openRedirect,
   'sql-injection': sqlInjection,
   csrf: csrf,
   'directory-traversal': directoryTraversal,
