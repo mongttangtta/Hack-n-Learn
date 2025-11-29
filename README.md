@@ -102,7 +102,8 @@
 ---
 
 ## 🗓️ 1-4. 개발 일정(WBS)
-~~WBS 사진 추가하기~~
+<img width="1815" height="1029" alt="image" src="https://github.com/user-attachments/assets/710cf6ae-fec5-4fb3-a865-b97511003e6a" />
+
 ### 전체 타임라인 (9월~12월)
 - **09월:** 기획·구조 설계
 - **10월:** 이론학습·실습 환경 구축
@@ -254,6 +255,9 @@
 
 ## 🧱 2-2. 세부 아키텍처 다이어그램
 
+<img width="1156" height="867" alt="image" src="https://github.com/user-attachments/assets/9a0ddec8-713a-42bb-849f-cfe3c648831c" />
+
+
 ---
 
 ## 📁 2-3. 디렉터리 구조 (Tree)
@@ -297,7 +301,7 @@
 아래 ERD는 Hack-n-Learn의 주요 데이터 모델(User, Quiz, Problem, Process, Community 등)의  
 관계 구조를 나타낸 것입니다.
 
-> (ERD 이미지 추가하기)
+<img width="3316" height="2851" alt="hacknlearn drawio" src="https://github.com/user-attachments/assets/c14f9312-e5bc-461c-ab78-ba83d7db2455" />
 
 
 ### 메인 화면
