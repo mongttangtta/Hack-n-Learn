@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import axios from 'axios';
 import CircularProgress from '../components/CircularProgress';
 import { ArrowRight, Settings, Award } from 'lucide-react';
+import { fetchMyPageData } from '../services/userService'; // Import from userService
+import { fetchMyRanking } from '../services/rankingService'; // Import from rankingService
 
 // Interfaces based on the API response
 interface Profile {
@@ -9,6 +10,7 @@ interface Profile {
   tier: string;
   points: number;
   profileImageUrl: string;
+  rank?: number; // Added rank to the profile
 }
 
 interface QuizPart {
@@ -82,6 +84,9 @@ const UserProfile = ({ profile }: { profile: Profile | null }) => {
         />
       </div>
       <p className="text-sm text-secondary-text mt-2">Points: {profile.points}</p>
+      {profile.rank && (
+        <p className="text-sm text-secondary-text">Rank: {profile.rank}</p>
+      )}
     </div>
   );
 };
@@ -188,13 +193,27 @@ export default function MyPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDataAndRanking = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get('/api/mypage');
-        if (response.data.success) {
-          setData(response.data.data);
+        const [myPageResponse, myRankingResponse] = await Promise.all([
+          fetchMyPageData(),
+          fetchMyRanking(),
+        ]);
+
+        if (myPageResponse.success) {
+          const combinedProfile: Profile = {
+            ...myPageResponse.data.profile,
+            rank: myRankingResponse.rank,
+          };
+
+          setData({
+            ...myPageResponse.data,
+            profile: combinedProfile,
+          });
         } else {
-          setError('Failed to load data');
+          setError('Failed to load MyPage data');
         }
       } catch (err) {
         console.error(err);
@@ -204,7 +223,7 @@ export default function MyPage() {
       }
     };
 
-    fetchData();
+    fetchDataAndRanking();
   }, []);
 
   if (loading) {
