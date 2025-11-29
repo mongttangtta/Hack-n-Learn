@@ -30,6 +30,7 @@
   - [🤖 3-2. AI 챗봇 / AI 해설](#-3-2-ai-챗봇--ai-해설)
   - [🏆 3-3. 게임화 요소 (Gamification)](#-3-3-게임화-요소-gamification)
 
+
 ---
 # 📚 1. 프로젝트 개요
 
@@ -58,6 +59,10 @@
     <td style="text-align:center;">공격·방어 로직 구현, 문제 기획, 문서화</td>
   </tr>
 </table>
+
+## 📌 Project Documents
+- **Notion :** [프로젝트 노션 링크](https://www.notion.so/2025-2-24e2f42bf16780e099c3e697969527cf)
+- **Figma :** [프로젝트 피그마 링크](https://www.figma.com/design/WBl5nQpFn6xTuTadciknmj/Hack--n--Learn?node-id=354-51&t=f7VBh3QUKE77eR4L-1)
 
 ---
 
