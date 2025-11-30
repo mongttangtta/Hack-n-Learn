@@ -359,7 +359,7 @@ export default function ChallengeDetailPage() {
             type="text"
             value={flagValue}
             onChange={(e) => setFlagValue(e.target.value)}
-            placeholder="Flag 값을 입력하세요 (예: flag{...})"
+            placeholder="FLAG 값을 입력하세요 (예: FLAG{...})"
             className="
               w-full bg-code-bg border border-edge rounded-[10px]
               px-5 py-2 placeholder-secondary-text text-primary-text
