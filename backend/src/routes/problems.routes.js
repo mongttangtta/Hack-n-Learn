@@ -645,18 +645,29 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                  let practice = null;
 
                 for (const p of practices) {
-                const alive = await execPromise(
-                        `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
-                );
 
-                if (alive.trim()) {
-                        practice = p;
-                        break;
-                } else {
-                        p.status = "stopped";
-                        await p.save();
+                        const cleanName = String(p.containerName).trim();
+                        let aliveOutput = "";
+
+                        try {
+                                aliveOutput = await execPromise(
+                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
+                                );
+                        } catch (err) {
+                                console.error("docker ps failed for", cleanName, err);
+                                aliveOutput = "";
+                        }
+
+                        if (aliveOutput.trim()) {
+                                practice = p;
+                                break;
+                        } else {
+                                // stale 컨테이너 처리
+                                p.status = "stopped";
+                                await p.save();
+                        }
                 }
-                }
+
                 if( !practice ) return res.status(404).json({ success: false, message: "No running practice found for this problem." });
                  
                 const containerPath = "/app/data/events.json"; // 컨테이너 내 이벤트 파일 경로
