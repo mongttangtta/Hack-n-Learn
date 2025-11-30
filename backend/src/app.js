@@ -10,7 +10,7 @@ import multer from "multer";
 import { swaggerUi, specs } from "./config/swagger.js";
 import expressMongoSanitize from "@exortek/express-mongo-sanitize";
 import { errorHandler, requireLogin } from "./middlewares/auth.middleware.js";
-import { initPassport } from "./config/passport.js";
+import passport from "./config/passport.js";
 import internalRouter from "./routes/internal.routes.js";
 
 const app = express();
@@ -44,7 +44,8 @@ app.use(
         })
 );
 
-initPassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api", routes);

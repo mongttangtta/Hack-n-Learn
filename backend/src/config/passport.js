@@ -90,9 +90,4 @@ passport.deserializeUser(async (id, done) => {
         done(null, user);
 });
 
-export const initPassport = () => {
-       passport.initialize();
-       passport.session();
-};
-
 export default passport;
