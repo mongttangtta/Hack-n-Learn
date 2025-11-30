@@ -47,3 +47,11 @@ export interface EventLogResponse {
   data: ContainerEvent[];
   message?: string;
 }
+
+export interface LabStartResponse {
+  success: boolean;
+  message?: string;
+  url: string;
+  port?: number;
+  expiresAt?: string;
+}

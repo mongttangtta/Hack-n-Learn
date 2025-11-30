@@ -18,6 +18,8 @@ export default function ChallengeDetailPage() {
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLabStarted, setIsLabStarted] = useState<boolean>(false);
+  const [labUrl, setLabUrl] = useState<string>('');
 
   const [score, setScore] = useState<number>(100);
   const [flagValue, setFlagValue] = useState<string>('');
@@ -64,15 +66,13 @@ export default function ChallengeDetailPage() {
       try {
         const response = await problemService.getContainerEvents(id);
         if (response.success && response.data.length > 0) {
-          const newEvents = response.data.filter(
-            (event: ContainerEvent) => {
-              if (!lastEventTimestampRef.current) return true;
-              return (
-                new Date(event.timestamp) >
-                new Date(lastEventTimestampRef.current)
-              );
-            }
-          );
+          const newEvents = response.data.filter((event: ContainerEvent) => {
+            if (!lastEventTimestampRef.current) return true;
+            return (
+              new Date(event.timestamp) >
+              new Date(lastEventTimestampRef.current)
+            );
+          });
 
           if (newEvents.length > 0) {
             // Update last timestamp
@@ -81,13 +81,15 @@ export default function ChallengeDetailPage() {
 
             // Add new events to logs
             setLogs((prev) => {
-              const newLogEntries: LogEntry[] = newEvents.map((event: ContainerEvent) => ({
-                type: 'info', // Or determine type based on event.type
-                text: `[${new Date(event.timestamp).toLocaleTimeString()}] ${
-                  event.type
-                }: ${event.details}`,
-                cost: 0,
-              }));
+              const newLogEntries: LogEntry[] = newEvents.map(
+                (event: ContainerEvent) => ({
+                  type: 'info', // Or determine type based on event.type
+                  text: `[${new Date(event.timestamp).toLocaleTimeString()}] ${
+                    event.type
+                  }: ${event.details}`,
+                  cost: 0,
+                })
+              );
               return [...prev, ...newLogEntries];
             });
           }
@@ -97,7 +99,8 @@ export default function ChallengeDetailPage() {
       }
     };
 
-    if (id && !isLoading && !error) {
+    if (id && !isLoading && !error && isLabStarted) {
+      // Only fetch events if lab is started
       fetchEvents(); // Initial fetch
       intervalId = setInterval(fetchEvents, 5000); // Poll every 5 seconds
     }
@@ -105,7 +108,7 @@ export default function ChallengeDetailPage() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [id, isLoading, error]);
+  }, [id, isLoading, error, isLabStarted]); // Add isLabStarted to dependency array
 
   // Use useBlocker for in-app navigation
 
@@ -246,6 +249,50 @@ export default function ChallengeDetailPage() {
     }
   };
 
+  /** 랩 환경 시작 처리 */
+  const handleStartLab = async () => {
+    if (!id) {
+      alert('문제 ID를 찾을 수 없습니다.');
+      return;
+    }
+    try {
+      setLogs((prev) => [
+        ...prev,
+        { type: 'action', text: '[ 랩 환경을 시작합니다... ]', cost: 0 },
+      ]);
+      const response = await problemService.startLab(id);
+      console.log('Start Lab Response:', response); // Debug log
+      if (response.success) {
+        setIsLabStarted(true);
+        setLabUrl(response.url || ''); // Default to empty string if url is undefined
+        setLogs((prev) => [
+          ...prev,
+          {
+            type: 'feedback',
+            text: `[ 랩 환경 시작 성공: ${response.url} ]`,
+            cost: 0,
+          },
+        ]);
+      } else {
+        setLogs((prev) => [
+          ...prev,
+          {
+            type: 'feedback',
+            text: response.message || '랩 환경 시작에 실패했습니다.',
+            cost: 0,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error starting lab:', error);
+      alert('랩 환경 시작 중 오류가 발생했습니다.');
+      setLogs((prev) => [
+        ...prev,
+        { type: 'feedback', text: '랩 환경 시작 중 오류 발생', cost: 0 },
+      ]);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
@@ -295,6 +342,12 @@ export default function ChallengeDetailPage() {
 
         {/* 입력 및 버튼 영역 */}
         <section className="space-y-4">
+          {!isLabStarted && (
+            <Button onClick={handleStartLab} className="w-full">
+              랩 환경 시작
+            </Button>
+          )}
+
           {/* 타겟 URL 입력창 (Disabled) */}
           <div className="flex items-center bg-code-bg border border-edge rounded-[10px] overflow-hidden">
             <span className="pl-5 pr-3 text-primary-text shrink-0">
@@ -302,8 +355,8 @@ export default function ChallengeDetailPage() {
             </span>
             <input
               type="text"
-              value="http://abc.challenge.com/login.php"
-              disabled
+              value={isLabStarted ? labUrl : '랩 환경을 시작해주세요.'}
+              disabled={!isLabStarted}
               className="grow bg-transparent py-2 pr-5 text-secondary-text outline-none whitespace-nowrap overflow-x-auto"
             />
           </div>
