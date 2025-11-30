@@ -33,8 +33,15 @@ export const submitFlag = async ({userId, slug, flag}) => {
                                 score : problem.score,
                         });
                 }
+                const userAnswer = normalizeFlag(flag);
+                const correctAnswer = normalizeFlag(problem.flag);
 
-                const isCorrect = normalizeFlag(flag) === normalizeFlag(problem.flag);
+                console.log(`User Answer: ${userAnswer}, Correct Answer: ${correctAnswer}`);
+
+                console.log(`Buffer.from(userAnswer): ${Buffer.from(userAnswer)}`);
+                console.log(`Buffer.from(correctAnswer): ${Buffer.from(correctAnswer)}`);
+
+                const isCorrect = userAnswer === correctAnswer;
 
                 if(!isCorrect) {//오답 패널티가 힌트 요청한 만큼 + 틀린 횟수 만큼
                         problemPersonal.penalty += 10;
