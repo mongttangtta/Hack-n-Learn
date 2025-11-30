@@ -3,21 +3,38 @@ import CircularProgress from '../components/CircularProgress';
 import { ArrowRight, Settings, Award } from 'lucide-react';
 import { fetchMyPageData } from '../services/userService'; // Import from userService
 import { fetchMyRanking } from '../services/rankingService'; // Import from rankingService
-import type { MyPageData, Profile, QuizProgress, Practice } from '../types/mypage';
+import type {
+  MyPageData,
+  Profile,
+  QuizProgress,
+  Practice,
+} from '../types/mypage';
 import EditProfileModal from '../components/EditProfileModal';
 
 // 프로필 섹션
-const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEditClick: () => void }) => {
+const UserProfile = ({
+  profile,
+  onEditClick,
+}: {
+  profile: Profile | null;
+  onEditClick: () => void;
+}) => {
   if (!profile) return <div className="p-5">Loading Profile...</div>;
 
   const getTierColorClass = (tierName: string) => {
     switch (tierName.toLowerCase()) {
-      case 'bronze': return 'text-award-bronze';
-      case 'silver': return 'text-award-silver';
-      case 'gold': return 'text-award-gold';
-      case 'platinum': return 'text-award-platinum';
-      case 'diamond': return 'text-award-diamond';
-      default: return 'text-gray-600';
+      case 'bronze':
+        return 'text-award-bronze';
+      case 'silver':
+        return 'text-award-silver';
+      case 'gold':
+        return 'text-award-gold';
+      case 'platinum':
+        return 'text-award-platinum';
+      case 'diamond':
+        return 'text-award-diamond';
+      default:
+        return 'text-gray-600';
     }
   };
 
@@ -26,7 +43,7 @@ const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEdit
       {/* 프로필 이미지 */}
       <div className="relative mb-4 cursor-pointer" onClick={onEditClick}>
         <img
-          src={profile.profileImageUrl || "https://via.placeholder.com/128"}
+          src={profile.profileImageUrl || 'https://via.placeholder.com/128'}
           alt="프로필 이미지"
           className="w-32 h-32 rounded-full border-2 border-edge object-cover hover:opacity-80 transition-opacity"
         />
@@ -35,14 +52,16 @@ const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEdit
         </span>
       </div>
       {/* 사용자 정보 */}
-      <h2 className="text-h3 font-bold text-primary-text">{profile.nickname}</h2>
+      <h2 className="text-h3 font-bold text-primary-text">
+        {profile.nickname}
+      </h2>
       <p className="text-secondary-text text-body uppercase">{profile.tier}</p>
       <div className="flex gap-1">
-        <Award
-          className={`w-5 h-5 mt-2 ${getTierColorClass(profile.tier)}`}
-        />
+        <Award className={`w-5 h-5 mt-2 ${getTierColorClass(profile.tier)}`} />
       </div>
-      <p className="text-sm text-secondary-text mt-2">Points: {profile.points}</p>
+      <p className="text-sm text-secondary-text mt-2">
+        Points: {profile.points}
+      </p>
       {profile.rank && (
         <p className="text-sm text-secondary-text">Rank: {profile.rank}</p>
       )}
@@ -219,9 +238,9 @@ export default function MyPage() {
     <div className="bg-main min-h-screen">
       <main className="container mx-auto px-6 py-8">
         {/* 프로필 섹션 */}
-        <UserProfile 
-          profile={data?.profile || null} 
-          onEditClick={() => setIsEditModalOpen(true)} 
+        <UserProfile
+          profile={data?.profile || null}
+          onEditClick={() => setIsEditModalOpen(true)}
         />
 
         {/* 메인 대시보드 그리드 */}
@@ -237,21 +256,65 @@ export default function MyPage() {
           {/* 우측: 풀이 이력 & 오답 노트 (lg 화면에서 2/3 차지) */}
           <div className="lg:col-span-2 space-y-6">
             <InfoCard title="나의 풀이 이력">
-              {data?.practice.practiceList &&
-              data.practice.practiceList.length > 0 ? (
-                data.practice.practiceList.map((item, index) => (
-                  <p
-                    key={index}
-                    className="text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
-                  >
-                    {item.problem.slug}
-                  </p>
-                ))
-              ) : (
-                <p className="text-secondary-text text-center py-4">
-                  풀이 이력이 없습니다.
-                </p>
-              )}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 ">
+                  <h4 className="text-sm font-semibold text-secondary-text mb-2">
+                    실전 문제
+                  </h4>
+                  {data?.practice.practiceList &&
+                  data.practice.practiceList.filter(
+                    (item) => item.result === 'solved'
+                  ).length > 0 ? (
+                    data.practice.practiceList
+                      .filter((item) => item.result === 'solved')
+                      .map((item, index) => (
+                        <p
+                          key={index}
+                          className="flex justify-between text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
+                        >
+                          <span>{item.problem.slug}</span>
+                          <span>{item.score} 점</span>
+                        </p>
+                      ))
+                  ) : (
+                    <p className="text-secondary-text text-center py-2 text-sm">
+                      해결한 실전 문제가 없습니다.
+                    </p>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm  font-semibold text-secondary-text mb-2">
+                    이론 학습
+                  </h4>
+                  {data?.quizProgress.parts &&
+                  data.quizProgress.parts.filter(
+                    (part) =>
+                      part.status === 'solved' || part.status === 'in_progress'
+                  ).length > 0 ? (
+                    data.quizProgress.parts
+                      .filter(
+                        (part) =>
+                          part.status === 'solved' ||
+                          part.status === 'in_progress'
+                      )
+                      .map((part, index) => (
+                        <p
+                          key={index}
+                          className="flex justify-between text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
+                        >
+                          <span>{part.slug}</span>
+                          <span className="text-sm text-secondary-text ">
+                            {part.status === 'solved' ? '완료' : '진행 중'}
+                          </span>
+                        </p>
+                      ))
+                  ) : (
+                    <p className="text-secondary-text text-center py-2 text-sm">
+                      진행 중이거나 완료된 이론 학습이 없습니다.
+                    </p>
+                  )}
+                </div>
+              </div>
             </InfoCard>
 
             <InfoCard title="문제 오답노트">
