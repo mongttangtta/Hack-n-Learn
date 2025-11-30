@@ -48,7 +48,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-md  border-edge rounded-lg shadow-xl p-6 animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-md bg-main border-edge rounded-lg shadow-xl p-6 animate-in fade-in zoom-in-95 duration-200"
       >
         <div className="flex justify-between items-center mb-4">
           {title && (
