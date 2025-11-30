@@ -658,11 +658,12 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                                 aliveOutput = "";
                         }
 
-                        if (aliveOutput.trim()) {
+                        const alive = (aliveOutput?.stdout || "").trim();
+
+                        if (alive) {
                                 practice = p;
                                 break;
                         } else {
-                                // stale 컨테이너 처리
                                 p.status = "stopped";
                                 await p.save();
                         }
