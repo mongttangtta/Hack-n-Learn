@@ -1,5 +1,7 @@
 import Stepper, { Step } from '@/components/Stepper';
 import { useNavigate } from 'react-router-dom';
+import { Award } from 'lucide-react';
+import learning1 from '../assets/images/이론학습 소개.png';
 
 export default function AboutPage() {
   const navigate = useNavigate();
@@ -12,11 +14,12 @@ export default function AboutPage() {
           onFinalStepCompleted={() => navigate('/learning')}
           backButtonText="prev"
           nextButtonText="next"
+          stepCircleContainerClassName="max-w-4xl"
         >
           <Step>
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
               <h2 className="text-h1 font-bold text-primary-text mb-4">
-                HackNLearn
+                Hack <span className="text-accent-primary2">'N'</span> Learn
               </h2>
               <p className="text-body text-primary-text">
                 웹 보안을 쉽고 재미있게 배울 수 있는
@@ -60,6 +63,22 @@ export default function AboutPage() {
           <Step>
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
               <h2 className="text-h1 font-bold text-primary-text mb-4">
+                이론 학습 퀴즈
+              </h2>
+              <img src={learning1} alt="" />
+              <p className="text-body text-primary-text">
+                배운 이론을 퀴즈로 점검하며
+                <br />
+                학습 효과를 극대화하고,
+                <br />
+                취약점에 대한 이해를 확실하게 다질 수 있습니다.
+                <br />
+              </p>
+            </div>
+          </Step>
+          <Step>
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+              <h2 className="text-h1 font-bold text-primary-text mb-4">
                 실전 모의 해킹
               </h2>
               <p className="text-body text-primary-text">
@@ -68,6 +87,43 @@ export default function AboutPage() {
                 직접 공격 코드를 작성하고 실행해보며
                 <br />
                 실전 감각을 익힐 수 있습니다.
+              </p>
+            </div>
+          </Step>
+
+          <Step>
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+              <h2 className="text-h1 font-bold text-primary-text mb-4">
+                티어 시스템
+              </h2>
+              <div className="flex space-x-4 mb-2">
+                <Award className="w-12 h-12 text-award-bronze" />
+                <Award className="w-12 h-12 text-award-silver" />
+                <Award className="w-12 h-12 text-award-gold" />
+                <Award className="w-12 h-12 text-award-platinum" />
+                <Award className="w-12 h-12 text-award-diamond" />
+              </div>
+              <p className="text-body text-primary-text">
+                퀴즈와 실습을 통해 경험치를 획득하고
+                <br />
+                브론즈부터 다이아몬드까지 티어를 올려보세요.
+                <br />
+                성장의 즐거움을 느낄 수 있습니다.
+              </p>
+            </div>
+          </Step>
+
+          <Step>
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+              <h2 className="text-h1 font-bold text-primary-text mb-4">
+                칭호 시스템
+              </h2>
+              <p className="text-body text-primary-text">
+                특정 업적을 달성하면
+                <br />
+                다양하고 개성 넘치는 칭호를 획득할 수 있습니다.
+                <br />
+                나만의 프로필을 멋지게 장식해보세요.
               </p>
             </div>
           </Step>

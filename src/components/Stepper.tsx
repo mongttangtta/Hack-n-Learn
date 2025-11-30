@@ -7,6 +7,7 @@ import React, {
   type ReactNode,
 } from 'react';
 import { motion, AnimatePresence, type Variants } from 'motion/react';
+import { cn } from '@/lib/utils';
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -87,7 +88,10 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-md rounded-4xl shadow-xl ${stepCircleContainerClassName}`}
+        className={cn(
+          "mx-auto w-full max-w-md rounded-4xl shadow-xl",
+          stepCircleContainerClassName
+        )}
         style={{ border: '1px solid #222' }}
       >
         <div
@@ -223,9 +227,18 @@ function SlideTransition({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      onHeightReady(containerRef.current.offsetHeight);
-    }
+    const element = containerRef.current;
+    if (!element) return;
+
+    onHeightReady(element.offsetHeight);
+
+    const observer = new ResizeObserver(() => {
+      onHeightReady(element.offsetHeight);
+    });
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
   }, [children, onHeightReady]);
 
   return (
