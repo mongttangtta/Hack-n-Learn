@@ -1,7 +1,8 @@
 import Stepper, { Step } from '@/components/Stepper';
 import { useNavigate } from 'react-router-dom';
 import { Award } from 'lucide-react';
-import learning1 from '../assets/images/이론학습 소개.png';
+import learningIntro from '../assets/images/이론학습 소개.png';
+import rankingIntro from '../assets/images/rankingintro.png';
 
 export default function AboutPage() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function AboutPage() {
               <h2 className="text-h1 font-bold text-primary-text mb-4">
                 이론 학습 퀴즈
               </h2>
-              <img src={learning1} alt="" />
+              <img src={learningIntro} alt="" />
               <p className="text-body text-primary-text">
                 배운 이론을 퀴즈로 점검하며
                 <br />
@@ -133,6 +134,7 @@ export default function AboutPage() {
               <h2 className="text-h1 font-bold text-primary-text mb-4">
                 함께하는 커뮤니티
               </h2>
+              <img src={rankingIntro} alt="" className="rounded-lg h-50 w-50" />
               <p className="text-body text-primary-text">
                 다른 학습자들과 지식을 공유하고
                 <br />
