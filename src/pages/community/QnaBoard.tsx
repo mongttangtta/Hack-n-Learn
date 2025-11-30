@@ -50,7 +50,7 @@ export default function QnaBoard() {
         const fetchedPosts: Post[] = response.data.data.items;
         setPosts(fetchedPosts);
         setTotalCount(response.data.data.total);
-        console.log(response.data.data.items);
+
         if (setTotalPages) {
           setTotalPages(Math.ceil(response.data.data.total / pageSize));
         }
@@ -102,10 +102,11 @@ export default function QnaBoard() {
   if (error) {
     return <div className="text-center p-20 text-red-500">{error}</div>;
   }
-  const renderAuthor = (author: Post['author']) => {
-    if (typeof author === 'string') return author;
-
-    return author.nickname || 'Unknown'; // Simplified, assuming username is primary for display
+  const renderAuthor = (post: Post) => {
+    if (post.author && post.author.nickname) {
+      return post.author.nickname;
+    }
+    return post.nickname || 'Unknown';
   };
 
   return (
@@ -177,7 +178,7 @@ export default function QnaBoard() {
               >
                 {post.title}
               </td>
-              <td className="p-4">{renderAuthor(post.author)}</td>
+              <td className="p-4">{renderAuthor(post)}</td>
               <td className="p-4">
                 {new Date(post.createdAt).toLocaleDateString()}
               </td>

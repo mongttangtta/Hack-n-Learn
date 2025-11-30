@@ -13,7 +13,8 @@ export interface Post {
   type: PostType;
   title: string;
   content: string;
-  author: PostAuthor;
+  author: PostAuthor | null;
+  nickname: string;
   views: number;
   createdAt: string;
   updatedAt: string;
@@ -23,7 +24,9 @@ export interface Post {
 export interface Comment {
   _id: string;
   postId: string;
-  author: PostAuthor;
+  parentComment: string | null;
+  author: PostAuthor | null;
+  nickname: string;
   content: string;
   createdAt: string;
   updatedAt: string;

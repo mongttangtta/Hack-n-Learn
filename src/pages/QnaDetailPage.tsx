@@ -75,8 +75,11 @@ const CommentItem = ({
     }
   };
 
-  const renderAuthor = (author: PostAuthor) => {
-    return author.nickname || 'Unknown';
+  const renderAuthor = (comment: Comment) => {
+    if (comment.author && comment.author.nickname) {
+      return comment.author.nickname;
+    }
+    return comment.nickname || 'Unknown';
   };
 
   return (
@@ -88,7 +91,7 @@ const CommentItem = ({
       <div className="flex items-center mb-2 justify-between">
         <div className="flex items-center">
           <span className="font-bold mr-2 text-primary-text">
-            {renderAuthor(comment.author)}
+            {renderAuthor(comment)}
           </span>
           <span className="text-sm text-secondary-text">
             {new Date(comment.createdAt).toLocaleString()}
@@ -295,7 +298,7 @@ export default function QnaDetailPage() {
     author:
       typeof post.author === 'string'
         ? post.author
-        : post.author.nickname || 'Unknown',
+        : post.author?.nickname || post.nickname || 'Unknown',
     date: new Date(post.createdAt).toLocaleString(),
     summary: '',
     imageUrl: '',
