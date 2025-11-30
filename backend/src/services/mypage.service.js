@@ -8,6 +8,7 @@ import { uploadToR2, deleteFromR2 } from '../utils/uploadToR2.js';
 import mongoose from 'mongoose';
 
 function calculateTier(points) {
+        if(points >= 1000) return 'diamond';
         if(points >= 750) return 'platinum';
         if(points >= 500) return 'gold';
         if(points >= 250) return 'silver';
