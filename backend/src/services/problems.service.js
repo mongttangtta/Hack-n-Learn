@@ -47,9 +47,7 @@ export const resetProblemState = async ({ userId, slug}) => {
         if(personal) {
                 personal.penalty = 0;
                 personal.userHints = 0;
-                personal.result = "unsolved";
                 personal.score = problem.score;
-                personal.solvedAt = null;
                 await personal.save();
         }
 
