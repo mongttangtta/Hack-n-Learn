@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="container mx-auto max-w-[1440px]">
         <div className="flex flex-col md:flex-row justify-around items-start gap-10">
           {/* 1. 로고 */}
-          <div className="flex-shrink-0 mt-5">
+          <div className="shrink-0 mt-5">
             <Link to="/" className="">
               <img
                 src={logo}
@@ -24,28 +24,19 @@ export default function Footer() {
             </h3>
             <ul className="space-y-1">
               <li>
-                <Link
-                  to="/about" // Placeholder link
-                  className="hover:text-accent-primary1 text-sm transition-colors"
-                >
+                <div className="hover:text-accent-primary1 text-sm transition-colors">
                   서비스 소개
-                </Link>
+                </div>
               </li>
               <li>
-                <Link
-                  to="/terms" // Placeholder link
-                  className="hover:text-accent-primary1 text-sm transition-colors"
-                >
+                <div className="hover:text-accent-primary1 text-sm transition-colors">
                   이용 약관
-                </Link>
+                </div>
               </li>
               <li>
-                <Link
-                  to="/privacy" // Placeholder link
-                  className="hover:text-accent-primary1 text-sm transition-colors"
-                >
+                <div className="hover:text-accent-primary1 text-sm transition-colors">
                   개인정보처리방침
-                </Link>
+                </div>
               </li>
             </ul>
           </div>

@@ -26,7 +26,7 @@ interface QuizProgressPart {
   solvedCount: number;
   totalCount: number;
   progress: number;
-  status: 'not_started' | 'in_progress' | 'success';
+  status: 'not_started' | 'in_progress' | 'solved';
 }
 
 interface MyPageQuizProgress {
@@ -61,7 +61,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   const CardContent = () => (
     <>
-      <div className="flex-grow">
+      <div className="grow">
         <h3 className="text-2xl font-bold text-primary-text mb-2 flex items-center">
           {title}{' '}
           {(isInProgress || isCompleted) && (
@@ -149,7 +149,7 @@ export default function LearningPageMain() {
     const progressPart = userQuizProgress?.parts.find(
       (part) => part.slug === topic.id
     );
-    const isCompleted = progressPart?.status === 'success';
+    const isCompleted = progressPart?.status === 'solved';
     const isInProgress = progressPart?.status === 'in_progress';
     return {
       isInProgress: isInProgress,
