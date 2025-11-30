@@ -69,7 +69,7 @@ passport.use(
         new GitHubStrategy({
                 clientID: process.env.GITHUB_CLIENT_ID,
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: "/api/auth/github/callback",
+                callbackURL: "https://hacknlearn.site/api/auth/github/callback",
         }, async (accessToken, refreshToken, profile, done) => {
                 try {
                         const user = await findOrMergeUser({ provider: 'github', profile });
