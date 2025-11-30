@@ -81,6 +81,8 @@ export async function checkAnswerAndAward({ userId, quizId, userAnswer }){
 
         const existingProcess = await QuizProcess.findOne({ userId, quizId: quiz._id });
 
+        const attemptNumber = (existingProcess?.attempts ?? 0) + 1;
+
         const alreadySolvedBefore = existingProcess?.status === 'solved';
 
         //진행상황에 기록
@@ -116,6 +118,7 @@ export async function checkAnswerAndAward({ userId, quizId, userAnswer }){
                         userAnswer: userAnswer,
                         correctAnswer: quiz.correctAnswer,
                         explanation: quiz.explanation || "",
+                        attempt: attemptNumber,
                 });
         }
         
@@ -188,7 +191,12 @@ export async function buildResultExplanation({ userId, slug}){
 
         const totalCount = await Quiz.countDocuments({ techniqueId: technique._id });
 
-        const wrongs = await WrongNote.find({ userId, techniqueId: technique._id })
+        const lastAttempt = await WrongNote.find({ userId, techniqueId: technique._id })
+                .sort({ createdAt: -1 })
+                .limit(1)
+                .then(res => res[0]?.attempt ?? 0);
+
+        const wrongs = await WrongNote.find({ userId, techniqueId: technique._id, attempt: lastAttempt })
                 .select("_id quizId rawQuestion userAnswer correctAnswer explanation")
                 .lean();
 

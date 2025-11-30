@@ -27,6 +27,7 @@ const WrongNoteSchema = new mongoose.Schema({
         userAnswer: { type: String, required: true },       // 예: "A" 또는 "Prepared Statement"
         correctAnswer: { type: String, required: true },
         explanation: { type: String, default: "" },
+        attempt: { type: Number, required: true },
 }, { timestamps: true });
 
 const WrongNote = mongoose.model("WrongNote", WrongNoteSchema);
