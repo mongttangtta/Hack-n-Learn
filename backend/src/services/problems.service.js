@@ -128,7 +128,7 @@ export const getProblemProgressList = async (userId) => {
 
 export const getProblemDetailsBySlug = async (slug) => {
         const problem = await Problem.findOne({ slug, isActive: true })
-                .select("scenario goals")
+                .select("slug title difficulty scenario goals")
                 .lean();
 
         if( !problem ) return null;
