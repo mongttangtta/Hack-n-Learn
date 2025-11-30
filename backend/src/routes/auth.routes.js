@@ -41,13 +41,13 @@ router.get(
         (req, res) => {
         //res.json({ message: "Google login success", userId: req.user._id, nickname: req.user.nickname , isProfileComplete: req.user.isProfileComplete });
         console.log("[DEBUG] Google OAuth success for:", req.user?.email);
-        res.redirect("/api/main");
+        res.redirect("/");
 });
 
 router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
 router.get("/github/callback", passport.authenticate("github", { failureRedirect: "/login", failureFlash: false }), (req, res) => {
         //res.json({ message: "GitHub login success", userId: req.user._id, nickname: req.user.nickname , isProfileComplete: req.user.isProfileComplete });
-        res.redirect("/api/main");
+        res.redirect("/");
 });
 
 router.post("/send-verification-code", async (req, res, next) => {
