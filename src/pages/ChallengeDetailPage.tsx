@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react'; // Add useCallback
+import { useState, useEffect, useCallback } from 'react'; // Add useCallback
 import { useNavigate, useParams, useBlocker } from 'react-router-dom';
 import LogBox from '../components/Challenge/Logbox';
 import ChallengeHeader from '../components/Challenge/ChallengeHeader';
 import type { LogEntry } from '../types/logs';
 import Button from '../components/Button';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail, ContainerEvent } from '../types/problem';
+import type { ProblemDetail } from '../types/problem';
+
+import { useAuthStore } from '../store/authStore';
 
 // const CORRECT_FLAG = 'test_flag'; // Define CORRECT_FLAG for testing - no longer needed with API
 
@@ -13,6 +15,7 @@ import type { ProblemDetail, ContainerEvent } from '../types/problem';
 
 export default function ChallengeDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { addPoints } = useAuthStore();
   const [problemDetail, setProblemDetail] = useState<ProblemDetail | null>(
     null
   );
@@ -32,7 +35,13 @@ export default function ChallengeDetailPage() {
     // setShouldBlock(false); // Removed to ensure warning appears every time
   }, []);
 
-  const blocker = useBlocker(shouldBlock);
+  const blocker = useBlocker(
+    useCallback(
+      ({ nextLocation }: { nextLocation: any }) =>
+        shouldBlock && nextLocation.pathname !== '/challenge/result',
+      [shouldBlock]
+    )
+  );
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -48,8 +57,6 @@ export default function ChallengeDetailPage() {
     }
   }, [blocker]);
 
-  const lastEventTimestampRef = useRef<string | null>(null);
-
   // Fetch problem details
   useEffect(() => {
     const fetchProblemDetail = async () => {
@@ -60,6 +67,20 @@ export default function ChallengeDetailPage() {
       }
       try {
         setIsLoading(true);
+        // Reset problem state before fetching details
+        const resetResponse = await problemService.resetProblemState(id);
+        if (!resetResponse.success) {
+          console.warn('Failed to reset problem state:', resetResponse.message);
+          // Optionally, show a warning to the user
+        }
+        // Reset local states related to the problem
+        setScore(100); // Reset score to initial value
+        setFlagValue(''); // Clear flag input
+        setLogs([]); // Clear logs
+        setNextHintIndex(0); // Reset hint index
+        setIsLabStarted(false); // Reset lab status
+        setLabUrl(''); // Clear lab URL
+
         const response = await problemService.getProblemDetail(id);
         if (response.success) {
           setProblemDetail(response.data);
@@ -76,59 +97,6 @@ export default function ChallengeDetailPage() {
 
     fetchProblemDetail();
   }, [id]);
-
-  // Poll for container events
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    const fetchEvents = async () => {
-      if (!id) return;
-      try {
-        const response = await problemService.getContainerEvents(id);
-        if (response.success && response.data.length > 0) {
-          const newEvents = response.data.filter((event: ContainerEvent) => {
-            if (!lastEventTimestampRef.current) return true;
-            return (
-              new Date(event.timestamp) >
-              new Date(lastEventTimestampRef.current)
-            );
-          });
-
-          if (newEvents.length > 0) {
-            // Update last timestamp
-            lastEventTimestampRef.current =
-              newEvents[newEvents.length - 1].timestamp;
-
-            // Add new events to logs
-            setLogs((prev) => {
-              const newLogEntries: LogEntry[] = newEvents.map(
-                (event: ContainerEvent) => ({
-                  type: 'info', // Or determine type based on event.type
-                  text: `[${new Date(event.timestamp).toLocaleTimeString()}] ${
-                    event.type
-                  }: ${event.details}`,
-                  cost: 0,
-                })
-              );
-              return [...prev, ...newLogEntries];
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch container events:', err);
-      }
-    };
-
-    if (id && !isLoading && !error && isLabStarted) {
-      // Only fetch events if lab is started
-      fetchEvents(); // Initial fetch
-      intervalId = setInterval(fetchEvents, 5000); // Poll every 5 seconds
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [id, isLoading, error, isLabStarted]); // Add isLabStarted to dependency array
 
   // Use useBlocker for in-app navigation
 
@@ -227,6 +195,8 @@ export default function ChallengeDetailPage() {
         // 정답
         alert('정답입니다! 결과 화면으로 이동합니다.');
         const gainedScore = response.data.gained || score; // Use gained from response if available, else current score
+        console.log(response.data.gained);
+        addPoints(gainedScore); // Update global user score
         setLogs((prev) => [
           ...prev,
           {
@@ -237,7 +207,9 @@ export default function ChallengeDetailPage() {
         ]);
         setShouldBlock(false); // Allow navigation
         setTimeout(() => {
-          navigate('/challenge/result', { state: { score: gainedScore } }); // Navigate to ChallengeResultPage with score
+          navigate('/challenge/result', {
+            state: { score: gainedScore, slug: id },
+          }); // Navigate to ChallengeResultPage with score and slug
         }, 0);
       } else {
         // 오답
@@ -313,46 +285,6 @@ export default function ChallengeDetailPage() {
     }
   };
 
-  /** 랩 환경 종료 처리 */
-  const handleStopLab = async () => {
-    if (!id) {
-      alert('문제 ID를 찾을 수 없습니다.');
-      return;
-    }
-    try {
-      setLogs((prev) => [
-        ...prev,
-        { type: 'action', text: '[ 랩 환경을 종료합니다... ]', cost: 0 },
-      ]);
-      const response = await problemService.stopLab(id);
-      console.log('Stop Lab Response:', response); // Debug log
-      if (response.success) {
-        setIsLabStarted(false);
-        setLabUrl('');
-        setLogs((prev) => [
-          ...prev,
-          { type: 'feedback', text: '[ 랩 환경 종료 성공 ]', cost: 0 },
-        ]);
-      } else {
-        setLogs((prev) => [
-          ...prev,
-          {
-            type: 'feedback',
-            text: response.message || '랩 환경 종료에 실패했습니다.',
-            cost: 0,
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error('Error stopping lab:', error);
-      alert('랩 환경 종료 중 오류가 발생했습니다.');
-      setLogs((prev) => [
-        ...prev,
-        { type: 'feedback', text: '랩 환경 종료 중 오류 발생', cost: 0 },
-      ]);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
@@ -372,8 +304,8 @@ export default function ChallengeDetailPage() {
   return (
     <div className=" min-h-screen text-primary-text">
       <ChallengeHeader
-        title={problemDetail?.title || "Challenge Title"}
-        subtitle={problemDetail?.difficulty || "Challenge Subtitle"}
+        title={problemDetail?.title || 'Challenge Title'}
+        subtitle={problemDetail?.difficulty || 'Challenge Subtitle'}
         score={score}
         onExitChallenge={onExitChallenge}
       />
@@ -396,16 +328,9 @@ export default function ChallengeDetailPage() {
 
         {/* 입력 및 버튼 영역 */}
         <section className="space-y-4">
-          {!isLabStarted ? (
+          {!isLabStarted && (
             <Button onClick={handleStartLab} className="w-full">
               랩 환경 시작
-            </Button>
-          ) : (
-            <Button
-              onClick={handleStopLab}
-              className="w-full bg-red-600 hover:bg-red-700"
-            >
-              랩 환경 종료
             </Button>
           )}
 
@@ -450,7 +375,7 @@ export default function ChallengeDetailPage() {
               className="
               "
             >
-              AI 힌트 요청
+              힌트 요청
             </Button>
             <Button onClick={handleAnswerSubmit} className="">
               정답 확인

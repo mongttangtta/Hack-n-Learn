@@ -3,8 +3,9 @@ import type {
   ProblemDetailApiResponse,
   ProblemSubmissionResponse,
   HintRequestResponse,
-  EventLogResponse,
+  EventAnalysisResponse,
   LabStartResponse,
+  LabStopResponse,
 } from '../types/problem';
 
 export const problemService = {
@@ -37,8 +38,8 @@ export const problemService = {
     return response.data;
   },
 
-  getContainerEvents: async (slug: string): Promise<EventLogResponse> => {
-    const response = await axios.get<EventLogResponse>(
+  getContainerEvents: async (slug: string): Promise<EventAnalysisResponse> => {
+    const response = await axios.get<EventAnalysisResponse>(
       `/api/problems/${slug}/events`
     );
     return response.data;
@@ -54,6 +55,13 @@ export const problemService = {
   stopLab: async (slug: string): Promise<LabStopResponse> => {
     const response = await axios.post<LabStopResponse>(
       `/api/problems/${slug}/stop-lab`
+    );
+    return response.data;
+  },
+
+  resetProblemState: async (slug: string): Promise<{ success: boolean; message?: string }> => {
+    const response = await axios.post<{ success: boolean; message?: string }>(
+      `/api/problems/${slug}/reset`
     );
     return response.data;
   },

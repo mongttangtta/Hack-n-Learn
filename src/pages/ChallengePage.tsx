@@ -27,9 +27,9 @@ const ChallengePage: React.FC = () => {
       let statusText = '';
 
       switch (problem.result) {
-        case 'solved':
+        case 'success':
           icon = <CheckCircle className="h-4 w-4 text-green-500" />;
-          statusText = 'Solved';
+          statusText = 'success';
           break;
         case 'partial':
           icon = <AlertCircle className="h-4 w-4 text-accent-caution" />;
@@ -66,7 +66,7 @@ const ChallengePage: React.FC = () => {
       return {
         id: index,
         title: problem.title,
-        description: `Difficulty: ${difficultyEmoji} | Answer Rate: ${problem.answerRate}% | Status: ${statusText}`,
+        description: `Difficulty: ${difficultyEmoji} | Answer Rate: ${(problem.answerRate * 100).toFixed(2)}% | Status: ${statusText}`,
         icon: icon,
         slug: problem.slug, // Pass slug
       };

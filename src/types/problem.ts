@@ -65,3 +65,14 @@ export interface LabStopResponse {
   success: boolean;
   message?: string;
 }
+
+export interface EventAnalysis {
+  text: string;
+  model: string;
+}
+
+export interface EventAnalysisResponse {
+  success: boolean;
+  analysis: EventAnalysis;
+  message?: string;
+}

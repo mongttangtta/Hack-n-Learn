@@ -6,7 +6,7 @@ interface ProblemProgress {
   title: string;
   difficulty: 'easy' | 'medium' | 'hard'; // Use specific types if known, otherwise string
   answerRate: number;
-  result: 'solved' | 'unsolved' | 'partial' | 'fail'; // Use specific types if known, otherwise string
+  result: 'success' | 'unsolved' | 'partial' | 'fail'; // Use specific types if known, otherwise string
 }
 
 interface ProblemState {

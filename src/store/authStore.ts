@@ -7,6 +7,7 @@ interface User {
   id: string;
   username: string;
   nickname: string; // Add nickname property
+  points: number; // Add points property
   // Add other user properties as needed
 }
 
@@ -18,6 +19,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuthStatus: () => Promise<void>;
+  addPoints: (amount: number) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -25,6 +27,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null, // Initialize token
   isLoading: true, // Start as true to indicate initial loading of auth status
+
+    addPoints: (amount: number) => {
+      set((state) => ({
+        user: state.user ? { ...state.user, points: (state.user.points || 0) + amount } : null,
+      }));
+    },
 
     login: async (username, password) => {
       set({ isLoading: true });
@@ -38,6 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             id: response.data.userId, // Extract userId for User.id
             username: username, // Use the provided username for consistency
             nickname: response.data.nickname, // Extract nickname
+            points: response.data.points || 0, // Extract points
           }; 
           const token = response.data.token || 'mock-token'; // Assuming token is returned directly in response.data
           set({
@@ -92,6 +101,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             id: response.data.data._id.$oid, // Map backend's _id.$oid to User.id
             username: response.data.data.id, // Map backend's id to User.username
             nickname: response.data.data.nickname, // Extract nickname
+            points: response.data.data.points || 0, // Extract points
           };
           const token = response.data.token || 'mock-token'; // Assuming token is returned at top level
           set({
