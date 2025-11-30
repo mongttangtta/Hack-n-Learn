@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'; // Add useCallback, useRef
-import { useNavigate, useParams } from 'react-router-dom'; // Import useBlocker, useNavigate
+import { useState, useEffect, useRef, useCallback } from 'react'; // Add useCallback
+import { useNavigate, useParams, useBlocker } from 'react-router-dom';
 import LogBox from '../components/Challenge/Logbox';
 import ChallengeHeader from '../components/Challenge/ChallengeHeader';
 import type { LogEntry } from '../types/logs';
@@ -25,8 +25,28 @@ export default function ChallengeDetailPage() {
   const [flagValue, setFlagValue] = useState<string>('');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [nextHintIndex, setNextHintIndex] = useState<number>(0); // Represents the next hint stage to request (1-indexed)
-  const [, setShouldBlock] = useState<boolean>(true); // State to control blocking
+  const [shouldBlock, setShouldBlock] = useState<boolean>(true); // State to control blocking
   const navigate = useNavigate(); // Initialize useNavigate
+
+  const onExitChallenge = useCallback(() => {
+    // setShouldBlock(false); // Removed to ensure warning appears every time
+  }, []);
+
+  const blocker = useBlocker(shouldBlock);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      if (
+        window.confirm(
+          '현재 챌린지 진행 중입니다. 페이지를 벗어나면 진행 상황이 유실될 수 있습니다. 정말로 벗어나시겠습니까?'
+        )
+      ) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
 
   const lastEventTimestampRef = useRef<string | null>(null);
 
@@ -203,21 +223,21 @@ export default function ChallengeDetailPage() {
     try {
       const response = await problemService.submitProblemFlag(id, flagValue);
 
-      if (response.success) {
+      if (response.data.correct) {
         // 정답
         alert('정답입니다! 결과 화면으로 이동합니다.');
-        const earnedScore = response.earnedScore || score; // Use earnedScore from response if available, else current score
+        const gainedScore = response.data.gained || score; // Use gained from response if available, else current score
         setLogs((prev) => [
           ...prev,
           {
             type: 'action',
-            text: `[ 정답입니다! (점수 ${earnedScore}점 획득) ]`,
+            text: `[ 정답입니다! (점수 ${gainedScore}점 획득) ]`,
             cost: 0,
           },
         ]);
         setShouldBlock(false); // Allow navigation
         setTimeout(() => {
-          navigate('/challenge/result', { state: { score: earnedScore } }); // Navigate to ChallengeResultPage with score
+          navigate('/challenge/result', { state: { score: gainedScore } }); // Navigate to ChallengeResultPage with score
         }, 0);
       } else {
         // 오답
@@ -228,7 +248,7 @@ export default function ChallengeDetailPage() {
           {
             type: 'feedback',
             text: `${
-              response.message || 'flag값이 올바르지 않습니다'
+              response.data.message || 'flag값이 올바르지 않습니다'
             } (${penalty}점 차감)`,
             cost: penalty,
           },
@@ -352,9 +372,10 @@ export default function ChallengeDetailPage() {
   return (
     <div className=" min-h-screen text-primary-text">
       <ChallengeHeader
-        title="Challenge Title"
-        subtitle="Challenge Subtitle"
+        title={problemDetail?.title || "Challenge Title"}
+        subtitle={problemDetail?.difficulty || "Challenge Subtitle"}
         score={score}
+        onExitChallenge={onExitChallenge}
       />
       <main className="max-w-[1440px] mx-auto px-10 py-12">
         {/* 시나리오 및 목표 */}
@@ -373,13 +394,6 @@ export default function ChallengeDetailPage() {
           </div>
         </section>
 
-        {/* 참고 이미지 (Placeholder) */}
-        <section className="mb-10">
-          <div className="border-2 border-dashed border-gray-600 rounded-lg h-60 flex items-center justify-center text-gray-500">
-            [ 참고 이미지 / 다이어그램 ]
-          </div>
-        </section>
-
         {/* 입력 및 버튼 영역 */}
         <section className="space-y-4">
           {!isLabStarted ? (
@@ -387,7 +401,10 @@ export default function ChallengeDetailPage() {
               랩 환경 시작
             </Button>
           ) : (
-            <Button onClick={handleStopLab} className="w-full bg-red-600 hover:bg-red-700">
+            <Button
+              onClick={handleStopLab}
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
               랩 환경 종료
             </Button>
           )}

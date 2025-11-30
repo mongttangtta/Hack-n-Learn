@@ -1,5 +1,7 @@
 export interface ProblemDetail {
   _id: string;
+  title: string;
+  difficulty: string;
   goals: string[];
   scenario: string;
 }
@@ -12,8 +14,11 @@ export interface ProblemDetailApiResponse {
 
 export interface ProblemSubmissionResponse {
   success: boolean;
-  message?: string;
-  earnedScore?: number;
+  data: {
+    correct: boolean;
+    message?: string;
+    gained?: number;
+  };
 }
 
 export interface Hint {

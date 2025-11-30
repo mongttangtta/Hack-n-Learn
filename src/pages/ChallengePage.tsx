@@ -39,6 +39,10 @@ const ChallengePage: React.FC = () => {
           icon = <XCircle className="h-4 w-4 text-red-500" />;
           statusText = 'Unsolved';
           break;
+        case 'fail':
+          icon = <XCircle className="h-4 w-4 text-red-500" />;
+          statusText = 'failed';
+          break;
         default:
           icon = <Lock className="h-4 w-4 text-gray-500" />;
           statusText = 'Locked';
