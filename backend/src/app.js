@@ -36,8 +36,8 @@ app.use(
                 }),
                 cookie: {
                         httpOnly: true,
-                        secure: isProduction,
-                        sameSite: "none",// CSRF 방지
+                        secure: true,  // isProduction
+                        sameSite: "none",// lax
                         maxAge : 60 * 60 * 1000 // 1 hour
                 },
         })
