@@ -4,12 +4,16 @@ import User from "../models/user.model.js";
 import mongoose from "mongoose";
 
 function normalizeFlag(flag) {
-        if(!flag) return "";
-        return String(flag)
-                .trim()
-                .replace(/\s+/g, "")
-                .toLowerCase();
+    if (!flag) return "";
+
+    return String(flag)
+        .normalize("NFKC")                       // 유니코드 정규화
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")    // zero-width 문자 제거
+        .replace(/\s+/g, "")                      // 공백 제거
+        .trim()
+        .toLowerCase();
 }
+
 
 export const submitFlag = async ({userId, slug, flag}) => {
         try {
