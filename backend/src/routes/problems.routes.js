@@ -451,14 +451,19 @@ const execPromise = util.promisify(exec);
 const PORT_RANGE = { min: 8100, max: 8200 };
 const usedPorts = new Set();
 
-function getAvailablePort() {
+async function isDockerPortUsed(port) {
+        const { stdout} = await execPromise(
+                `docker ps --filter "publish=${port}" --format "{{.ID}}"`
+        );
+        return stdout.trim().length > 0;
+}
+
+async function getAvailablePort() {
         for (let port = PORT_RANGE.min; port <= PORT_RANGE.max; port++) {
-                if (!usedPorts.has(port)) {
-                        usedPorts.add(port);
-                        return port;
-                }
+                const used = await isDockerPortUsed(port);
+                if(!used) return port;
         }
-        throw new Error("No available ports");
+        throw new Error("No available ports (All ports in range are occupied)");
 }
 
 router.post("/:id/start-lab", requireLogin, async( req, res) => {
@@ -481,49 +486,24 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                         });
                 }
 
-                let practices = await Practice.find({
+                // 이미 실행 중인지 체크
+                const existing = await Practice.find({
                         userId,
                         problemId: problem._id,
                         status : 'running'
-                }).sort({ createdAt : -1 });
+                });                
 
-                let activePractice = null;
-                for (const p of practices) {
-
-                        const cleanName = String(p.containerName).trim();
-                        let aliveOutput = "";
-
-                        try {
-                                aliveOutput = await execPromise(
-                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
-                                );
-                        } catch (err) {
-                                console.error("docker ps failed for", cleanName, err);
-                                aliveOutput = "";
-                        }
-
-                        const alive = (aliveOutput?.stdout || "").trim();
-
-                        if (alive) {
-                                activePractice = p;
-                                break;
-                        } else {
-                                p.status = "stopped";
-                                await p.save();
-                        }
-                }
-                
-
-                if(activePractice){
-                        return res.json
-                        ({
+                if (existing) {
+                        return res.json({
                                 success: true,
-                                url : `https://hacknlearn.site:${activePractice.port}`,
-                                port: activePractice.port,
-                                expiresAt: activePractice.expiresAt
+                                url: `https://hacknlearn.site:${existing.port}`,
+                                port: existing.port,
+                                expiresAt: existing.expiresAt,
                         });
                 }
 
+
+                //전체 리소스 제한
                 const runningCount = await Practice.countDocuments({ userId, status : 'running' });
                 if( runningCount >= 2) {
                         return res.status(429).json({ message : "You can run up to 2 labs simultaneously." });
@@ -534,7 +514,8 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                         return res.status(503).json({ message : "All lab environments are currently busy. Please try again later." });
                 }
 
-                const port = getAvailablePort();
+                // 완전 안전한 포트 선택
+                const port = await getAvailablePort();
                 const containerName = `practice_${problem.slug}_${userId}_${Date.now()}`;
                 const dockerCommand = `docker run -d \
                 --name ${containerName} \
