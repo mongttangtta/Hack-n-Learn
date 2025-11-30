@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from '../components/Button';
-import type { Post, Comment, PostAuthor } from '../types/community';
+import type { Post, Comment } from '../types/community';
 import QnaPost from '@/components/community/qnaPost';
 import { communityService } from '../services/communityService';
 import { useAuthStore } from '@/store/authStore';

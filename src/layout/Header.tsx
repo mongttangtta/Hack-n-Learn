@@ -45,7 +45,7 @@ export default function Header() {
             timeVariance={300}
             colors={['#B19EEF', '#ffffff', '#B19EEF', '#ffffff']}
             items={gooeyNavItems}
-            initialActiveIndex={currentPathIndex !== -1 ? currentPathIndex : 0}
+            initialActiveIndex={currentPathIndex}
           />
         </div>
 

@@ -78,7 +78,6 @@ export default function ChallengeDetailPage() {
         setFlagValue(''); // Clear flag input
         setLogs([]); // Clear logs
         setNextHintIndex(0); // Reset hint index
-        setIsLabStarted(false); // Reset lab status
         setLabUrl(''); // Clear lab URL
 
         const response = await problemService.getProblemDetail(id);
