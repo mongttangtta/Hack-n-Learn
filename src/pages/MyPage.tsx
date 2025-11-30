@@ -3,52 +3,11 @@ import CircularProgress from '../components/CircularProgress';
 import { ArrowRight, Settings, Award } from 'lucide-react';
 import { fetchMyPageData } from '../services/userService'; // Import from userService
 import { fetchMyRanking } from '../services/rankingService'; // Import from rankingService
-
-// Interfaces based on the API response
-interface Profile {
-  nickname: string;
-  tier: string;
-  points: number;
-  profileImageUrl: string;
-  rank?: number; // Added rank to the profile
-}
-
-interface QuizPart {
-  title: string;
-  progress: number;
-  slug: string;
-}
-
-interface QuizProgress {
-  summary: {
-    totalQuizzes: number;
-    solvedQuizzes: number;
-    progress: number;
-  };
-  parts: QuizPart[];
-}
-
-interface PracticeItem {
-  challengeId: string;
-  title: string;
-  // Add other fields if known, otherwise infer or keep minimal
-}
-
-interface Practice {
-  total: number;
-  successCount: number;
-  successRate: number;
-  practiceList: PracticeItem[];
-}
-
-interface MyPageData {
-  profile: Profile;
-  practice: Practice;
-  quizProgress: QuizProgress;
-}
+import type { MyPageData, Profile, QuizProgress, Practice } from '../types/mypage';
+import EditProfileModal from '../components/EditProfileModal';
 
 // 프로필 섹션
-const UserProfile = ({ profile }: { profile: Profile | null }) => {
+const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEditClick: () => void }) => {
   if (!profile) return <div className="p-5">Loading Profile...</div>;
 
   const getTierColorClass = (tierName: string) => {
@@ -65,11 +24,11 @@ const UserProfile = ({ profile }: { profile: Profile | null }) => {
   return (
     <div className="flex flex-col items-center text-center my-12 relative bg-card-background p-5 rounded-lg border border-gray-700">
       {/* 프로필 이미지 */}
-      <div className="relative mb-4">
+      <div className="relative mb-4 cursor-pointer" onClick={onEditClick}>
         <img
           src={profile.profileImageUrl || "https://via.placeholder.com/128"}
           alt="프로필 이미지"
-          className="w-32 h-32 rounded-full border-2 border-edge object-cover"
+          className="w-32 h-32 rounded-full border-2 border-edge object-cover hover:opacity-80 transition-opacity"
         />
         <span className="absolute top-0 right-0 bg-edge border-4 border-card-background rounded-full p-1 text-xs">
           <Settings className="w-4.5 h-4.5 text-[#121212]" />
@@ -156,7 +115,7 @@ const ProgressCard = ({
               <>
                 최근 푼 문제:
                 <br />
-                {lastPractice.title}
+                {lastPractice.problem.slug}
               </>
             ) : (
               '아직 푼 문제가 없습니다.'
@@ -191,6 +150,7 @@ export default function MyPage() {
   const [data, setData] = useState<MyPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDataAndRanking = async () => {
@@ -202,7 +162,7 @@ export default function MyPage() {
           fetchMyRanking(),
         ]);
 
-        if (myPageResponse.success) {
+        if (myPageResponse.success && myPageResponse.data) {
           const combinedProfile: Profile = {
             ...myPageResponse.data.profile,
             rank: myRankingResponse.rank,
@@ -226,6 +186,19 @@ export default function MyPage() {
     fetchDataAndRanking();
   }, []);
 
+  const handleProfileUpdate = (newNickname: string, newImageUrl: string) => {
+    if (data && data.profile) {
+      setData({
+        ...data,
+        profile: {
+          ...data.profile,
+          nickname: newNickname,
+          profileImageUrl: newImageUrl,
+        },
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-main min-h-screen flex items-center justify-center text-primary-text">
@@ -246,7 +219,10 @@ export default function MyPage() {
     <div className="bg-main min-h-screen">
       <main className="container mx-auto px-6 py-8">
         {/* 프로필 섹션 */}
-        <UserProfile profile={data?.profile || null} />
+        <UserProfile 
+          profile={data?.profile || null} 
+          onEditClick={() => setIsEditModalOpen(true)} 
+        />
 
         {/* 메인 대시보드 그리드 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -268,7 +244,7 @@ export default function MyPage() {
                     key={index}
                     className="text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
                   >
-                    {item.title}
+                    {item.problem.slug}
                   </p>
                 ))
               ) : (
@@ -287,6 +263,17 @@ export default function MyPage() {
           </div>
         </div>
       </main>
+
+      {/* Edit Profile Modal */}
+      {data?.profile && (
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          currentNickname={data.profile.nickname}
+          currentProfileImage={data.profile.profileImageUrl}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
     </div>
   );
 }
