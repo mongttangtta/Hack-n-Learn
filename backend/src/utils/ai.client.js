@@ -7,6 +7,8 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) { console.warn("Warning: OPENAI_API_KEY is not set in environment variables."); }
 
+console.log("LOADED OPENAI KEY:", OPENAI_API_KEY);
+
 const client = new OPENAI({ apiKey: OPENAI_API_KEY });
 
 const isResponsesPreferred = (model) => /^gpt-4o(?!-chat)/.test(model || "");
