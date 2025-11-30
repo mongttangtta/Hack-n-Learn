@@ -8,7 +8,7 @@ export const submitFlag = async ({userId, slug, flag}) => {
                 const problem = await Problem.findOne({slug, isActive: true});
                 if (!problem) throw new Error("문제를 찾을 수 없습니다.");
 
-                const uid = mongoose.Types.ObjectId(userId);
+                const uid = new mongoose.Types.ObjectId(userId);
                 let problemPersonal = await ProblemPersonal.findOne({ user: uid, problem: problem._id });
 
                 if (!problemPersonal) {
