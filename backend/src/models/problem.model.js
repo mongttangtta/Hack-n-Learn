@@ -22,7 +22,7 @@ const problemSchema = new mongoose.Schema({
                 lowercase: true
         },
         score : { type: Number, default: 100, min: 0 },
-        flag : { type: String, required: true, select : false }, // 문제 풀이 정답
+        flag : { type: String, required: true }, // 문제 풀이 정답
         answerRate : { type: Number, default: 0, min: 0, max: 1 }, 
         isActive : { type: Boolean, default: true },
         hints : {
