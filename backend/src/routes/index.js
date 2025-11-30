@@ -8,6 +8,7 @@ import communityRoutes from './community.routes.js';
 import rankingRoutes from './ranking.routes.js';
 import adminRoutes from './admin.routes.js';
 import chatBotRoutes from './chatBot.routes.js';
+import wrongNoteRoutes from './wrongNote.routes.js';
 
 
 import newsRoutes from './news.routes.js';
@@ -23,5 +24,6 @@ router.use('/chatbot', chatBotRoutes);
 router.use('/admin', adminRoutes);
 router.use('/community', communityRoutes);
 router.use('/mypage', mypageRoutes);
+router.use('/wrongnote', wrongNoteRoutes);
 
 export default router;
