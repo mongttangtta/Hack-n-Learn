@@ -636,7 +636,7 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                 const problem = await Problem.findOne({ slug });
                 if( !problem ) return res.status(404).json({ success: false, message: "Problem not found." });
 
-                let practices = await Practice.findOne({ 
+                let practices = await Practice.find({ 
                         userId, 
                         problemId: problem._id,
                         status : 'running'
