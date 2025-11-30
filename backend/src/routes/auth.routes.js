@@ -35,7 +35,7 @@ router.get(
                 console.log("[DEBUG] rawCode (exactly as Google sent):", rawCode);
                 req.query.code = decodeURIComponent(rawCode);
                 console.log("[DEBUG] decodedCode:", req.query.code);
-        }        next();
+        }       
         next();
 }, passport.authenticate("google", { failureRedirect: "/login" }),
         (req, res) => {
