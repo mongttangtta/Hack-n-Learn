@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
         updatedAt : { type: Date, default: Date.now },
         lastLogin : { type: Date },
         isActive : { type: Boolean, default: true },        
-        profileImageUrl : { type: String, default: "https://pub-b23619bb14a741e591c16ef6324e46f.r2.dev/profile-default.png" }, //FE URL
+        profileImageUrl : { type: String, default: "https://pub-b23619bb14a741e5911c16efd324e46f.r2.dev/profile_image.png" }, //FE URL
         profileImageKey : { type: String, default: null }, //실제 파일 이름
         isProfileComplete: { type: Boolean, default: true }, // 프로필 완성 여부
 }, { timestamps: true });
