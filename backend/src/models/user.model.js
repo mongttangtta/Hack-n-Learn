@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
         id: { type: String, required: true, unique: true },
+        oauthId: { type: String, sparse: true }, // OAuth 사용자의 고유 ID 저장
+        provider: { type: String, enum: ['local', 'google', 'github'], default: 'local' },
         nickname: { type: String, required: true },
         lastNicknameChangeAt: { type: Date, default: null },
         passwordHash: { type: String },
-        email: { type: String, unique: true, sparse: true, required: true },
-        provider: { type: String, enum: ['local', 'google', 'github'], default: 'local' },
-        oauthId: { type: String, sparse: true }, // OAuth 사용자의 고유 ID 저장
+        email: { type: String, unique: true, sparse: true, required: true },                
         linkedAccounts: {
                 google :{
                         id : { type: String, default: null },
