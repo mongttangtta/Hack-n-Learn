@@ -75,14 +75,28 @@ export const submitFlag = async ({userId, slug, flag}) => {
                                 result: "unsolved",
                                 score : problem.score,
                         });
-                }
+                } else {
+                        // 이미 정답을 맞춘 문제는 재제출 불가
+                        if(problemPersonal.result === "success") {
+                                return {
+                                        correct: true,
+                                        gained: 0,
+                                        message: "이미 정답을 제출한 문제입니다."
+                                };
+                        }
+
+                        if(problemPersonal.result === "fail" || problemPersonal.penalty > 0 || problemPersonal.userHints > 0) {
+                                // 이미 오답을 제출한 상태에서는 추가 패널티 없음
+                                problemPersonal.penalty = 0;
+                                problemPersonal.userHints = 0;
+                                problemPersonal.result = "unsolved";
+                                problemPersonal.score = problem.score;
+                                await problemPersonal.save();
+                        }
+                }                
+
                 const userAnswer = normalizeFlag(flag);
                 const correctAnswer = normalizeFlag(problem.flag);
-
-                console.log(`User Answer: ${userAnswer}, Correct Answer: ${correctAnswer}`);
-
-                console.log(`Buffer.from(userAnswer): ${Buffer.from(userAnswer)}`);
-                console.log(`Buffer.from(correctAnswer): ${Buffer.from(correctAnswer)}`);
 
                 const isCorrect = userAnswer === correctAnswer;
 
