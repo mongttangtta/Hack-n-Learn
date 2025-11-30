@@ -17,7 +17,8 @@ const problemPersonalSchema = new mongoose.Schema({
         solvedAt : { type: Date }, // 문제를 푼 시간
 }, { timestamps: true });
 
-problemPersonalSchema.index
+problemPersonalSchema.index({ user: 1, problem: 1 }, { unique: true });
+problemPersonalSchema.index({ solvedAt: -1 });
 
 const ProblemPersonal = mongoose.model("ProblemPersonal", problemPersonalSchema);
 

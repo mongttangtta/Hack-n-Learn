@@ -48,6 +48,8 @@ export const resetProblemState = async ({ userId, slug}) => {
                 personal.penalty = 0;
                 personal.userHints = 0;
                 personal.result = "unsolved";
+                personal.score = problem.score;
+                personal.solvedAt = null;
                 await personal.save();
         }
 
@@ -83,15 +85,6 @@ export const submitFlag = async ({userId, slug, flag}) => {
                                         gained: 0,
                                         message: "이미 정답을 제출한 문제입니다."
                                 };
-                        }
-
-                        if(problemPersonal.result === "fail" || problemPersonal.penalty > 0 || problemPersonal.userHints > 0) {
-                                // 이미 오답을 제출한 상태에서는 추가 패널티 없음
-                                problemPersonal.penalty = 0;
-                                problemPersonal.userHints = 0;
-                                problemPersonal.result = "unsolved";
-                                problemPersonal.score = problem.score;
-                                await problemPersonal.save();
                         }
                 }                
 
