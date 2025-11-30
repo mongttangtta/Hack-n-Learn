@@ -97,7 +97,7 @@ function buildSystemPrompt(){
                                 "출력 예시(샘플 JSON) : { \"results\": [{ \"questionId\": \"abc123\", \"reasonSummary\": \"...\", \"mistakeAnalysis\": [\"...\"], \"stepByStepSolution\": [\"...\"], \"learningTips\": \"...\"}] }",
                                 "출력에 JSON 외 텍스트(설명, 마크다운 등)는 포함하지 마세요.",
                                 "FLAG, 비밀값 등은 모두 '[REDACTED_FLAG]'로 대체하세요.",
-                                "그리고 해설 내용이 너무 길어지지 않도록 주의하세요.(800토큰 이내)",
+                                "그리고 해설 내용이 너무 길어지지 않도록 주의하세요.(1000토큰 이내)",
                         ].join(" "),
                 },
         ];
@@ -170,7 +170,7 @@ export async function analyzeAnswersBatch({
                                                 model,
                                                 messages,
                                                 temperature: 1,
-                                                max_completion_tokens : 800,
+                                                max_completion_tokens : 1000,
                                                 response_format: { type: "json_object" },
                                         },{ signal: controller.signal });
                                         text = String(r.choices?.[0]?.message?.content ?? "");
