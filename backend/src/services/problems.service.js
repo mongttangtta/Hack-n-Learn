@@ -6,13 +6,36 @@ import mongoose from "mongoose";
 function normalizeFlag(flag) {
     if (!flag) return "";
 
-    return String(flag)
-        .normalize("NFKC")                       // 유니코드 정규화
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")    // zero-width 문자 제거
-        .replace(/\s+/g, "")                      // 공백 제거
+    let f = String(flag)
+        .normalize("NFKC") 
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
         .trim()
         .toLowerCase();
+
+    // 공백 제거
+    f = f.replace(/\s+/g, "");
+
+    // ---- FLAG 자동 보정 ----
+    // 이미 flag{xxx} 형식이면 그대로 사용
+    if (f.startsWith("flag{") && f.endsWith("}")) {
+        return f;
+    }
+
+    // flagxxxx 또는 xxxx 형태 → 자동으로 감싸기
+    // flagxxxx -> flag{xxxx}
+    if (f.startsWith("flag") && !f.includes("{")) {
+        return `flag{${f.slice(4)}}`;
+    }
+
+    // 순수 문자열 xxxx -> flag{xxxx}
+    if (!f.includes("{")) {
+        return `flag{${f}}`;
+    }
+
+    // 그 외의 케이스는 그대로
+    return f;
 }
+
 
 
 export const submitFlag = async ({userId, slug, flag}) => {
