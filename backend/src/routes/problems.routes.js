@@ -487,7 +487,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                 }
 
                 // 이미 실행 중인지 체크
-                const existing = await Practice.find({
+                const existing = await Practice.findOne({
                         userId,
                         problemId: problem._id,
                         status : 'running'
