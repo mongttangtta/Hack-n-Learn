@@ -23,16 +23,15 @@ export const getMyPageData = async (userId) => {
         .select("nickname tier titles points createdAt lastLogin isProfileComplete profileImageUrl profileImageKey")
         .lean();
 
-    // 최근 실전 문제 로그
+    // 실전 문제 로그
     const personal = await ProblemPersonal.find({ user: uid })
-        .sort({ solvedAt: -1 })
-        .limit(100)
+        .sort({ solvedAt: -1, createdAt: -1 })
         .lean();
 
     // 실전 문제 원본 조회
     const problemIds = [...new Set(personal.map(p => p.problem.toString()))];
     const problems = await Problem.find({ _id: { $in: problemIds } })
-        .select("slug score answerRate isActive")
+        .select("slug score answerRate")
         .lean();
 
     // 🔥 티어 업데이트
