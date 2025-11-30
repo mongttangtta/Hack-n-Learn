@@ -6,9 +6,12 @@ import Input from '../../components/Input';
 import { useAuthStore } from '../../store/authStore';
 
 const POST_TYPES = [
-  { id: '692212bf9791aa282263d57d', label: '자유' },
-  { id: '692212bf9791aa282263d58d', label: '질문' },
-  { id: '692212bf9791aa282263d59d', label: '정보' },
+  { id: '692212bf9791aa282263d57c', label: '공지사항' },
+  { id: '692212bf9791aa282263d57d', label: '질문' },
+  { id: '692212bf9791aa282263d57e', label: '정보공유' },
+  { id: '692212bf9791aa282263d57f', label: '팁과 노하우' },
+  { id: '692212bf9791aa282263d580', label: '자유게시판' },
+  { id: '692212bf9791aa282263d581', label: '에러/버그 신고' },
 ];
 
 export default function CreatePostPage() {
@@ -80,6 +83,7 @@ export default function CreatePostPage() {
             onChange={(e) => setType(e.target.value)}
             className="w-full p-3 bg-input-background border border-edge rounded-[20px] text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-primary1"
           >
+            conslc
             {POST_TYPES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.label}

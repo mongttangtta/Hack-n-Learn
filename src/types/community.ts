@@ -10,7 +10,7 @@ export interface PostAuthor {
 
 export interface Post {
   _id: string;
-  type: PostType;
+  type: PostType | null;
   title: string;
   content: string;
   author: PostAuthor | null;
@@ -18,7 +18,6 @@ export interface Post {
   views: number;
   createdAt: string;
   updatedAt: string;
-  __v: number;
 }
 
 export interface Comment {

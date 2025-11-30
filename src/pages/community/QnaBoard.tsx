@@ -9,9 +9,12 @@ import { communityService } from '../../services/communityService';
 
 const POST_TYPES = [
   { id: 'all', label: '전체' },
-  { id: '692212bf9791aa282263d57d', label: '자유' },
-  { id: '692212bf9791aa282263d58d', label: '질문' },
-  { id: '692212bf9791aa282263d59d', label: '정보' },
+  { id: '692212bf9791aa282263d57c', label: '공지사항' },
+  { id: '692212bf9791aa282263d57d', label: '질문' },
+  { id: '692212bf9791aa282263d57e', label: '정보공유' },
+  { id: '692212bf9791aa282263d57f', label: '팁과 노하우' },
+  { id: '692212bf9791aa282263d580', label: '자유게시판' },
+  { id: '692212bf9791aa282263d581', label: '에러/버그 신고' },
 ];
 
 export default function QnaBoard() {
@@ -50,6 +53,7 @@ export default function QnaBoard() {
         const fetchedPosts: Post[] = response.data.data.items;
         setPosts(fetchedPosts);
         setTotalCount(response.data.data.total);
+        console.log(response.data.data);
 
         if (setTotalPages) {
           setTotalPages(Math.ceil(response.data.data.total / pageSize));
@@ -126,20 +130,22 @@ export default function QnaBoard() {
         </div>
 
         <div className="flex justify-between items-end mt-8">
-          <div className="flex gap-2">
-            {POST_TYPES.map((type) => (
-              <Button
-                key={type.id}
-                onClick={() => handleTypeSelect(type.id)}
-                className={`rounded-lg w-full h-full px-3 py-1 transition-colors ${
-                  selectedType === type.id
-                    ? 'bg-accent-primary1 '
-                    : 'bg-card-background text-primary-text hover:bg-edge'
-                }`}
-              >
-                {type.label}
-              </Button>
-            ))}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              {POST_TYPES.map((type) => (
+                <Button
+                  key={type.id}
+                  onClick={() => handleTypeSelect(type.id)}
+                  className={`rounded-lg w-full h-full px-3 py-1 transition-colors whitespace-nowrap ${
+                    selectedType === type.id
+                      ? 'bg-accent-primary1 '
+                      : 'bg-card-background text-primary-text hover:bg-edge'
+                  }`}
+                >
+                  {type.label}
+                </Button>
+              ))}
+            </div>
           </div>
           <Button onClick={() => navigate('/community/qna/create')}>
             질문하기
@@ -151,6 +157,7 @@ export default function QnaBoard() {
         <thead>
           <tr className="border-b-2 border-edge">
             <th className="p-4">번호</th>
+            <th className="p-4">카테고리</th>
             <th className="p-4">제목</th>
             <th className="p-4">작성자</th>
             <th className="p-4">작성일</th>
@@ -169,6 +176,7 @@ export default function QnaBoard() {
               <td className="p-4">
                 {totalCount - ((currentPage - 1) * pageSize + index)}
               </td>
+              <td className="p-4">{post.type?.name || '일반'}</td>
               <td
                 className={`p-4 ${
                   viewedPosts[post._id]
