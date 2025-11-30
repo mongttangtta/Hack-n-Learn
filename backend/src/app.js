@@ -38,7 +38,8 @@ app.use(
                         httpOnly: true,
                         secure: true,  // isProduction
                         sameSite: "none",// lax
-                        maxAge : 60 * 60 * 1000 // 1 hour
+                        maxAge : 60 * 60 * 1000, // 1 hour
+                        domain: ".hacknlearn.site", // .localhost.com
                 },
         })
 );
