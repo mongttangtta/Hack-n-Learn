@@ -7,9 +7,12 @@ import { useAuthStore } from '../../store/authStore';
 import type { Post } from '../../types/community';
 
 const POST_TYPES = [
-  { id: '692212bf9791aa282263d57d', label: '자유' },
-  { id: '692212bf9791aa282263d58d', label: '질문' },
-  { id: '692212bf9791aa282263d59d', label: '정보' },
+  { id: '692212bf9791aa282263d57c', label: '공지사항' },
+  { id: '692212bf9791aa282263d57d', label: '질문' },
+  { id: '692212bf9791aa282263d57e', label: '정보공유' },
+  { id: '692212bf9791aa282263d57f', label: '팁과 노하우' },
+  { id: '692212bf9791aa282263d580', label: '자유게시판' },
+  { id: '692212bf9791aa282263d581', label: '에러/버그 신고' },
 ];
 
 export default function EditPostPage() {
@@ -36,7 +39,7 @@ export default function EditPostPage() {
         const fetchedPost: Post = response.data.data;
         setTitle(fetchedPost.title);
         setContent(fetchedPost.content);
-        setType(fetchedPost.type._id); // Assuming type is an object with _id
+        setType(fetchedPost.type?._id || POST_TYPES[1].id);
       } catch (err) {
         setFetchError('게시글 정보를 불러오는데 실패했습니다.');
         console.error(err);

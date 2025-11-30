@@ -10,20 +10,22 @@ export interface PostAuthor {
 
 export interface Post {
   _id: string;
-  type: PostType;
+  type: PostType | null;
   title: string;
   content: string;
-  author: PostAuthor;
+  author: PostAuthor | null;
+  nickname: string;
   views: number;
   createdAt: string;
   updatedAt: string;
-  __v: number;
 }
 
 export interface Comment {
   _id: string;
   postId: string;
-  author: PostAuthor;
+  parentComment: string | null;
+  author: PostAuthor | null;
+  nickname: string;
   content: string;
   createdAt: string;
   updatedAt: string;
