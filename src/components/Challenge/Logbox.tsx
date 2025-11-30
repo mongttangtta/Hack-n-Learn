@@ -26,7 +26,7 @@ const LogBox: React.FC<LogBoxProps> = ({ logs }) => {
     <div className="mt-8 bg-code-bg rounded-[10px] p-6 border border-edge min-h-[150px]">
       {logs.length === 0 ? (
         <p className="text-gray-500 text-left">
-          AI 힌트 또는 정답 피드백이 여기에 표시됩니다.
+          힌트 또는 정답 피드백이 여기에 표시됩니다.
         </p>
       ) : (
         <ul className="space-y-2">

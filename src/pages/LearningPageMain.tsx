@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../components/Input';
 import { useNavigate } from 'react-router-dom';
-import { learningTopics } from '../data/learningContent'; // Import the data
+import { learningTopics } from '../data/learningContent';
 import heroImage from '../assets/images/이론학습.png';
 import HeroSection from '../components/HeroSection';
+import ElectricBorder from '../components/ElectricBorder';
+import { useAuthStore } from '../store/authStore'; // Import useAuthStore
+import axios from 'axios'; // Import axios for API call
+import { Check } from 'lucide-react';
 
 interface CourseCardProps {
   id: string;
@@ -11,7 +15,27 @@ interface CourseCardProps {
   description: string;
   difficulty: '쉬워요' | '보통' | '어려워요';
   isCompleted?: boolean;
+  isInProgress?: boolean;
   onCardClick?: (id: string) => void;
+}
+
+interface QuizProgressPart {
+  techniqueId: string;
+  slug: string;
+  title: string;
+  solvedCount: number;
+  totalCount: number;
+  progress: number;
+  status: 'not_started' | 'in_progress' | 'solved';
+}
+
+interface MyPageQuizProgress {
+  summary: {
+    totalQuizzes: number;
+    solvedQuizzes: number;
+    progress: number;
+  };
+  parts: QuizProgressPart[];
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -20,6 +44,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   description,
   difficulty,
   isCompleted,
+  isInProgress,
   onCardClick,
 }) => {
   const difficultyColors = {
@@ -34,16 +59,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
     어려워요: '🥵',
   };
 
-  return (
-    <button
-      className={`bg-card-background p-6 rounded-lg border-2 text-left w-full h-full flex flex-col transition-transform duration-300 hover:scale-105 ${
-        isCompleted ? 'border-accent-primary1' : 'border-edge'
-      }`}
-      onClick={() => onCardClick && onCardClick(id)}
-    >
-      <div className="flex-grow">
-        <h3 className="text-2xl font-bold text-primary-text mb-2">
-          {title} {isCompleted && '[V]'}
+  const CardContent = () => (
+    <>
+      <div className="grow">
+        <h3 className="text-2xl font-bold text-primary-text mb-2 flex items-center">
+          {title}{' '}
+          {(isInProgress || isCompleted) && (
+            <Check className="text-accent-primary1 ml-2" />
+          )}
         </h3>
         <p className="text-secondary-text mb-4">{description}</p>
       </div>
@@ -55,22 +78,88 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </span>
         </div>
       </div>
+    </>
+  );
+
+  if (isCompleted) {
+    return (
+      <ElectricBorder
+        color="#7df9ff"
+        speed={1}
+        chaos={0.5}
+        thickness={2}
+        style={{ borderRadius: 16 }}
+      >
+        <button
+          className="cursor-pointer p-6 rounded-lg text-left w-full h-full flex flex-col "
+          onClick={() => onCardClick && onCardClick(id)}
+        >
+          <CardContent />
+        </button>
+      </ElectricBorder>
+    );
+  }
+
+  return (
+    <button
+      className="bg-card-background p-6 rounded-lg border-2 border-edge text-left w-full h-full flex flex-col transition-transform duration-300 hover:scale-105"
+      onClick={() => onCardClick && onCardClick(id)}
+    >
+      <CardContent />
     </button>
   );
 };
 
 export default function LearningPageMain() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [userQuizProgress, setUserQuizProgress] =
+    useState<MyPageQuizProgress | null>(null);
+  const [loadingQuizProgress, setLoadingQuizProgress] = useState(true);
+  const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  // Generate courses from the learningTopics data
-  const courses = Object.values(learningTopics).map((topic) => ({
-    id: topic.id,
-    title: topic.title,
-    description: topic.description,
-    difficulty: topic.difficulty,
-    isCompleted: topic.isCompleted,
-  }));
+  useEffect(() => {
+    const fetchUserProgress = async () => {
+      if (!isAuthenticated) {
+        setLoadingQuizProgress(false);
+        setUserQuizProgress(null);
+        return;
+      }
+
+      try {
+        setLoadingQuizProgress(true);
+        const response = await axios.get('/api/mypage');
+        if (response.data.success && response.data.data.quizProgress) {
+          setUserQuizProgress(response.data.data.quizProgress);
+        } else {
+          setUserQuizProgress(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user quiz progress:', error);
+        setUserQuizProgress(null);
+      } finally {
+        setLoadingQuizProgress(false);
+      }
+    };
+
+    fetchUserProgress();
+  }, [isAuthenticated]);
+
+  const courses = Object.values(learningTopics).map((topic) => {
+    const progressPart = userQuizProgress?.parts.find(
+      (part) => part.slug === topic.id
+    );
+    const isCompleted = progressPart?.status === 'solved';
+    const isInProgress = progressPart?.status === 'in_progress';
+    return {
+      isInProgress: isInProgress,
+      id: topic.id,
+      title: topic.title,
+      description: topic.description,
+      difficulty: topic.difficulty,
+      isCompleted: isCompleted,
+    };
+  });
 
   const filteredCourses = courses.filter((course) =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -83,6 +172,14 @@ export default function LearningPageMain() {
   const handleCardClick = (id: string) => {
     navigate(`/learning/${id}`);
   };
+
+  if (loadingQuizProgress && isAuthenticated) {
+    return (
+      <div className="bg-main min-h-screen flex items-center justify-center text-primary-text">
+        Loading learning progress...
+      </div>
+    );
+  }
 
   return (
     <div className=" min-h-screen text-primary-text">

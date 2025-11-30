@@ -53,6 +53,7 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               <Bell />
+
               <Link to="/mypage" className="flex items-center space-x-1">
                 <User />
                 <span>{user?.nickname}님</span>

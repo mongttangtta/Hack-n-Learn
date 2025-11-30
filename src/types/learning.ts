@@ -14,7 +14,7 @@ export type ContentBlock =
   | { type: 'p'; content: InlineContent[] }
   | { type: 'ul'; items: InlineContent[][] }
   | { type: 'nested-list'; items: NestedListItem[] }
-  | { type: 'code'; text: string }
+  | { type: 'code'; text: string; language?: string }
   | { type: 'hr' }
   | { type: 'checklist'; items: InlineContent[][] }
   | ImageBlock

@@ -1,17 +1,21 @@
-import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import PostCard from '../../components/community/PostCard';
 import { useCommunityPage } from '../../components/community/useCommunityPage';
 
 interface NewsItem {
+  id: string;
   title: string;
   link: string;
   summary: string;
+  image: string;
+  date: string; // API에서 넘어오는 날짜 필드 (예: '2025-11-27T...')
 }
 
 export default function SecurityNews() {
+  const navigate = useNavigate();
   const context = useCommunityPage();
   const currentPage = context?.currentPage || 1;
   const setTotalPages = context?.setTotalPages;
@@ -20,8 +24,8 @@ export default function SecurityNews() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<string | null>(null); // State for sorting
 
+  // 뉴스 데이터 가져오기
   useEffect(() => {
     const fetchNews = async () => {
       setLoading(true);
@@ -31,9 +35,9 @@ export default function SecurityNews() {
           params: {
             page: currentPage,
             limit: pageSize,
-            ...(sortBy && { sortBy }), // Conditionally add sortBy parameter
           },
         });
+
         setNews(response.data.data.items);
         if (setTotalPages) {
           setTotalPages(Math.ceil(response.data.data.total / pageSize));
@@ -47,14 +51,10 @@ export default function SecurityNews() {
     };
 
     fetchNews();
-  }, [currentPage, setTotalPages, pageSize, sortBy]); // Add sortBy to dependencies
+  }, [currentPage, setTotalPages, pageSize]); // sortBy 변경 시 재요청
 
-  const handlePostClick = (link: string) => {
-    window.open(link, '_blank'); // Open the news link in a new tab
-  };
-
-  const handleSortByLatest = () => {
-    setSortBy('latest'); // Set sortBy to 'latest'
+  const handlePostClick = (id: string) => {
+    navigate(`/community/${id}`);
   };
 
   if (loading) {
@@ -72,26 +72,15 @@ export default function SecurityNews() {
         <Input placeholder="재미있는 이슈가 있나요?" />
       </div>
 
-      {/* Sort Options */}
-      <div className="flex justify-end items-center mb-6">
-        <button
-          className="flex items-center gap-2 text-primary-text"
-          onClick={handleSortByLatest} // Attach onClick handler
-        >
-          최신순
-          <ChevronDown className="w-5 h-5" />
-        </button>
-      </div>
-
       {/* Posts Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {news.map((post) => (
           <PostCard
-            key={post.link} // Using link as key, assuming it's unique
-            imageUrl="https://placehold.co/288x288" // Placeholder image
+            key={post.id}
+            imageUrl={post.image}
             title={post.title}
-            date="N/A" // Placeholder date
-            onClick={() => handlePostClick(post.link)}
+            date={post.date} // 날짜 포맷팅 적용
+            onClick={() => handlePostClick(post.id)}
           />
         ))}
       </div>

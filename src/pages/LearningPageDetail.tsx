@@ -125,7 +125,7 @@ export default function LearningPageDetail() {
           </ul>
         );
       case 'code':
-        return <CodeDisplay key={index} code={block.text} className="mb-8" />;
+        return <CodeDisplay key={index} code={block.text} language={block.language} className="mb-8" />;
       case 'image':
         return (
           <img

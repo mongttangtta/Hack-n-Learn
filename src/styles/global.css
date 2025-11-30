@@ -45,7 +45,6 @@
   body {
     @apply bg-main text-primary-text font-body;
   }
-
   h1,
   h2,
   h3,
@@ -64,13 +63,20 @@
   h3 {
     @apply text-h3;
   }
-
   p {
     @apply text-body;
   }
-
   small,
   .caption {
     @apply text-caption text-secondary-text;
   }
+
+  /* Syntax Highlighting Utility Classes */
+  .token-keyword { color: var(--color-code-keyword); }
+  .token-string { color: var(--color-code-string); }
+  .token-number { color: var(--color-code-number); }
+  .token-comment { color: var(--color-code-comment); }
+  .token-function { color: var(--color-code-function-call); }
+  .token-builtin { color: var(--color-code-builtin); }
+  .token-parameter { color: var(--color-code-parameter); }
 }
