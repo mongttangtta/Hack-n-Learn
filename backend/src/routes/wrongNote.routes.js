@@ -9,7 +9,7 @@ router.delete("/:noteId", requireLogin, wrongNoteController.deleteWrongNote); //
 
 /**
  * @swagger
- * /wrong-notes:
+ * /api/wrong-notes:
  *   get:
  *     tags:
  *       - WrongNote
@@ -61,7 +61,7 @@ router.delete("/:noteId", requireLogin, wrongNoteController.deleteWrongNote); //
 
 /**
  * @swagger
- * /wrong-notes/{noteId}:
+ * /api/wrong-notes/{noteId}:
  *   delete:
  *     tags:
  *       - WrongNote
