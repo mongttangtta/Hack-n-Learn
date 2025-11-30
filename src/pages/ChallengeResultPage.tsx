@@ -1,17 +1,68 @@
-import React from 'react';
-
+import React, { useEffect, useState } from 'react';
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
+import { problemService } from '../services/problemService';
+import { fetchMyPageData } from '../services/userService';
+import CountUp from '@/components/CountUp';
+import StarBorder from '@/components/StarBorder';
 
-const LearningPageQuizResult: React.FC = () => {
+const ChallengeResultPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Initialize useLocation
-  const { score } = (location.state || { score: 0 }) as { score: number }; // Get score from state, default to 0
+  const location = useLocation();
+  const { score, slug } = (location.state || { score: 0, slug: '' }) as {
+    score: number;
+    slug: string;
+  };
+
+  const [analysis, setAnalysis] = useState<string>('');
+  const [totalUserPoints, setTotalUserPoints] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const data = await fetchMyPageData();
+        if (data.success && data.data && data.data.profile) {
+          setTotalUserPoints(data.data.profile.points);
+        }
+      } catch (error) {
+        console.error('Failed to fetch total user points:', error);
+      }
+    };
+
+    fetchPoints();
+
+    const handleLabAndEvents = async () => {
+      if (!slug) return;
+
+      try {
+        const eventsResponse = await problemService.getContainerEvents(slug);
+        if (eventsResponse.success && eventsResponse.analysis) {
+          setAnalysis(eventsResponse.analysis.text);
+        }
+      } catch (error) {
+        console.error('Error handling lab/events:', error);
+        setAnalysis('분석 중 오류가 발생했습니다.');
+      }
+    };
+
+    handleLabAndEvents();
+
+    return () => {
+      if (slug) {
+        problemService
+          .stopLab(slug)
+          .then(() => console.log('Lab stopped successfully on unmount'))
+          .catch((error) =>
+            console.error('Error stopping lab on unmount:', error)
+          );
+      }
+    };
+  }, [slug]);
 
   const handleGoBack = () => {
-    navigate('/challenge'); // Corrected path
+    navigate('/challenge');
   };
 
   return (
@@ -22,34 +73,56 @@ const LearningPageQuizResult: React.FC = () => {
           <h2 className="text-h2 font-bold text-primary-text mb-10">
             ✨ 정답입니다! 축하합니다! 🎉
           </h2>
-          <p className="text-primary-text text-base mb-4">
+          <p className="text-primary-text text-base mb-10">
             당신은 <span className="font-bold"> SQLi Basic - Level 1</span>{' '}
             문제를 해결했습니다!
           </p>
-          <p className="text-primary-text text-base mb-4">
-            획득 점수: <span className="font-bold">{score}점</span>
-          </p>
-          <p className="text-primary-text text-base mb-4">
-            총점: <span className="font-bold">1230점</span>
-          </p>
-          <p className="text-primary-text text-base mb-6">
-            새로운 칭호 <span className="font-bold">'웹 해킹 마스터'</span>를
-            획득했습니다!
-          </p>
 
-          <div className="bg-card-background rounded-lg p-8 mt-20 mb-10 border-2 border-edge ">
+          <div className="flex space-x-10 mb-10">
+            <div>
+              <p className="text-primary-text text-h3 text-base mb-6">
+                획득 점수:{' '}
+                <CountUp
+                  from={0}
+                  to={score}
+                  separator=","
+                  direction="up"
+                  duration={1}
+                  className="count-up-text text-h1 text-bold"
+                />
+              </p>
+            </div>
+            <div>
+              <p className="text-primary-text text-h3 text-base mb-6">
+                총점:{' '}
+                <CountUp
+                  from={0}
+                  to={totalUserPoints}
+                  separator=","
+                  direction="up"
+                  duration={1}
+                  className="count-up-text text-h1 text-bold"
+                />
+              </p>
+            </div>
+          </div>
+
+          <StarBorder
+            as="div"
+            className="custom-class w-full"
+            color="cyan"
+            speed="5s"
+          >
             <h3 className="text-h2 font-bold text-primary-text mb-4">
               AI 해설
             </h3>
-
-            <p className="text-primary-text text-base">
-              방어 전략 우선순위 개념에 대해서 취약하신 것 같습니다. 그 부분을
-              집중적으로 공부해 보시길 바랍니다
+            <p className="text-primary-text text-base whitespace-pre-wrap">
+              {analysis || 'AI가 실습 과정을 분석하고 있습니다...'}
             </p>
-          </div>
+          </StarBorder>
 
           <div className="flex justify-center mt-8">
-            <Button variant="secondary" onClick={handleGoBack} className="">
+            <Button variant="secondary" onClick={handleGoBack}>
               돌아가기
             </Button>
           </div>
@@ -59,4 +132,4 @@ const LearningPageQuizResult: React.FC = () => {
   );
 };
 
-export default LearningPageQuizResult;
+export default ChallengeResultPage;

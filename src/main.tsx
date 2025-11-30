@@ -56,9 +56,30 @@ const router = createBrowserRouter([
       },
       { path: 'learning/quiz/:topicId', element: <LearningPageQuiz /> },
       { path: 'learning/quiz-results', element: <LearningPageQuizResult /> },
-      { path: 'challenge', element: <ChallengePage /> },
-      { path: 'challenge/:id', element: <ChallengeDetailPage /> },
-      { path: 'challenge/result', element: <ChallengeResultPage /> },
+      {
+        path: 'challenge',
+        element: (
+          <ProtectedRoute>
+            <ChallengePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'challenge/:id',
+        element: (
+          <ProtectedRoute>
+            <ChallengeDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'challenge/result',
+        element: (
+          <ProtectedRoute>
+            <ChallengeResultPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: 'community',
         element: <CommunityPage />,
