@@ -3,38 +3,26 @@ import ProblemPersonal from "../models/problemPersonal.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 
-function normalizeFlag(flag) {
+export function normalizeFlag(flag) {
     if (!flag) return "";
 
+    // 기본 정규화 (NFKC + 제로폭 제거 + 앞뒤 공백만 제거)
     let f = String(flag)
-        .normalize("NFKC") 
+        .normalize("NFKC")
         .replace(/[\u200B-\u200D\uFEFF]/g, "")
-        .trim()
-        .toLowerCase();
+        .trim();
 
-    // 공백 제거
-    f = f.replace(/\s+/g, "");
+    // 정답 형식: 정확히 FLAG{...} (공백 포함, 대문자 고정)
+    const regex = /^FLAG\{.*\}$/;
 
-    // ---- FLAG 자동 보정 ----
-    // 이미 flag{xxx} 형식이면 그대로 사용
-    if (f.startsWith("flag{") && f.endsWith("}")) {
-        return f;
+    if (regex.test(f)) {
+        return f;  // 정상적인 FLAG{...}
     }
 
-    // flagxxxx 또는 xxxx 형태 → 자동으로 감싸기
-    // flagxxxx -> flag{xxxx}
-    if (f.startsWith("flag") && !f.includes("{")) {
-        return `flag{${f.slice(4)}}`;
-    }
-
-    // 순수 문자열 xxxx -> flag{xxxx}
-    if (!f.includes("{")) {
-        return `flag{${f}}`;
-    }
-
-    // 그 외의 케이스는 그대로
+    // 나머지는 절대 자동 수정하지 않고 그대로 반환
     return f;
 }
+
 
 export const resetProblemState = async ({ userId, slug}) => {
         const problem = await Problem.findOne({ slug, isActive: true });
