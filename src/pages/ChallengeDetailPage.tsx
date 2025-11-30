@@ -293,6 +293,46 @@ export default function ChallengeDetailPage() {
     }
   };
 
+  /** 랩 환경 종료 처리 */
+  const handleStopLab = async () => {
+    if (!id) {
+      alert('문제 ID를 찾을 수 없습니다.');
+      return;
+    }
+    try {
+      setLogs((prev) => [
+        ...prev,
+        { type: 'action', text: '[ 랩 환경을 종료합니다... ]', cost: 0 },
+      ]);
+      const response = await problemService.stopLab(id);
+      console.log('Stop Lab Response:', response); // Debug log
+      if (response.success) {
+        setIsLabStarted(false);
+        setLabUrl('');
+        setLogs((prev) => [
+          ...prev,
+          { type: 'feedback', text: '[ 랩 환경 종료 성공 ]', cost: 0 },
+        ]);
+      } else {
+        setLogs((prev) => [
+          ...prev,
+          {
+            type: 'feedback',
+            text: response.message || '랩 환경 종료에 실패했습니다.',
+            cost: 0,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error stopping lab:', error);
+      alert('랩 환경 종료 중 오류가 발생했습니다.');
+      setLogs((prev) => [
+        ...prev,
+        { type: 'feedback', text: '랩 환경 종료 중 오류 발생', cost: 0 },
+      ]);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
@@ -342,9 +382,13 @@ export default function ChallengeDetailPage() {
 
         {/* 입력 및 버튼 영역 */}
         <section className="space-y-4">
-          {!isLabStarted && (
+          {!isLabStarted ? (
             <Button onClick={handleStartLab} className="w-full">
               랩 환경 시작
+            </Button>
+          ) : (
+            <Button onClick={handleStopLab} className="w-full bg-red-600 hover:bg-red-700">
+              랩 환경 종료
             </Button>
           )}
 
@@ -353,12 +397,20 @@ export default function ChallengeDetailPage() {
             <span className="pl-5 pr-3 text-primary-text shrink-0">
               타겟 URL:
             </span>
-            <input
-              type="text"
-              value={isLabStarted ? labUrl : '랩 환경을 시작해주세요.'}
-              disabled={!isLabStarted}
-              className="grow bg-transparent py-2 pr-5 text-secondary-text outline-none whitespace-nowrap overflow-x-auto"
-            />
+            {isLabStarted ? (
+              <a
+                href={labUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="grow bg-transparent py-2 pr-5 text-accent-primary1 underline whitespace-nowrap overflow-x-auto"
+              >
+                {labUrl}
+              </a>
+            ) : (
+              <span className="grow bg-transparent py-2 pr-5 text-secondary-text outline-none whitespace-nowrap overflow-x-auto">
+                랩 환경을 시작해주세요.
+              </span>
+            )}
           </div>
 
           {/* Flag 입력창 */}

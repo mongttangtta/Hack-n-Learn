@@ -55,3 +55,8 @@ export interface LabStartResponse {
   port?: number;
   expiresAt?: string;
 }
+
+export interface LabStopResponse {
+  success: boolean;
+  message?: string;
+}

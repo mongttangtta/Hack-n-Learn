@@ -50,4 +50,11 @@ export const problemService = {
     );
     return response.data;
   },
+
+  stopLab: async (slug: string): Promise<LabStopResponse> => {
+    const response = await axios.post<LabStopResponse>(
+      `/api/problems/${slug}/stop-lab`
+    );
+    return response.data;
+  },
 };
