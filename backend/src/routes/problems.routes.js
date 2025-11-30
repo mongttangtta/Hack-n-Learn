@@ -481,9 +481,28 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                         });
                 }
 
-                const existing = await Practice.findOne({ userId, problemId: problem._id,  status : 'running' });
+                let practices = await Practice.find({
+                        userId,
+                        problemId: problem._id,
+                        status : 'running'
+                }).sort({ createdAt : -1 });
 
-                if ( existing ) {
+                let activePractice = null;
+                for ( const p of practices ){
+                        const alive = await execPromise(
+                                `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
+                        );
+
+                        if(alive.trim()){
+                                activePractice = p;
+                                break;
+                        } else {
+                                p.status = 'stopped';
+                                await p.save();
+                        }
+                }
+
+                if(activePractice){
                         return res.json
                         ({
                                 success: true,
@@ -492,7 +511,6 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                                 expiresAt: existing.expiresAt
                         });
                 }
-
 
                 const runningCount = await Practice.countDocuments({ userId, status : 'running' });
                 if( runningCount >= 2) {
@@ -525,7 +543,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                 console.log(`Starting container: ${containerName} on port ${port}`);
 
                 const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60분 후 만료
-                await Practice.create({
+                const newPractice = await Practice.create({
                         userId,
                         problemId: problem._id,
                         containerName,
@@ -566,18 +584,33 @@ router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수
                         });
                 }
 
-                const practice = await Practice.findOne({ userId, problemId: problem._id, status: 'running' });
-                if (!practice) return res.status(404).json({ success: false, message: "No running lab environment found." });
+                const practices = await Practice.find({ userId, problemId: problem._id, status: 'running' }).sort({ createdAt : -1 });
 
-                await execPromise(`docker stop ${practice.containerName}`);
-                await execPromise(`docker rm ${practice.containerName}`);
-                usedPorts.delete(practice.port);
+                let target = null;
+                for( const p of practices ){
+                        const alive = await execPromise(
+                                `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
+                        );
+                        if (alive.trim()) {
+                                target = p;
+                                break;
+                        } else {
+                                p.status = "stopped";
+                                await p.save();
+                        }
+                }
+                if (!target) {
+                    return res.status(404).json({ success: false, message: "No active running environment." });
+                }
 
-                practice.status = 'stopped';
-                practice.stoppedAt = new Date();
-                await practice.save();
+                await execPromise(`docker stop ${target.containerName}`);
+                await execPromise(`docker rm ${target.containerName}`);
+                usedPorts.delete(target.port);
+                target.status = 'stopped';
+                target.stoppedAt = new Date();
+                await target.save();
 
-                res.json({ success: true, message: practice.port + " Lab environment stopped successfully." });
+                res.json({ success: true, message: target.port + " Lab environment stopped successfully." });
         } catch (error) {
                 console.error("Error stopping lab environment:", error);
                 res.status(500).json({ message: "Failed to stop lab environment." });
@@ -603,11 +636,27 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                 const problem = await Problem.findOne({ slug });
                 if( !problem ) return res.status(404).json({ success: false, message: "Problem not found." });
 
-                const practice = await Practice.findOne({ 
+                let practices = await Practice.findOne({ 
                         userId, 
                         problemId: problem._id,
                         status : 'running'
-                 });
+                 }).sort({ createdAt : -1 });
+
+                 let practice = null;
+
+                for (const p of practices) {
+                const alive = await execPromise(
+                        `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
+                );
+
+                if (alive.trim()) {
+                        practice = p;
+                        break;
+                } else {
+                        p.status = "stopped";
+                        await p.save();
+                }
+                }
                 if( !practice ) return res.status(404).json({ success: false, message: "No running practice found for this problem." });
                  
                 const containerPath = "/app/data/events.json"; // 컨테이너 내 이벤트 파일 경로
@@ -617,13 +666,27 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
 
                 fs.mkdirSync( tempDir, { recursive: true } );
 
-                const copyCmd = `docker cp ${practice.containerName}:${containerPath} ${tempPath}`;
-                await execPromise( copyCmd );
-
-                if( !fs.existsSync( tempPath )){
-                        return res.status(404).json({ success: false, message: "No event data found." });
+                try {
+                        await execPromise(`docker exec ${practice.containerName} test -f ${containerPath}`);
+                } catch {
+                        return res.status(404).json({
+                                success: false,
+                                message: "Event file not created yet."
+                        });
                 }
 
+
+
+                try {
+                        await execPromise(`docker cp ${practice.containerName}:${containerPath} ${tempPath}`);
+                } catch (err) {
+                        console.error("cp failed:", err);
+                        return res.status(500).json({ success: false, message: "Failed to copy event log from container." });
+                }
+
+                if (!fs.existsSync(tempPath)) {
+                        return res.status(404).json({ success: false, message: "Temporary event file missing." });
+                }
                 const aiResult = await analyzeEventLog( tempPath );
 
                 try {
