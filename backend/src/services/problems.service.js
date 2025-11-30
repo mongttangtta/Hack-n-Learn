@@ -3,6 +3,14 @@ import ProblemPersonal from "../models/problemPersonal.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 
+function normalizeFlag(flag) {
+        if(!flag) return "";
+        return String(flag)
+                .trim()
+                .replace(/\s+/g, "")
+                .toLowerCase();
+}
+
 export const submitFlag = async ({userId, slug, flag}) => {
         try {
                 const problem = await Problem.findOne({slug, isActive: true});
@@ -22,7 +30,7 @@ export const submitFlag = async ({userId, slug, flag}) => {
                         });
                 }
 
-                const isCorrect = (flag === problem.flag);
+                const isCorrect = normalizeFlag(flag) === normalizeFlag(problem.flag);
 
                 if(!isCorrect) {//오답 패널티가 힌트 요청한 만큼 + 틀린 횟수 만큼
                         problemPersonal.penalty += 10;
