@@ -113,7 +113,33 @@ export interface MyPageData { // This is for /api/mypage data.
 }
 
 export interface MyPageProfileResponse { // This is for /api/mypage/profile data.
+
   profile: Profile;
+
   practice: PracticeItemRaw[];
+
   quiz: QuizItemRaw[];
+
+}
+
+
+
+export interface WrongNote {
+
+  _id: string;
+
+  techniqueId: string;
+
+  quizId: string;
+
+  rawQuestion: string;
+
+  userAnswer: string;
+
+  correctAnswer: string;
+
+  explanation: string;
+
+  createdAt: string;
+
 }

@@ -3,6 +3,7 @@ export interface RankingUser {
   nickname: string;
   tier: string;
   points: number;
+  titles?: string[]; // Added titles
 }
 
 export interface RankingResponse {

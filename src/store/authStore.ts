@@ -8,6 +8,8 @@ interface User {
   username: string;
   nickname: string; // Add nickname property
   points: number; // Add points property
+  tier?: string;
+  titles?: string[];
   // Add other user properties as needed
 }
 
@@ -20,6 +22,7 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuthStatus: () => Promise<void>;
   addPoints: (amount: number) => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -31,6 +34,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     addPoints: (amount: number) => {
       set((state) => ({
         user: state.user ? { ...state.user, points: (state.user.points || 0) + amount } : null,
+      }));
+    },
+
+    updateUser: (updates: Partial<User>) => {
+      set((state) => ({
+        user: state.user ? { ...state.user, ...updates } : null,
       }));
     },
 

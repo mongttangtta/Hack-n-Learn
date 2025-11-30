@@ -1,23 +1,44 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import CircularProgress from '../components/CircularProgress';
-import { ArrowRight, Settings, Award } from 'lucide-react';
-import { fetchMyPageData } from '../services/userService'; // Import from userService
-import { fetchMyRanking } from '../services/rankingService'; // Import from rankingService
-import type { MyPageData, Profile, QuizProgress, Practice } from '../types/mypage';
+import { ArrowRight, Settings, Award, Trash } from 'lucide-react';
+import { fetchMyPageData } from '../services/userService';
+import { getWrongNote, deleteWrongNote } from '../services/wrongNoteService';
+import type {
+  MyPageData,
+  Profile,
+  QuizProgress,
+  Practice,
+  WrongNote,
+} from '../types/mypage';
 import EditProfileModal from '../components/EditProfileModal';
+import Modal from '../components/Modal';
+import { useAuthStore } from '../store/authStore';
+import Toast from '../components/Toast';
 
 // 프로필 섹션
-const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEditClick: () => void }) => {
+const UserProfile = ({
+  profile,
+  onEditClick,
+}: {
+  profile: Profile | null;
+  onEditClick: () => void;
+}) => {
   if (!profile) return <div className="p-5">Loading Profile...</div>;
 
   const getTierColorClass = (tierName: string) => {
     switch (tierName.toLowerCase()) {
-      case 'bronze': return 'text-award-bronze';
-      case 'silver': return 'text-award-silver';
-      case 'gold': return 'text-award-gold';
-      case 'platinum': return 'text-award-platinum';
-      case 'diamond': return 'text-award-diamond';
-      default: return 'text-gray-600';
+      case 'bronze':
+        return 'text-award-bronze';
+      case 'silver':
+        return 'text-award-silver';
+      case 'gold':
+        return 'text-award-gold';
+      case 'platinum':
+        return 'text-award-platinum';
+      case 'diamond':
+        return 'text-award-diamond';
+      default:
+        return 'text-gray-600';
     }
   };
 
@@ -26,7 +47,7 @@ const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEdit
       {/* 프로필 이미지 */}
       <div className="relative mb-4 cursor-pointer" onClick={onEditClick}>
         <img
-          src={profile.profileImageUrl || "https://via.placeholder.com/128"}
+          src={profile.profileImageUrl || 'https://via.placeholder.com/128'}
           alt="프로필 이미지"
           className="w-32 h-32 rounded-full border-2 border-edge object-cover hover:opacity-80 transition-opacity"
         />
@@ -35,14 +56,28 @@ const UserProfile = ({ profile, onEditClick }: { profile: Profile | null, onEdit
         </span>
       </div>
       {/* 사용자 정보 */}
-      <h2 className="text-h3 font-bold text-primary-text">{profile.nickname}</h2>
+      <h2 className="text-h3 font-bold text-primary-text">
+        {profile.nickname}
+      </h2>
+      {profile.titles && profile.titles.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 mt-2 mb-1">
+          {profile.titles.map((title, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 text-xs font-medium text-accent-primary1 bg-accent-primary1/10 border border-accent-primary1 rounded-full"
+            >
+              {title}
+            </span>
+          ))}
+        </div>
+      )}
       <p className="text-secondary-text text-body uppercase">{profile.tier}</p>
       <div className="flex gap-1">
-        <Award
-          className={`w-5 h-5 mt-2 ${getTierColorClass(profile.tier)}`}
-        />
+        <Award className={`w-5 h-5 mt-2 ${getTierColorClass(profile.tier)}`} />
       </div>
-      <p className="text-sm text-secondary-text mt-2">Points: {profile.points}</p>
+      <p className="text-sm text-secondary-text mt-2">
+        Points: {profile.points}
+      </p>
       {profile.rank && (
         <p className="text-sm text-secondary-text">Rank: {profile.rank}</p>
       )}
@@ -148,25 +183,59 @@ const InfoCard = ({ title, children }: InfoCardProps) => (
 // 마이페이지 전체
 export default function MyPage() {
   const [data, setData] = useState<MyPageData | null>(null);
+  const [wrongNotes, setWrongNotes] = useState<WrongNote[]>([]);
+  const [selectedNote, setSelectedNote] = useState<WrongNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const { user, updateUser } = useAuthStore();
 
   useEffect(() => {
     const fetchDataAndRanking = async () => {
       setLoading(true);
       setError(null);
       try {
-        const [myPageResponse, myRankingResponse] = await Promise.all([
+        const [myPageResponse, wrongNoteResponse] = await Promise.all([
           fetchMyPageData(),
-          fetchMyRanking(),
+          getWrongNote(),
         ]);
+
+        if (wrongNoteResponse && wrongNoteResponse.success) {
+          setWrongNotes(wrongNoteResponse.data);
+        }
 
         if (myPageResponse.success && myPageResponse.data) {
           const combinedProfile: Profile = {
             ...myPageResponse.data.profile,
-            rank: myRankingResponse.rank,
           };
+          if (user?.tier && user.tier !== combinedProfile.tier) {
+            setToastMessage(
+              `티어가 '${combinedProfile.tier}'(으)로 변경되었습니다!`
+            );
+            setShowToast(true);
+          }
+
+          if (user?.titles && combinedProfile.titles) {
+            const oldTitlesSet = new Set(user.titles);
+            const newTitles = combinedProfile.titles.filter(
+              (t) => !oldTitlesSet.has(t)
+            );
+            if (newTitles.length > 0) {
+              setToastMessage(
+                `새로운 칭호 '${newTitles.join(', ')}'을(를) 획득했습니다!`
+              );
+              setShowToast(true);
+            }
+          }
+
+          updateUser({
+            tier: combinedProfile.tier,
+            titles: combinedProfile.titles || [],
+            nickname: combinedProfile.nickname,
+          });
 
           setData({
             ...myPageResponse.data,
@@ -184,6 +253,7 @@ export default function MyPage() {
     };
 
     fetchDataAndRanking();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleProfileUpdate = (newNickname: string, newImageUrl: string) => {
@@ -196,6 +266,27 @@ export default function MyPage() {
           profileImageUrl: newImageUrl,
         },
       });
+    }
+  };
+
+  const handleDeleteNote = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+    noteId: string
+  ) => {
+    e.stopPropagation(); // Prevent opening the note detail modal
+    try {
+      await deleteWrongNote(noteId);
+      setWrongNotes((prevNotes) => prevNotes.filter((note) => note._id !== noteId));
+      setToastMessage('오답 노트가 삭제되었습니다.');
+      setShowToast(true);
+      // If the deleted note was currently selected and open in the modal, close the modal
+      if (selectedNote && selectedNote._id === noteId) {
+        setSelectedNote(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete wrong note:', error);
+      setToastMessage('오답 노트 삭제에 실패했습니다.');
+      setShowToast(true);
     }
   };
 
@@ -219,9 +310,9 @@ export default function MyPage() {
     <div className="bg-main min-h-screen">
       <main className="container mx-auto px-6 py-8">
         {/* 프로필 섹션 */}
-        <UserProfile 
-          profile={data?.profile || null} 
-          onEditClick={() => setIsEditModalOpen(true)} 
+        <UserProfile
+          profile={data?.profile || null}
+          onEditClick={() => setIsEditModalOpen(true)}
         />
 
         {/* 메인 대시보드 그리드 */}
@@ -237,28 +328,99 @@ export default function MyPage() {
           {/* 우측: 풀이 이력 & 오답 노트 (lg 화면에서 2/3 차지) */}
           <div className="lg:col-span-2 space-y-6">
             <InfoCard title="나의 풀이 이력">
-              {data?.practice.practiceList &&
-              data.practice.practiceList.length > 0 ? (
-                data.practice.practiceList.map((item, index) => (
-                  <p
-                    key={index}
-                    className="text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
-                  >
-                    {item.problem.slug}
-                  </p>
-                ))
-              ) : (
-                <p className="text-secondary-text text-center py-4">
-                  풀이 이력이 없습니다.
-                </p>
-              )}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 ">
+                  <h4 className="text-sm font-semibold text-secondary-text mb-2">
+                    실전 문제
+                  </h4>
+                  {data?.practice.practiceList &&
+                  data.practice.practiceList.filter(
+                    (item) => item.result === 'solved'
+                  ).length > 0 ? (
+                    data.practice.practiceList
+                      .filter((item) => item.result === 'solved')
+                      .map((item, index) => (
+                        <p
+                          key={index}
+                          className="flex justify-between text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
+                        >
+                          <span>{item.problem.slug}</span>
+                          <span>{item.score} 점</span>
+                        </p>
+                      ))
+                  ) : (
+                    <p className="text-secondary-text text-center py-2 text-sm">
+                      해결한 실전 문제가 없습니다.
+                    </p>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm  font-semibold text-secondary-text mb-2">
+                    이론 학습
+                  </h4>
+                  {data?.quizProgress.parts &&
+                  data.quizProgress.parts.filter(
+                    (part) =>
+                      part.status === 'solved' || part.status === 'in_progress'
+                  ).length > 0 ? (
+                    data.quizProgress.parts
+                      .filter(
+                        (part) =>
+                          part.status === 'solved' ||
+                          part.status === 'in_progress'
+                      )
+                      .map((part, index) => (
+                        <p
+                          key={index}
+                          className="flex justify-between text-primary-text p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-800"
+                        >
+                          <span>{part.slug}</span>
+                          <span className="text-sm text-secondary-text ">
+                            {part.status === 'solved' ? '완료' : '진행 중'}
+                          </span>
+                        </p>
+                      ))
+                  ) : (
+                    <p className="text-secondary-text text-center py-2 text-sm">
+                      진행 중이거나 완료된 이론 학습이 없습니다.
+                    </p>
+                  )}
+                </div>
+              </div>
             </InfoCard>
 
             <InfoCard title="문제 오답노트">
-              <p className="text-secondary-text text-center py-4">
-                {/* Assuming logic for wrong answers needs filtering or a separate list, usually derived from practiceList or a specific API field not yet clear. For now, showing default. */}
-                오답 노트가 비어있습니다.
-              </p>
+              {wrongNotes.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                  {wrongNotes.map((note) => (
+                    <div
+                      key={note._id}
+                      onClick={() => setSelectedNote(note)}
+                      className="p-3 bg-main rounded cursor-pointer hover:bg-gray-800 transition-colors border border-gray-800 flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="text-sm text-primary-text line-clamp-2">
+                          {note.rawQuestion}
+                        </p>
+                        <p className="text-xs text-secondary-text mt-1">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteNote(e, note._id)}
+                        className="text-red-500 hover:text-red-400 p-1"
+                        aria-label="Delete note"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-secondary-text text-center py-4">
+                  오답 노트가 비어있습니다.
+                </p>
+              )}
             </InfoCard>
           </div>
         </div>
@@ -274,6 +436,60 @@ export default function MyPage() {
           onProfileUpdate={handleProfileUpdate}
         />
       )}
+
+      <Modal
+        isOpen={!!selectedNote}
+        onClose={() => setSelectedNote(null)}
+        title="오답 상세"
+      >
+        {selectedNote && (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div>
+              <h4 className="text-sm font-semibold text-accent-primary1 mb-1">
+                문제
+              </h4>
+              <p className="text-primary-text text-sm bg-main p-3 rounded border border-gray-700">
+                {selectedNote.rawQuestion}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-semibold text-red-400 mb-1">
+                  나의 답
+                </h4>
+                <p className="text-primary-text text-sm bg-main p-3 rounded border border-gray-700 break-all">
+                  {selectedNote.userAnswer}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-green-400 mb-1">
+                  정답
+                </h4>
+                <p className="text-primary-text text-sm bg-main p-3 rounded border border-gray-700 break-all">
+                  {selectedNote.correctAnswer}
+                </p>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-accent-primary2 mb-1">
+                해설
+              </h4>
+              <div className="text-primary-text text-sm bg-main p-3 rounded border border-gray-700 leading-relaxed">
+                {selectedNote.explanation}
+              </div>
+            </div>
+            <div className="text-right text-xs text-secondary-text pt-2">
+              {new Date(selectedNote.createdAt).toLocaleString()}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

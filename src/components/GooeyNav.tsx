@@ -33,6 +33,10 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
   const textRef = useRef<HTMLSpanElement>(null);
   const [activeIndex, setActiveIndex] = useState<number>(initialActiveIndex);
 
+  useEffect(() => {
+    setActiveIndex(initialActiveIndex);
+  }, [initialActiveIndex]);
+
   const noise = (n = 1) => n / 2 - Math.random() * n;
   const getXY = (
     distance: number,
@@ -154,6 +158,12 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
     if (activeLi) {
       updateEffectPosition(activeLi);
       textRef.current?.classList.add('active');
+      if (filterRef.current) filterRef.current.style.opacity = '1';
+      if (textRef.current) textRef.current.style.opacity = '1';
+    } else {
+      if (filterRef.current) filterRef.current.style.opacity = '0';
+      if (textRef.current) textRef.current.style.opacity = '0';
+      textRef.current?.classList.remove('active');
     }
     const resizeObserver = new ResizeObserver(() => {
       const currentActiveLi = navRef.current?.querySelectorAll('li')[
