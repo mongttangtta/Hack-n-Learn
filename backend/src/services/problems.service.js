@@ -36,6 +36,26 @@ function normalizeFlag(flag) {
     return f;
 }
 
+export const resetProblemState = async ({ userId, slug}) => {
+        const problem = await Problem.findOne({ slug, isActive: true });
+        if (!problem) throw new Error("문제를 찾을 수 없습니다.");
+
+        const uid = new mongoose.Types.ObjectId(userId);
+
+        let personal = await ProblemPersonal.findOne({ user: uid, problem: problem._id });
+
+        if(personal) {
+                personal.penalty = 0;
+                personal.userHints = 0;
+                personal.result = "unsolved";
+                await personal.save();
+        }
+
+        return {
+                success: true,
+                message: "문제 풀이 상태가 초기화되었습니다.",
+        }
+}
 
 
 export const submitFlag = async ({userId, slug, flag}) => {

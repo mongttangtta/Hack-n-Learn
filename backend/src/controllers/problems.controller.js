@@ -1,5 +1,21 @@
 import * as problemsService from "../services/problems.service.js";
 
+export const resetProblemState = async (req, res, next) => {
+        try {
+                const userId = req.session.userId;
+
+                if(!userId) {
+                        return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+                }
+                const { slug } = req.params;
+
+                const result = await problemsService.resetProblemState({ userId, slug });
+                res.json({ success: true, data: result });
+        } catch (error) {
+                next(error);
+        }
+};
+
 export const submitFlag = async (req, res, next) => {
         try {
                 const userId = req.session.userId;

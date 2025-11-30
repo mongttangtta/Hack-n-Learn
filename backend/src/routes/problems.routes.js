@@ -444,6 +444,46 @@ const router = Router();
  *         description: 서버 내부 오류
  */
 
+/**
+ * @swagger
+ * /api/problems/{slug}/reset:
+ *   post:
+ *     summary: 문제 상태 초기화 (패널티, 힌트 수, 결과 초기화)
+ *     tags: [Problems]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 문제 식별용 slug
+ *     responses:
+ *       200:
+ *         description: 문제 상태 초기화 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                       example: true
+ *                     message:
+ *                       type: string
+ *                       example: "문제 상태가 초기화되었습니다."
+ *       401:
+ *         description: 인증 실패 (로그인 필요)
+ *       404:
+ *         description: 문제를 찾을 수 없음
+ */
 
 
 const execPromise = util.promisify(exec);
@@ -724,5 +764,6 @@ router.get("/progress" , requireLogin, problemController.getProgressList); //문
 router.get("/:slug",requireLogin, problemController.getProblemDetails); //문제 상세 정보
 router.post("/:slug/submit", validateBody('submitFlag'), problemController.submitFlag);
 router.post("/:slug/request-hint", validateBody('requestHint'), problemController.requestHint);
+router.post("/:slug/reset",requireLogin, problemController.resetProblemState);
 
 export default router;
