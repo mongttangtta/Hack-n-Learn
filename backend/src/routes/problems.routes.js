@@ -488,27 +488,39 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                 }).sort({ createdAt : -1 });
 
                 let activePractice = null;
-                for ( const p of practices ){
-                        const alive = await execPromise(
-                                `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
-                        );
+                for (const p of practices) {
 
-                        if(alive.trim()){
+                        const cleanName = String(p.containerName).trim();
+                        let aliveOutput = "";
+
+                        try {
+                                aliveOutput = await execPromise(
+                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
+                                );
+                        } catch (err) {
+                                console.error("docker ps failed for", cleanName, err);
+                                aliveOutput = "";
+                        }
+
+                        const alive = (aliveOutput?.stdout || "").trim();
+
+                        if (alive) {
                                 activePractice = p;
                                 break;
                         } else {
-                                p.status = 'stopped';
+                                p.status = "stopped";
                                 await p.save();
                         }
                 }
+                
 
                 if(activePractice){
                         return res.json
                         ({
                                 success: true,
-                                url : `https://hacknlearn.site:${existing.port}`,
-                                port: existing.port,
-                                expiresAt: existing.expiresAt
+                                url : `https://hacknlearn.site:${activePractice.port}`,
+                                port: activePractice.port,
+                                expiresAt: activePractice.expiresAt
                         });
                 }
 
@@ -587,11 +599,23 @@ router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수
                 const practices = await Practice.find({ userId, problemId: problem._id, status: 'running' }).sort({ createdAt : -1 });
 
                 let target = null;
-                for( const p of practices ){
-                        const alive = await execPromise(
-                                `docker ps --filter "name=${p.containerName}" --format "{{.Names}}"`
-                        );
-                        if (alive.trim()) {
+                for (const p of practices) {
+
+                        const cleanName = String(p.containerName).trim();
+                        let aliveOutput = "";
+
+                        try {
+                                aliveOutput = await execPromise(
+                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
+                                );
+                        } catch (err) {
+                                console.error("docker ps failed for", cleanName, err);
+                                aliveOutput = "";
+                        }
+
+                        const alive = (aliveOutput?.stdout || "").trim();
+
+                        if (alive) {
                                 target = p;
                                 break;
                         } else {
