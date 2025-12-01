@@ -6,21 +6,24 @@ import mongoose from "mongoose";
 export function normalizeFlag(flag) {
     if (!flag) return "";
 
-    // 기본 정규화 (NFKC + 제로폭 제거 + 앞뒤 공백만 제거)
+    // 기본 정규화 (유니코드, 제로폭 문자 제거, 공백 제거)
     let f = String(flag)
         .normalize("NFKC")
         .replace(/[\u200B-\u200D\uFEFF]/g, "")
         .trim();
 
-    // 정답 형식: 정확히 FLAG{...} (공백 포함, 대문자 고정)
-    const regex = /^FLAG\{.*\}$/;
-
-    if (regex.test(f)) {
-        return f;  // 정상적인 FLAG{...}
+    // FLAG{...} 형식 검증
+    const match = f.match(/^FLAG\{(.*)\}$/);
+    
+    if (!match) {
+        // FLAG{} 형식이 아니면 그대로 반환 (어차피 오답 처리됨)
+        return f;
     }
 
-    // 나머지는 절대 자동 수정하지 않고 그대로 반환
-    return f;
+    // 중괄호 안의 내용만 대문자로 변환
+    const innerContent = match[1].toUpperCase();
+    
+    return `FLAG{${innerContent}}`;
 }
 
 
