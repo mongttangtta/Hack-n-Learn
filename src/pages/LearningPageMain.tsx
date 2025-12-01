@@ -8,6 +8,7 @@ import ElectricBorder from '../components/ElectricBorder';
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore
 import axios from 'axios'; // Import axios for API call
 import { Check } from 'lucide-react';
+import Spinner from '../components/Spinner';
 
 interface CourseCardProps {
   id: string;
@@ -174,11 +175,7 @@ export default function LearningPageMain() {
   };
 
   if (loadingQuizProgress && isAuthenticated) {
-    return (
-      <div className="bg-main min-h-screen flex items-center justify-center text-primary-text">
-        Loading learning progress...
-      </div>
-    );
+    return <Spinner fullScreen />;
   }
 
   return (

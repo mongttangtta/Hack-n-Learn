@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'; // Add useCallback
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useBlocker } from 'react-router-dom';
 import LogBox from '../components/Challenge/Logbox';
 import ChallengeHeader from '../components/Challenge/ChallengeHeader';
@@ -24,6 +24,10 @@ export default function ChallengeDetailPage() {
   const [isLabStarted, setIsLabStarted] = useState<boolean>(false);
   const [labUrl, setLabUrl] = useState<string>('');
 
+  // Refs for tracking state in cleanup function
+  const isNavigatingToResult = useRef(false);
+  const isLabStartedRef = useRef(false);
+
   const [score, setScore] = useState<number>(100);
   const [flagValue, setFlagValue] = useState<string>('');
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -42,6 +46,23 @@ export default function ChallengeDetailPage() {
       [shouldBlock]
     )
   );
+
+  // Sync isLabStarted state with ref for cleanup access
+  useEffect(() => {
+    isLabStartedRef.current = isLabStarted;
+  }, [isLabStarted]);
+
+  // Cleanup: Stop lab if leaving page (except to result page)
+  useEffect(() => {
+    return () => {
+      if (id && isLabStartedRef.current && !isNavigatingToResult.current) {
+        console.log('Leaving challenge page without finishing, stopping lab...');
+        problemService.stopLab(id).catch((err) => {
+          console.error('Failed to stop lab on page exit:', err);
+        });
+      }
+    };
+  }, [id]);
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -79,6 +100,7 @@ export default function ChallengeDetailPage() {
         setLogs([]); // Clear logs
         setNextHintIndex(0); // Reset hint index
         setLabUrl(''); // Clear lab URL
+        setIsLabStarted(false); // Reset lab started state
 
         const response = await problemService.getProblemDetail(id);
         if (response.success) {
@@ -205,6 +227,7 @@ export default function ChallengeDetailPage() {
           },
         ]);
         setShouldBlock(false); // Allow navigation
+        isNavigatingToResult.current = true; // Set flag to prevent stopLab on cleanup
         setTimeout(() => {
           navigate('/challenge/result', {
             state: { score: gainedScore, slug: id },

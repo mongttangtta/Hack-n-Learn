@@ -14,6 +14,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import Modal from '../components/Modal';
 import { useAuthStore } from '../store/authStore';
 import Toast from '../components/Toast';
+import Spinner from '../components/Spinner';
 
 // 프로필 섹션
 const UserProfile = ({
@@ -23,7 +24,7 @@ const UserProfile = ({
   profile: Profile | null;
   onEditClick: () => void;
 }) => {
-  if (!profile) return <div className="p-5">Loading Profile...</div>;
+  if (!profile) return <Spinner />;
 
   const getTierColorClass = (tierName: string) => {
     switch (tierName.toLowerCase()) {
@@ -94,7 +95,7 @@ const ProgressCard = ({
   practice: Practice | null;
 }) => {
   if (!quizProgress || !practice)
-    return <div className="p-6">Loading Progress...</div>;
+    return <Spinner />;
 
   // Determine last learned topic (example logic: first with progress > 0 or just the first one)
   const lastLearnedTopic =
@@ -293,11 +294,7 @@ export default function MyPage() {
   };
 
   if (loading) {
-    return (
-      <div className="bg-main min-h-screen flex items-center justify-center text-primary-text">
-        Loading...
-      </div>
-    );
+    return <Spinner fullScreen />;
   }
 
   if (error) {

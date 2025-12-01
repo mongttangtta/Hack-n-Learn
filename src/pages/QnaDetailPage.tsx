@@ -6,6 +6,7 @@ import type { Post, Comment } from '../types/community';
 import QnaPost from '@/components/community/qnaPost';
 import { communityService } from '../services/communityService';
 import { useAuthStore } from '@/store/authStore';
+import Spinner from '../components/Spinner';
 
 const CommentItem = ({
   comment,
@@ -149,7 +150,7 @@ const CommentItem = ({
               className="w-auto h-auto px-4 py-2 text-sm"
               disabled={submitting || !editContent.trim()}
             >
-              {submitting ? '수정 중...' : '수정 완료'}
+              {submitting ? <Spinner variant="scale" size={14} color="#ffffff" /> : '수정 완료'}
             </Button>
           </div>
         </form>
@@ -176,7 +177,7 @@ const CommentItem = ({
               className="w-auto h-auto px-4 py-2 text-sm"
               disabled={submitting || !replyContent.trim()}
             >
-              {submitting ? '등록 중...' : '답글 등록'}
+              {submitting ? <Spinner variant="scale" size={14} color="#ffffff" /> : '답글 등록'}
             </Button>
           </div>
         </form>
@@ -282,7 +283,7 @@ export default function QnaDetailPage() {
   };
 
   if (loading) {
-    return <div className="text-center p-20">Loading post and comments...</div>;
+    return <Spinner fullScreen />;
   }
 
   if (error) {
@@ -355,13 +356,13 @@ export default function QnaDetailPage() {
                   submittingComment || !newComment.trim() || !isAuthenticated
                 }
               >
-                {submittingComment ? '등록 중...' : '등록'}
+                {submittingComment ? <Spinner variant="scale" size={20} color="#ffffff" /> : '등록'}
               </Button>
             </div>
           </form>
 
           {commentsLoading ? (
-            <div className="text-center p-20">댓글 불러오는 중...</div>
+            <Spinner />
           ) : commentsError ? (
             <div className="text-center p-20 text-red-500">{commentsError}</div>
           ) : comments.length === 0 ? (

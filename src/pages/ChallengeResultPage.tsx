@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import HeroSection from '../components/HeroSection';
 import Button from '../components/Button';
 import HeroImg from '../assets/images/이론학습 상세.png';
@@ -18,6 +18,7 @@ const ChallengeResultPage: React.FC = () => {
 
   const [analysis, setAnalysis] = useState<string>('');
   const [totalUserPoints, setTotalUserPoints] = useState<number>(0);
+  const isLabStoppedRef = useRef(false);
 
   useEffect(() => {
     const fetchPoints = async () => {
@@ -50,7 +51,7 @@ const ChallengeResultPage: React.FC = () => {
     handleLabAndEvents();
 
     return () => {
-      if (slug) {
+      if (slug && !isLabStoppedRef.current) {
         problemService
           .stopLab(slug)
           .then(() => console.log('Lab stopped successfully on unmount'))
@@ -61,7 +62,16 @@ const ChallengeResultPage: React.FC = () => {
     };
   }, [slug]);
 
-  const handleGoBack = () => {
+  const handleGoBack = async () => {
+    if (slug) {
+      isLabStoppedRef.current = true;
+      try {
+        await problemService.stopLab(slug);
+        console.log('Lab stopped manually on button click');
+      } catch (error) {
+        console.error('Error stopping lab on button click:', error);
+      }
+    }
     navigate('/challenge');
   };
 
