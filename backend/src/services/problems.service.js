@@ -77,6 +77,8 @@ export const submitFlag = async ({userId, slug, flag}) => {
                 const userAnswer = normalizeFlag(flag);
                 const correctAnswer = normalizeFlag(problem.flag);
 
+                console.log(`[DEBUG] User submitted flag: "${userAnswer}", Correct flag: "${correctAnswer}"`);
+
                 const isCorrect = userAnswer === correctAnswer;
 
                 if(!isCorrect) {//오답 패널티가 힌트 요청한 만큼 + 틀린 횟수 만큼
