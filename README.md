@@ -4,8 +4,10 @@
   <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge"/>
 </p>
 
-# 🌐 Hack-n-Learn: 인터랙티브 보안 실습 플랫폼
-> **“입문자도 짧은 시간 안에 웹 취약점을 배우고, 직접 공격해볼 수 있는 AI기반 보안 교육 플랫폼”**
+# 🌐 Hack-n-Learn: AI기반 Web Hacking Study Platform
+> **“입문자도 짧은 시간 안에 웹 취약점을 배우고, 직접 공격해볼 수 있는 AI기반 보안 교육 플랫폼”**    
+>
+> [![Hack-n-Learn 바로가기](https://img.shields.io/badge/Hack--n--Learn-사이트로_가기-0054A6?style=for-the-badge&logo=google-chrome&logoColor=white)](https://hacknlearn.site/)
 ---
 
 <img width="1867" height="936" alt="image" src="https://github.com/user-attachments/assets/9ed05981-d7d7-41e0-8524-6eaa77eccb0d" />
