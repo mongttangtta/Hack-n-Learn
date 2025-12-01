@@ -16,16 +16,26 @@ export const initNewsSocket = (server) => {
         setInterval(async () => {
                 try {
                         const list = await fetchBoanNewsList(1, 5);
-                        if(!list.length) return;
+                        if (!list.length) return;
 
                         const newArticles = list.filter((item) => !latestTitles.includes(item.title));
+
                         if (newArticles.length > 0) {
-                                latestTitles = list.map(item => item.title);
+                                latestTitles = list.map((item) => item.title);
 
                                 wss.clients.forEach((client) => {
-                                        if (client.readyState === 1) {
-                                                client.send(JSON.stringify({ type: 'new_articles', articles: newArticles }));
-                                        }
+                                if (client.readyState === 1) {
+                                newArticles.forEach((article) => {
+                                client.send(
+                                        JSON.stringify({
+                                        type: "news_notification",
+                                        title: "새로운 보안뉴스가 업데이트되었습니다!",
+                                        body: article.title,
+                                        url: article.url,
+                                        })
+                                );
+                                });
+                                }
                                 });
                         }
                 } catch (error) {
