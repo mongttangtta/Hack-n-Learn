@@ -75,7 +75,14 @@ export const submitFlag = async ({userId, slug, flag}) => {
                                         message: "이미 정답을 제출한 문제입니다."
                                 };
                         }
-                }                
+                }
+                console.log(`[DEBUG] Raw flag received:`, JSON.stringify(flag));
+                console.log(`[DEBUG] Flag type:`, typeof flag);
+                console.log(`[DEBUG] Flag length:`, flag?.length);       
+                
+                console.log(`[DEBUG] DB flag raw:`, JSON.stringify(problem.flag));
+                console.log(`[DEBUG] DB flag length:`, problem.flag?.length);
+
 
                 const userAnswer = normalizeFlag(flag);
                 const correctAnswer = normalizeFlag(problem.flag);
