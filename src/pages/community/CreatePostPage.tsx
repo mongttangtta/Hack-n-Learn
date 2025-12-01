@@ -4,6 +4,7 @@ import axios from 'axios';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { useAuthStore } from '../../store/authStore';
+import Spinner from '../../components/Spinner';
 
 const POST_TYPES = [
   { id: '692212bf9791aa282263d57c', label: '공지사항' },
@@ -31,7 +32,7 @@ export default function CreatePostPage() {
   }, [isAuthenticated, isLoading, navigate]);
 
   if (isLoading) {
-    return <div className="text-center p-20">Loading user data...</div>;
+    return <Spinner fullScreen />;
   }
 
   if (!isAuthenticated) {
@@ -125,7 +126,7 @@ export default function CreatePostPage() {
             취소
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? '작성 중...' : '작성하기'}
+            {loading ? <Spinner variant="scale" size={20} color="#ffffff" /> : '작성하기'}
           </Button>
         </div>
       </form>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import NewsArticle from '../components/community/NewsArticle';
+import Spinner from '../components/Spinner';
 
 interface Post {
   id: string;
@@ -54,7 +55,7 @@ export default function CommunityPostDetailPage() {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center p-20">Loading post...</div>;
+    return <Spinner fullScreen />;
   }
 
   if (error) {

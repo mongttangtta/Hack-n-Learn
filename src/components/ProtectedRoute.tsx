@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import Spinner from './Spinner';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -12,7 +13,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Although App.tsx handles the initial loading, it's good practice to handle it here too
   // in case this component is used outside the main App loader context or if re-validation occurs.
   if (isLoading) {
-    return <div>Loading...</div>; 
+    return <Spinner fullScreen />;
   }
 
   if (!isAuthenticated) {

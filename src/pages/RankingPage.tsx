@@ -8,6 +8,7 @@ import type { RankingUser } from '../types/ranking';
 import Button from '@/components/Button';
 import TiltedCard from '../components/TiltedCard'; // TiltedCard import
 import { twMerge } from 'tailwind-merge'; // Import twMerge
+import Spinner from '../components/Spinner';
 
 const getTierBadge = (tier: string, className: string = '') => {
   // Added className prop
@@ -95,11 +96,7 @@ const RankingPage: React.FC = () => {
   const closeModal = () => setIsModalOpen(false);
 
   if (loading) {
-    return (
-      <div className="min-h-screen text-primary-text flex items-center justify-center">
-        <h1 className="text-4xl font-bold">Loading Rankings...</h1>
-      </div>
-    );
+    return <Spinner fullScreen />;
   }
 
   if (error) {

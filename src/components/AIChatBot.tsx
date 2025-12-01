@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Bot } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore'; // authStore 임포트
+import Spinner from './Spinner';
 
 // 메시지 객체 타입 정의
 interface Message {
@@ -91,20 +92,7 @@ const ChatWindow = ({
               <Bot className="w-5 h-5 text-accent-primary2" />
             </div>
             <div className="bg-[#3A3A4A] text-primary-text p-3 rounded-lg">
-              <div className="flex space-x-1">
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '0ms' }}
-                />
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '150ms' }}
-                />
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '300ms' }}
-                />
-              </div>
+              <Spinner variant="beat" size={8} color="#9ca3af" className="p-0" />
             </div>
           </div>
         )}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import PostCard from '../../components/community/PostCard';
 import { useCommunityPage } from '../../components/community/useCommunityPage';
+import Spinner from '../../components/Spinner';
 
 interface NewsItem {
   id: string;
@@ -58,7 +59,7 @@ export default function SecurityNews() {
   };
 
   if (loading) {
-    return <div className="text-center p-20">Loading news...</div>;
+    return <Spinner />;
   }
 
   if (error) {

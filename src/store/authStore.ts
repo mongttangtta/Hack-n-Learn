@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-axios.defaults.withCredentials = true;
+
 
 interface User {
   id: string;
@@ -89,15 +89,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: true });
       try {
         await axios.post('/api/auth/logout');
+      } catch (error) {
+        console.error('Logout failed:', error);
+      } finally {
         set({
           isAuthenticated: false,
           user: null,
           token: null,
           isLoading: false,
         });
-      } catch (error) {
-        console.error('Logout failed:', error);
-        set({ isLoading: false });
       }
     },
   

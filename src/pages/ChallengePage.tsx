@@ -6,6 +6,7 @@ import { useProblemStore } from '../store/problemStore';
 import { CheckCircle, XCircle, AlertCircle, Lock } from 'lucide-react';
 import Squares from '../components/Squares'; // Squares 컴포넌트 import
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import Spinner from '../components/Spinner';
 
 const ChallengePage: React.FC = () => {
   const { problemProgress, isLoading, error, fetchProblemProgress } =
@@ -107,7 +108,7 @@ const ChallengePage: React.FC = () => {
             </h2>
 
             {isLoading && (
-              <div className="text-center py-10">Loading progress...</div>
+              <Spinner />
             )}
             {error && (
               <div className="text-center py-10 text-red-500">{error}</div>

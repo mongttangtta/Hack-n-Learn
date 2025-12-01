@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/authStore'; // Import useAuthStore
 import axios from 'axios'; // Keep axios for error handling
 import { useState, useEffect } from 'react';
 import FormErrorMessage from '../../components/FormErrorMessage';
+import Spinner from '../../components/Spinner';
 
 type ILoginFormInput = {
   username: string;
@@ -109,7 +110,7 @@ export default function LoginPage() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              {isLoading ? <Spinner variant="scale" size={20} color="#ffffff" /> : '로그인'}
             </Button>
             <button
               type="button"

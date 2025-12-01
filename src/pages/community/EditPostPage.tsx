@@ -5,6 +5,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { useAuthStore } from '../../store/authStore';
 import type { Post } from '../../types/community';
+import Spinner from '../../components/Spinner';
 
 const POST_TYPES = [
   { id: '692212bf9791aa282263d57c', label: '공지사항' },
@@ -84,7 +85,7 @@ export default function EditPostPage() {
   };
 
   if (fetchLoading) {
-    return <div className="text-center p-20">게시글 정보를 불러오는 중...</div>;
+    return <Spinner fullScreen />;
   }
 
   if (fetchError) {
@@ -147,7 +148,7 @@ export default function EditPostPage() {
             취소
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? '수정 중...' : '수정하기'}
+            {loading ? <Spinner variant="scale" size={20} color="#ffffff" /> : '수정하기'}
           </Button>
         </div>
       </form>
