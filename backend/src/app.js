@@ -19,7 +19,14 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
-app.use(expressMongoSanitize());
+app.use((req, res, next) => {
+    // /api/problems/:slug/submit 경로는 sanitize 건너뛰기
+    if (req.path.match(/^\/api\/problems\/[^/]+\/submit$/)) {
+        console.log('[SANITIZE] Skipping for flag submission:', req.path);
+        return next();
+    }
+    expressMongoSanitize()(req, res, next);
+});
 
 
 app.set("trust proxy", 1);
