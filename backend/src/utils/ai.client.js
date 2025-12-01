@@ -257,7 +257,7 @@ export async function analyzeEventLog(
 
         const systemPrompt = `
                 당신은 웹 보안 실습 분석 전문가입니다.
-                입력은 사용자의 SQL Injection 실습 로그(events.json)이며, 각 항목은 ts, action, payload, result로 구성됩니다.
+                입력은 사용자의 각 공격(예: SQL Injection, XSS, CSRF, File Upload)에 대한 실습 로그(events.json)이며, 각 항목은 ts, action, payload, result로 구성됩니다.
                 이 로그를 기반으로 사용자의 시도 과정을 시간순으로 분석하세요.
 
                 필수 분석 항목:
@@ -265,7 +265,7 @@ export async function analyzeEventLog(
                 2. 실패 이유 (예: 따옴표 닫힘 오류, SQL 구문 오류 등)
                 3. 성공으로 이어지지 못한 원인
                 4. 올바른 공격 절차와 개선점
-                5. 학습 조언 (SQL Injection 방어/공격 관점)
+                5. 학습 조언 (예: SQL Injection, XSS, CSRF, File Upload 에 대한 방어/공격 관점)
 
                 결과는 자연스러운 **한국어 문단** 형태로 작성하세요.
                 `;
