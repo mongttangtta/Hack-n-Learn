@@ -44,9 +44,9 @@ app.use(
                 cookie: {
                         httpOnly: true,
                         secure: true,  // isProduction
-                        sameSite: "none",// lax
+                        sameSite: "lax",// lax
                         maxAge : 60 * 60 * 1000, // 1 hour
-                        domain: ".hacknlearn.site", // .localhost.com
+                        domain: "hacknlearn.site", // .localhost.com
                 },
         })
 );
