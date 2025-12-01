@@ -47,7 +47,7 @@ const UserProfile = ({
       {/* 프로필 이미지 */}
       <div className="relative mb-4 cursor-pointer" onClick={onEditClick}>
         <img
-          src={profile.profileImageUrl || 'https://via.placeholder.com/128'}
+          src={profile.profileImageUrl}
           alt="프로필 이미지"
           className="w-32 h-32 rounded-full border-2 border-edge object-cover hover:opacity-80 transition-opacity"
         />
@@ -276,7 +276,9 @@ export default function MyPage() {
     e.stopPropagation(); // Prevent opening the note detail modal
     try {
       await deleteWrongNote(noteId);
-      setWrongNotes((prevNotes) => prevNotes.filter((note) => note._id !== noteId));
+      setWrongNotes((prevNotes) =>
+        prevNotes.filter((note) => note._id !== noteId)
+      );
       setToastMessage('오답 노트가 삭제되었습니다.');
       setShowToast(true);
       // If the deleted note was currently selected and open in the modal, close the modal
