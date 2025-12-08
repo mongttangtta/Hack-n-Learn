@@ -383,7 +383,9 @@ export default function FaultyTerminal({
       renderer.render({ scene: mesh });
     };
     rafRef.current = requestAnimationFrame(update);
-    ctn.appendChild(gl.canvas);
+    if (gl.canvas instanceof HTMLCanvasElement) {
+      ctn.appendChild(gl.canvas);
+    }
 
     if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
 
@@ -391,7 +393,9 @@ export default function FaultyTerminal({
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
       if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove);
-      if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
+      if (gl.canvas instanceof HTMLCanvasElement && gl.canvas.parentElement === ctn) {
+      ctn.removeChild(gl.canvas);
+    }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       loadAnimationStartRef.current = 0;
       timeOffsetRef.current = Math.random() * 100;

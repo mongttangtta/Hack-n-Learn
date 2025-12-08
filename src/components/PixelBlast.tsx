@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { EffectComposer, EffectPass, RenderPass, Effect } from 'postprocessing';
+import { EffectComposer, EffectPass, RenderPass, Effect, Pass } from 'postprocessing';
 
 type PixelBlastVariant = 'square' | 'circle' | 'triangle' | 'diamond';
 
@@ -515,7 +515,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         );
         const noisePass = new EffectPass(camera, noiseEffect);
         noisePass.renderToScreen = true;
-        if (composer && composer.passes.length > 0) composer.passes.forEach(p => ((p as any).renderToScreen = false));
+        if (composer && composer.passes.length > 0) composer.passes.forEach((p: Pass) => ((p as any).renderToScreen = false));
         composer.addPass(noisePass);
       }
       if (composer) composer.setSize(renderer.domElement.width, renderer.domElement.height);
@@ -560,7 +560,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         if (liquidEffect) (liquidEffect as any).uniforms.get('uTime').value = uniforms.uTime.value;
         if (composer) {
           if (touch) touch.update();
-          composer.passes.forEach(p => {
+          composer.passes.forEach((p: Pass) => {
             const effs = (p as any).effects;
             if (effs)
               effs.forEach((eff: any) => {
