@@ -16,8 +16,12 @@ export const setupAxiosInterceptor = () => {
     (response) => response,
     async (error) => {
       if (error.response && error.response.status === 401) {
-        // Session expired or unauthorized
-        const { logout } = useAuthStore.getState();
+        const { isAuthenticated, logout } = useAuthStore.getState();
+        if (!isAuthenticated) {
+          return Promise.reject(error);
+        }
+
+        // Session expired or unauthorized while authenticated
         await logout();
         window.dispatchEvent(new CustomEvent('session-expired'));
       }

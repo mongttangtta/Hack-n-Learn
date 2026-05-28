@@ -9,6 +9,7 @@ import Button from '@/components/Button';
 import TiltedCard from '../components/TiltedCard'; // TiltedCard import
 import { twMerge } from 'tailwind-merge'; // Import twMerge
 import Spinner from '../components/Spinner';
+import { useAuthStore } from '../store/authStore';
 
 const getTierBadge = (tier: string, className: string = '') => {
   // Added className prop
@@ -42,6 +43,7 @@ const getTierBadge = (tier: string, className: string = '') => {
 };
 
 const RankingPage: React.FC = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [rankings, setRankings] = useState<RankingUser[]>([]);
   const [myRanking, setMyRanking] = useState<RankingUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,10 +57,11 @@ const RankingPage: React.FC = () => {
     const loadRankings = async () => {
       setLoading(true);
       setError(null);
+      setMyRanking(null);
       try {
         const [listResponse, myRankingResult] = await Promise.allSettled([
           fetchRankings(currentPage, limit),
-          fetchMyRanking(),
+          isAuthenticated ? fetchMyRanking() : Promise.resolve(null),
         ]);
 
         if (listResponse.status === 'fulfilled') {
@@ -73,9 +76,9 @@ const RankingPage: React.FC = () => {
           console.error(listResponse.reason);
         }
 
-        if (myRankingResult.status === 'fulfilled') {
+        if (myRankingResult.status === 'fulfilled' && myRankingResult.value) {
           setMyRanking(myRankingResult.value);
-        } else {
+        } else if (myRankingResult.status === 'rejected') {
           console.warn('Could not fetch my ranking:', myRankingResult.reason);
         }
       } catch (err) {
@@ -87,7 +90,7 @@ const RankingPage: React.FC = () => {
     };
 
     loadRankings();
-  }, [currentPage]);
+  }, [currentPage, isAuthenticated]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
