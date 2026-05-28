@@ -38,8 +38,7 @@ export const getRankings = async (req, res) => {
 
 export const getMyRanking = async (req, res) => {
         try {
-                const userSession = req.session?.user || null;
-                const userId = userSession?._id || req.session?.userId;
+                const userId = req.user?._id;
 
                 if(!userId) return res.status(401).json({ success: false, message: '인증되지 않은 사용자'});
 
