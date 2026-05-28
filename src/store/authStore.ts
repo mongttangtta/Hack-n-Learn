@@ -16,7 +16,6 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  token: string | null; // Add token to AuthState
   isLoading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -28,7 +27,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   user: null,
-  token: null, // Initialize token
   isLoading: true, // Start as true to indicate initial loading of auth status
 
     addPoints: (amount: number) => {
@@ -57,11 +55,9 @@ export const useAuthStore = create<AuthState>((set) => ({
             nickname: response.data.nickname, // Extract nickname
             points: response.data.points || 0, // Extract points
           }; 
-          const token = response.data.token || 'mock-token'; // Assuming token is returned directly in response.data
           set({
             isAuthenticated: true,
             user: user,
-            token: token,
             isLoading: false,
           });
           return true;
@@ -69,7 +65,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           isAuthenticated: false,
           user: null,
-          token: null,
           isLoading: false,
         });
         return false;
@@ -78,7 +73,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           isAuthenticated: false,
           user: null,
-          token: null,
           isLoading: false,
         });
         return false;
@@ -95,7 +89,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           isAuthenticated: false,
           user: null,
-          token: null,
           isLoading: false,
         });
       }
@@ -107,23 +100,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         const response = await axios.get('/api/auth/me', { withCredentials: true });
         if (response.status === 200 && response.data.data) {
           const user: User = {
-            id: response.data.data._id.$oid, // Map backend's _id.$oid to User.id
+            id: response.data.data._id,
             username: response.data.data.id, // Map backend's id to User.username
             nickname: response.data.data.nickname, // Extract nickname
             points: response.data.data.points || 0, // Extract points
+            tier: response.data.data.tier,
+            titles: response.data.data.titles || [],
           };
-          const token = response.data.token || 'mock-token'; // Assuming token is returned at top level
           set({
             isAuthenticated: true,
             user: user,
-            token: token,
             isLoading: false,
           });
         } else {
           set({
             isAuthenticated: false,
             user: null,
-            token: null,
             isLoading: false,
           });
         }
@@ -132,7 +124,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           isAuthenticated: false,
           user: null,
-          token: null,
           isLoading: false,
         });
       }

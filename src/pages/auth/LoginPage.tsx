@@ -8,6 +8,7 @@ import axios from 'axios'; // Keep axios for error handling
 import { useState, useEffect } from 'react';
 import FormErrorMessage from '../../components/FormErrorMessage';
 import Spinner from '../../components/Spinner';
+import { buildApiUrl } from '../../config/runtime';
 
 type ILoginFormInput = {
   username: string;
@@ -125,13 +126,13 @@ export default function LoginPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SocialButton
               provider="google"
-              onClick={() => (window.location.href = '/api/auth/google')}
+              onClick={() => (window.location.href = buildApiUrl('/api/auth/google'))}
             >
               Google로 로그인
             </SocialButton>
             <SocialButton
               provider="github"
-              onClick={() => (window.location.href = '/api/auth/github')}
+              onClick={() => (window.location.href = buildApiUrl('/api/auth/github'))}
             >
               Github으로 로그인
             </SocialButton>

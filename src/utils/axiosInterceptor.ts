@@ -6,13 +6,7 @@ export const setupAxiosInterceptor = () => {
   axios.defaults.withCredentials = true;
 
   axios.interceptors.request.use(
-    (config) => {
-      const token = useAuthStore.getState().token;
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
+    (config) => config,
     (error) => {
       return Promise.reject(error);
     }

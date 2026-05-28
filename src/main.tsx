@@ -4,8 +4,12 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import axios from 'axios'; // Import axios
 import { setupAxiosInterceptor } from './utils/axiosInterceptor'; // Import the interceptor setup
+import { apiBaseUrl } from './config/runtime';
 
 // Configure axios to send cookies with requests
+if (apiBaseUrl) {
+  axios.defaults.baseURL = apiBaseUrl;
+}
 axios.defaults.withCredentials = true;
 setupAxiosInterceptor(); // Set up the Axios interceptor
 
