@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
+import axios from "axios";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import User from "../models/user.model.js";
+import { apiBaseUrl } from "./runtime.js";
 
 async function findOrMergeUser({ provider, profile}) {
         const email = profile.emails?.[0]?.value || `${provider}_${profile.id}@${provider}.com`;
@@ -39,7 +41,7 @@ passport.use(
         new GoogleStrategy({
                 clientID: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                callbackURL: "https://hacknlearn.site/api/auth/google/callback",
+                callbackURL: `${apiBaseUrl}/api/auth/google/callback`,
         }, async (accessToken, refreshToken, profile, done) => {
                 try {
                         if(!profile || !profile.emails) {
@@ -69,7 +71,7 @@ passport.use(
         new GitHubStrategy({
                 clientID: process.env.GITHUB_CLIENT_ID,
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: "https://hacknlearn.site/api/auth/github/callback",
+                callbackURL: `${apiBaseUrl}/api/auth/github/callback`,
         }, async (accessToken, refreshToken, profile, done) => {
                 try {
                         const user = await findOrMergeUser({ provider: 'github', profile });

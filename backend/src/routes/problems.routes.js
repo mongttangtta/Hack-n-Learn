@@ -11,6 +11,7 @@ import requireLogin from "../middlewares/auth.middleware.js";
 import * as problemController from "../controllers/problems.controller.js";
 import { validateBody } from "../middlewares/validateQuery.js";
 import { analyzeEventLog } from "../utils/ai.client.js";
+import { buildLabUrl } from "../config/runtime.js";
 
 
 const router = Router();
@@ -536,7 +537,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
                 if (existing) {
                         return res.json({
                                 success: true,
-                                url: `https://hacknlearn.site:${existing.port}`,
+                                url: buildLabUrl(existing.port),
                                 port: existing.port,
                                 expiresAt: existing.expiresAt,
                         });
@@ -588,7 +589,7 @@ router.post("/:id/start-lab", requireLogin, async( req, res) => {
 
                 res.json({
                         success: true,
-                        url : `https://hacknlearn.site/lab/${port}/`,
+                        url : buildLabUrl(port),
                         port,
                         expiresAt
                 })

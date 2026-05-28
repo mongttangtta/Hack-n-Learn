@@ -1,4 +1,5 @@
 import * as mypageService from "../services/mypage.service.js";
+import { getMypageLinkedRedirectUrl } from "../config/runtime.js";
 
 export const getMyPage = async (req, res) => {
     try {
@@ -38,7 +39,7 @@ export const linkGoogleAccount = async (req, res) => {
         const email = emails?.[0]?.value || `google_${oauthId}@google.com`;
         await mypageService.linkAccount(userId, { provider: "google", oauthId, email });
 
-        return res.redirect("/api/mypage?linked=google");
+        return res.redirect(getMypageLinkedRedirectUrl("google"));
     } catch (error) {
         console.error("Error linking Google account:", error);
         return res.status(500).json({ message: "Error linking Google account" });
@@ -54,7 +55,7 @@ export const linkGitHubAccount = async (req, res) => {
         const email = emails?.[0]?.value || `github_${oauthId}@github.com`;
         await mypageService.linkAccount(userId, { provider: "github", oauthId, email });
 
-        return res.redirect("/api/mypage?linked=github");
+        return res.redirect(getMypageLinkedRedirectUrl("github"));
     } catch (error) {
         console.error("Error linking GitHub account:", error);
         return res.status(500).json({ message: "Error linking GitHub account" });

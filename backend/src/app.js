@@ -5,6 +5,7 @@ import routes from "./routes/index.js";
 import session from "express-session";
 import MonogoStore from "connect-mongo";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import helmet from "helmet";
 import multer from "multer";
 import { swaggerUi, specs } from "./config/swagger.js";
@@ -12,11 +13,23 @@ import expressMongoSanitize from "@exortek/express-mongo-sanitize";
 import { errorHandler, requireLogin } from "./middlewares/auth.middleware.js";
 import passport from "./config/passport.js";
 import internalRouter from "./routes/internal.routes.js";
+import { corsOrigins } from "./config/runtime.js";
 
 const app = express();
 const isProduction = process.env.NODE_ENV === "production";
 
 app.use(helmet());
+app.use(
+        cors({
+                origin(origin, callback) {
+                        if (!origin || corsOrigins.includes(origin)) {
+                                return callback(null, true);
+                        }
+                        return callback(new Error("CORS origin not allowed"));
+                },
+                credentials: true,
+        })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {

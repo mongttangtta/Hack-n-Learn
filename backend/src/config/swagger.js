@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { apiBaseUrl } from './runtime.js';
 
 const options = {
         definition: {
@@ -10,7 +11,7 @@ const options = {
                         description: "보안 학습 플랫폼 API 문서"
                 },
                 servers: [
-                        { url: 'https://hacknlearn.site', description: '로컬 서버' },
+                        { url: apiBaseUrl, description: 'API 서버' },
                 ],
         },
         apis: ['./src/routes/*.js', './src/models/*.js'], // 라우트 및 모델 파일에서 주석을 읽어들임

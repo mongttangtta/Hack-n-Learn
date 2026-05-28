@@ -4,6 +4,7 @@ import * as authController from "../controllers/auth.controller.js";
 import { validateRegister, validateNicknameQuery } from "../middlewares/auth.middleware.js";
 import * as authService from "../services/auth.service.js";
 import passport from "passport";
+import { authFailureRedirectUrl, authSuccessRedirectUrl } from "../config/runtime.js";
 
 const router = Router();
 
@@ -37,17 +38,17 @@ router.get(
                 console.log("[DEBUG] decodedCode:", req.query.code);
         }       
         next();
-}, passport.authenticate("google", { failureRedirect: "/login" }),
+}, passport.authenticate("google", { failureRedirect: authFailureRedirectUrl }),
         (req, res) => {
         //res.json({ message: "Google login success", userId: req.user._id, nickname: req.user.nickname , isProfileComplete: req.user.isProfileComplete });
         console.log("[DEBUG] Google OAuth success for:", req.user?.email);
-        req.session.save(() => res.redirect("/"));
+        req.session.save(() => res.redirect(authSuccessRedirectUrl));
 });
 
 router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
-router.get("/github/callback", passport.authenticate("github", { failureRedirect: "/login", failureFlash: false }), (req, res) => {
+router.get("/github/callback", passport.authenticate("github", { failureRedirect: authFailureRedirectUrl, failureFlash: false }), (req, res) => {
         //res.json({ message: "GitHub login success", userId: req.user._id, nickname: req.user.nickname , isProfileComplete: req.user.isProfileComplete });
-        req.session.save(() => res.redirect("/"));
+        req.session.save(() => res.redirect(authSuccessRedirectUrl));
 });
 
 router.post("/send-verification-code", async (req, res, next) => {
