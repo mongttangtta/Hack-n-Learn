@@ -2,7 +2,7 @@ import * as problemsService from "../services/problems.service.js";
 
 export const resetProblemState = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
 
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
@@ -18,7 +18,7 @@ export const resetProblemState = async (req, res, next) => {
 
 export const submitFlag = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
 
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
@@ -35,7 +35,7 @@ export const submitFlag = async (req, res, next) => {
 
 export const requestHint = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
 
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
@@ -52,7 +52,7 @@ export const requestHint = async (req, res, next) => {
 
 export const getProgressList = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
 
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });

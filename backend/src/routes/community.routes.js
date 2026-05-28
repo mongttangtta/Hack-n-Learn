@@ -15,7 +15,7 @@ router.put("/posts/:id", requireLogin, communityController.updatePost);
 router.get("/posts/:id/viewed", requireLogin, async (req, res) => {
         const checked = await PostView.exists({
                 postId: req.params.id,
-                userId: req.session.userId
+                userId: req.user._id
         });
         res.json({ success: true, viewed : Boolean(checked) });
 });
@@ -25,6 +25,27 @@ router.post("/posts/:id/comments", requireLogin, communityController.createComme
 router.post("/posts/:id/comments/:commentId/reply", requireLogin, communityController.createReply);
 router.delete("/comments/:commentId", requireLogin, communityController.deleteComment);
 router.put("/comments/:commentId", requireLogin, communityController.updateComment);
+
+
+// router.get("/posts", communityController.getPosts);
+// router.get("/posts/:id", communityController.getPostById);
+// router.post("/posts", requireLogin, communityController.createPost);
+// router.delete("/posts/:id", requireLogin, communityController.deletePost);
+// router.put("/posts/:id", requireLogin, communityController.updatePost);
+
+// router.get("/posts/:id/viewed", requireLogin, async (req, res) => {
+//         const checked = await PostView.exists({
+//                 postId: req.params.id,
+//                 userId: req.session.userId
+//         });
+//         res.json({ success: true, viewed : Boolean(checked) });
+// });
+
+// router.get("/posts/:id/comments", communityController.getCommentsTree);
+// router.post("/posts/:id/comments", requireLogin, communityController.createComment);
+// router.post("/posts/:id/comments/:commentId/reply", requireLogin, communityController.createReply);
+// router.delete("/comments/:commentId", requireLogin, communityController.deleteComment);
+// router.put("/comments/:commentId", requireLogin, communityController.updateComment);
 
 /**
  * @swagger

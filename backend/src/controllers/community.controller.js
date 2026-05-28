@@ -6,11 +6,12 @@ import xss from "xss";
 
 export const createPost = async (req, res) => {
         try {
+                const userId = req.user?._id;
                 const data = {
                         type : req.body.type,
                         title : xss(req.body.title),
                         content : xss(req.body.content),
-                        author : req.session.userId
+                        author : userId
                 };
                 const post = await communityService.createPost(data);
                 res.status(201).json(post);
@@ -22,7 +23,7 @@ export const createPost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
         try {
-                const result = await communityService.deletePost(req.params.id, req.session.userId);
+                const result = await communityService.deletePost(req.params.id, req.user._id);
 
                 if(!result) return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
                 if(result === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
@@ -41,7 +42,7 @@ export const updatePost = async (req, res) => {
                         title : xss(req.body.title),
                         content : xss(req.body.content),
                 };
-                const post = await communityService.updatePost(req.params.id, req.session.userId, data);
+                const post = await communityService.updatePost(req.params.id, req.user._id, data);
                 if(!post) return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
                 if(post === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
                 res.json({ success: true, data: post });
@@ -64,7 +65,7 @@ export const getPosts = async (req, res) => {
 
 export const getPostById = async (req, res) => {
         try {
-                const userId = req.session?.userId || null; 
+                const userId = req.user?._id || null;
                 const post = await communityService.getPostById(req.params.id, userId);
                 if(!post) return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
                 res.json({ success: true, data: post });
@@ -76,15 +77,16 @@ export const getPostById = async (req, res) => {
 
 export const createComment = async (req, res) => {
         try {
+                const userId = req.user?._id;
                 const data = {
                         postId : req.params.id,
                         content : xss(req.body.content),
-                        author : req.session.userId
+                        author : userId
                 };
                 const comment = await communityService.createComment(data);
 
                 const post = await Post.findById(req.params.id);
-                if(post && post.author.toString() !== req.session.userId.toString()) {
+                if(post && post.author.toString() !== userId.toString()) {
                         sendCommentNotification({
                                 targetUserId: post.author.toString(),
                                 payload: {
@@ -106,7 +108,7 @@ export const createComment = async (req, res) => {
 export const updateComment = async (req, res) => {
         const data = { content : xss(req.body.content) };
         try {
-                const comment = await communityService.updateComment(req.params.commentId, req.session.userId, data);
+                const comment = await communityService.updateComment(req.params.commentId, req.user._id, data);
 
                 if(!comment) return res.status(404).json({ success: false, message: "댓글을 찾을 수 없습니다." });
                 if(comment === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
@@ -120,7 +122,7 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
         try {
-                const result = await communityService.deleteComment(req.params.commentId, req.session.userId);
+                const result = await communityService.deleteComment(req.params.commentId, req.user._id);
 
                 if(!result) return res.status(404).json({ success: false, message: "댓글을 찾을 수 없습니다." });
                 if(result === "unauthorized") return res.status(403).json({ success: false, message: "권한이 없습니다." });
@@ -134,15 +136,16 @@ export const deleteComment = async (req, res) => {
 
 export const createReply = async (req, res) => {
         try {
+                const userId = req.user?._id;
                 const data = {
                         postId : req.params.id,
                         parentComment: req.params.commentId,
                         content : xss(req.body.content),
-                        author : req.session.userId
+                        author : userId
                 };
                 const reply = await communityService.createReply(data);
                 const parent = await Comment.findById(req.params.commentId);
-                if(parent && parent.author.toString() !== req.session.userId.toString()) {
+                if(parent && parent.author.toString() !== userId.toString()) {
                         sendCommentNotification({
                                 targetUserId: parent.author.toString(),
                                 payload: {

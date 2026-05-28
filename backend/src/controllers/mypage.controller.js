@@ -2,7 +2,7 @@ import * as mypageService from "../services/mypage.service.js";
 
 export const getMyPage = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
         if (!userId) {
             return res.status(401).json({ error: "Mypage Unauthorized" });
         }
@@ -16,7 +16,7 @@ export const getMyPage = async (req, res) => {
 
 export const getMyProfile = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
         if (!userId) {
             return res.status(401).json({ success: false, error: "Unauthorized" });
         }
@@ -31,7 +31,7 @@ export const getMyProfile = async (req, res) => {
 
 export const linkGoogleAccount = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
         const { id: oauthId, provider, emails} = req.user;
         if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
@@ -47,7 +47,7 @@ export const linkGoogleAccount = async (req, res) => {
 
 export const linkGitHubAccount = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
         const { id: oauthId, provider, emails} = req.user;
         if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
@@ -63,7 +63,7 @@ export const linkGitHubAccount = async (req, res) => {
 
 export const uploadProfileImage = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
 
         if(!userId) {
             return res.status(401).json({ success: false, message: "Not authenticated" });
@@ -99,7 +99,7 @@ export const checkNickname = async (req, res) => {
 
 export const updateNickname = async (req, res) => {
     try {
-        const userId = req.session?.user?._id || req.session?.userId;
+        const userId = req.user?._id;
         if(!userId) {
             return res.status(401).json({ success: false, message: "Not authenticated" });
         }

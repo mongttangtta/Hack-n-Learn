@@ -32,26 +32,20 @@ export const validateRegister = (req, res, next) => {
 }
 
 export const requireLogin = (req, res, next) => {
-  const user = req.session?.user || null;
-  const userId = req.session?.userId || null;
-  if (!user && !userId) {
+  if (!req.isAuthenticated?.() || !req.user) {
     return res.status(401).json({ message: "Not authenticated" });
   }
-  req.user = user || { _id: userId, role: req.session.role };
   next();
 };
 
 export const requireAdmin = (req, res, next) => {
-  const user = req.session?.user || null;
-  const role = req.session?.role || null;
-  if (!user) {
+  if (!req.isAuthenticated?.() || !req.user) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (role !== 'admin') {
+  if (req.user.role !== 'admin') {
     return res.status(403).json({ message: "Access forbidden: Admins only" });
   }
-  req.user = user;
   next();
 };
 

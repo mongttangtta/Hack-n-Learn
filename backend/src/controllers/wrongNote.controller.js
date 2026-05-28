@@ -2,7 +2,7 @@ import * as wrongNoteService from "../services/wrongNote.service.js";
 
 export const getWrongNotes = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
                 if(!userId) {
                         return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
                 }
@@ -18,7 +18,7 @@ export const getWrongNotes = async (req, res, next) => {
 
 export const deleteWrongNote = async (req, res, next) => {
         try {
-                const userId = req.session.userId;
+                const userId = req.user?._id;
                 const { noteId } = req.params;
 
                 if(!userId) {
