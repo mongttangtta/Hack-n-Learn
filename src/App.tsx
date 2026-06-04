@@ -23,6 +23,8 @@ export default function App() {
   const navigate = useNavigate();
   const { checkAuthStatus, isLoading } = useAuthStore();
   const [showSessionToast, setShowSessionToast] = useState(false);
+  const [showSecurityToast, setShowSecurityToast] = useState(false);
+  const [securityToastMessage, setSecurityToastMessage] = useState('');
 
   useEffect(() => {
     checkAuthStatus();
@@ -34,9 +36,23 @@ export default function App() {
       navigate('/');
     };
 
+    const handleSecurityAlert = (event: Event) => {
+      const customEvent = event as CustomEvent<{ message?: string }>;
+      const message = customEvent.detail?.message;
+      if (!message) return;
+
+      setSecurityToastMessage(message);
+      setShowSecurityToast(true);
+    };
+
     window.addEventListener('session-expired', handleSessionExpired);
+    window.addEventListener('security-alert', handleSecurityAlert as EventListener);
     return () => {
       window.removeEventListener('session-expired', handleSessionExpired);
+      window.removeEventListener(
+        'security-alert',
+        handleSecurityAlert as EventListener
+      );
     };
   }, [navigate]);
 
@@ -75,6 +91,11 @@ export default function App() {
         message="로그인 세션이 만료되었습니다. 다시 로그인해주세요."
         isVisible={showSessionToast}
         onClose={() => setShowSessionToast(false)}
+      />
+      <Toast
+        message={securityToastMessage}
+        isVisible={showSecurityToast}
+        onClose={() => setShowSecurityToast(false)}
       />
     </>
   );
