@@ -28,6 +28,7 @@ app.use(
                         return callback(new Error("CORS origin not allowed"));
                 },
                 credentials: true,
+                exposedHeaders: ["X-Security-Alert"],
         })
 );
 app.use(express.json());

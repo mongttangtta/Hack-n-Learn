@@ -2,14 +2,15 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { validateRegister, validateNicknameQuery } from "../middlewares/auth.middleware.js";
+import { securityAlert } from "../middlewares/securityAlert.middleware.js";
 import * as authService from "../services/auth.service.js";
 import passport from "passport";
 import { authFailureRedirectUrl, authSuccessRedirectUrl } from "../config/runtime.js";
 
 const router = Router();
 
-router.post("/register" , validateRegister,authController.register);
-router.post("/login" , authController.login);
+router.post("/register" , securityAlert(), validateRegister,authController.register);
+router.post("/login" , securityAlert(), authController.login);
 router.post("/logout" , authController.logout);
 router.post("/check-nickname", validateNicknameQuery, authController.checkNickname);
 
@@ -71,7 +72,7 @@ router.post("/verify-code", async (req, res, next) => {
         }
 });
 
-router.post("/find-id", async (req, res, next)=> { 
+router.post("/find-id", securityAlert(), async (req, res, next)=> { 
         try{
                 const { email } = req.body;
                 const id = await authService.findIdByEmail(email);
@@ -81,7 +82,7 @@ router.post("/find-id", async (req, res, next)=> {
                 next(error);
         }      
 });
-router.post("/reset-password", async (req, res, next)=> {
+router.post("/reset-password", securityAlert(), async (req, res, next)=> {
         try{
                 const { id, email } = req.body;
                 const token = await authService.createPasswordResetToken(id, email);
@@ -91,7 +92,7 @@ router.post("/reset-password", async (req, res, next)=> {
                 next(error);
         }
 });
-router.post("/reset-password/:token", async (req, res, next)=> {
+router.post("/reset-password/:token", securityAlert(), async (req, res, next)=> {
         try{
                 const { token } = req.params;
                 const { newPassword } = req.body;

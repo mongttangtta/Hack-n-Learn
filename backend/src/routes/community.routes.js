@@ -3,14 +3,15 @@ import { Router } from "express";
 import PostView from "../models/postView.model.js";
 import * as communityController from "../controllers/community.controller.js";
 import { requireLogin } from "../middlewares/auth.middleware.js";
+import { securityAlert } from "../middlewares/securityAlert.middleware.js";
 
 const router = Router();
 
 router.get("/posts", communityController.getPosts);
 router.get("/posts/:id", communityController.getPostById);
-router.post("/posts", requireLogin, communityController.createPost);
+router.post("/posts", requireLogin, securityAlert(), communityController.createPost);
 router.delete("/posts/:id", requireLogin, communityController.deletePost);
-router.put("/posts/:id", requireLogin, communityController.updatePost);
+router.put("/posts/:id", requireLogin, securityAlert(), communityController.updatePost);
 
 router.get("/posts/:id/viewed", requireLogin, async (req, res) => {
         const checked = await PostView.exists({
@@ -21,10 +22,10 @@ router.get("/posts/:id/viewed", requireLogin, async (req, res) => {
 });
 
 router.get("/posts/:id/comments", communityController.getCommentsTree);
-router.post("/posts/:id/comments", requireLogin, communityController.createComment);
-router.post("/posts/:id/comments/:commentId/reply", requireLogin, communityController.createReply);
+router.post("/posts/:id/comments", requireLogin, securityAlert(), communityController.createComment);
+router.post("/posts/:id/comments/:commentId/reply", requireLogin, securityAlert(), communityController.createReply);
 router.delete("/comments/:commentId", requireLogin, communityController.deleteComment);
-router.put("/comments/:commentId", requireLogin, communityController.updateComment);
+router.put("/comments/:commentId", requireLogin, securityAlert(), communityController.updateComment);
 
 
 // router.get("/posts", communityController.getPosts);
