@@ -1,6 +1,6 @@
 // 문제 관련 라우트
 import { Router } from "express";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import util from "util";
 import fs from "fs";
 import path from "path";
@@ -12,7 +12,6 @@ import * as problemController from "../controllers/problems.controller.js";
 import { validateBody } from "../middlewares/validateQuery.js";
 import { analyzeEventLog } from "../utils/ai.client.js";
 import { buildLabUrl } from "../config/runtime.js";
-
 
 const router = Router();
 /**
@@ -485,121 +484,217 @@ const router = Router();
  *       404:
  *         description: 문제를 찾을 수 없음
  */
-
-
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 const PORT_RANGE = { min: 8100, max: 8200 };
-const usedPorts = new Set();
+const reservedPorts = new Set();
+let labAllocationLock = Promise.resolve();
+
+async function runDocker(args) {
+        return execFilePromise("docker", args);
+}
+
+async function withLabAllocationLock(fn) {
+        const pending = labAllocationLock;
+        let releaseLock;
+        labAllocationLock = new Promise((resolve) => {
+                releaseLock = resolve;
+        });
+
+        await pending;
+
+        try {
+                return await fn();
+        } finally {
+                releaseLock();
+        }
+}
+
+function releaseReservedPort(port) {
+        reservedPorts.delete(port);
+}
 
 async function isDockerPortUsed(port) {
-        const { stdout} = await execPromise(
-                `docker ps --filter "publish=${port}" --format "{{.ID}}"`
-        );
+        const { stdout} = await runDocker([
+                "ps",
+                "--filter",
+                `publish=${port}`,
+                "--format",
+                "{{.ID}}"
+        ]);
         return stdout.trim().length > 0;
+}
+
+async function isContainerRunning(containerName) {
+        try {
+                const { stdout } = await runDocker([
+                        "inspect",
+                        "-f",
+                        "{{.State.Running}}",
+                        containerName,
+                ]);
+
+                return stdout.trim() === "true";
+        } catch {
+                return false;
+        }
+}
+
+async function stopAndRemoveContainer(containerName) {
+        await runDocker(["stop", containerName]);
+        await runDocker(["rm", containerName]);
+}
+
+async function markPracticeStopped(practice) {
+        if (practice.status === "stopped") return;
+
+        practice.status = "stopped";
+        practice.stoppedAt = new Date();
+        await practice.save();
+}
+
+async function findLatestAlivePractice(userId, problemId) {
+        const practices = await Practice.find({
+                userId,
+                problemId,
+                status: "running",
+        }).sort({ createdAt: -1 });
+
+        for (const practice of practices) {
+                const isRunning = await isContainerRunning(String(practice.containerName).trim());
+
+                if (isRunning) {
+                        return practice;
+                }
+
+                await markPracticeStopped(practice);
+        }
+
+        return null;
 }
 
 async function getAvailablePort() {
         for (let port = PORT_RANGE.min; port <= PORT_RANGE.max; port++) {
+                if (reservedPorts.has(port)) continue;
+
                 const used = await isDockerPortUsed(port);
-                if(!used) return port;
+                if(!used) {
+                        reservedPorts.add(port);
+                        return port;
+                }
         }
         throw new Error("No available ports (All ports in range are occupied)");
 }
 
 router.post("/:id/start-lab", requireLogin, async( req, res) => {
         try{
-                const { id } = req.params;
-                const userId = req.user._id
-                
-                // 1. Problem 찾기 (ObjectId 또는 slug로)
-                let problem;
-                if (mongoose.Types.ObjectId.isValid(id)) {
-                        problem = await Problem.findById(id);
-                } else {
-                        problem = await Problem.findOne({ slug: id });
-                }
+                await withLabAllocationLock(async () => {
+                        const { id } = req.params;
+                        const userId = req.user._id;
 
-                if (!problem) {
-                        return res.status(404).json({ 
-                                success: false, 
-                                message: "Problem not found." 
-                        });
-                }
+                        let problem;
+                        if (mongoose.Types.ObjectId.isValid(id)) {
+                                problem = await Problem.findById(id);
+                        } else {
+                                problem = await Problem.findOne({ slug: id });
+                        }
 
-                // 이미 실행 중인지 체크
-                const existing = await Practice.findOne({
-                        userId,
-                        problemId: problem._id,
-                        status : 'running'
-                });                
+                        if (!problem) {
+                                return res.status(404).json({
+                                        success: false,
+                                        message: "Problem not found."
+                                });
+                        }
 
-                if (existing) {
-                        return res.json({
-                                success: true,
-                                url: buildLabUrl(existing.port),
-                                port: existing.port,
-                                expiresAt: existing.expiresAt,
-                        });
-                }
+                        const existing = await findLatestAlivePractice(userId, problem._id);
+                        if (existing) {
+                                return res.json({
+                                        success: true,
+                                        url: buildLabUrl(existing.port),
+                                        port: existing.port,
+                                        expiresAt: existing.expiresAt,
+                                });
+                        }
 
+                        const runningCount = await Practice.countDocuments({ userId, status : "running" });
+                        if (runningCount >= 2) {
+                                return res.status(429).json({ message : "You can run up to 2 labs simultaneously." });
+                        }
 
-                //전체 리소스 제한
-                const runningCount = await Practice.countDocuments({ userId, status : 'running' });
-                if( runningCount >= 2) {
-                        return res.status(429).json({ message : "You can run up to 2 labs simultaneously." });
-                }
+                        const totalRunnings = await Practice.countDocuments({ status : "running" });
+                        if (totalRunnings >= 5) {
+                                return res.status(503).json({ message : "All lab environments are currently busy. Please try again later." });
+                        }
 
-                const totalRunnings = await Practice.countDocuments({ status : 'running' });
-                if ( totalRunnings >= 5){
-                        return res.status(503).json({ message : "All lab environments are currently busy. Please try again later." });
-                }
+                        const port = await getAvailablePort();
+                        const containerName = `practice_${problem.slug}_${userId}_${Date.now()}`;
+                        const imageName = `practice-${problem.slug}:latest`;
+                        const dockerArgs = [
+                                "run",
+                                "-d",
+                                "--name",
+                                containerName,
+                                "-p",
+                                `${port}:5000`,
+                                "--memory=128m",
+                                "--memory-swap=128m",
+                                "--cpus=0.25",
+                                "--pids-limit=128",
+                                "--tmpfs",
+                                "/tmp:rw,noexec,nosuid,size=16m",
+                                "--cap-drop=ALL",
+                                "--security-opt",
+                                "no-new-privileges",
+                                "--restart=no",
+                                imageName,
+                        ];
 
-                // 완전 안전한 포트 선택
-                const port = await getAvailablePort();
-                const containerName = `practice_${problem.slug}_${userId}_${Date.now()}`;
-                const dockerCommand = `docker run -d \
-                --name ${containerName} \
-                -p ${port}:5000 \
-                --memory="128m" \
-                --cpus="0.25" \
-                --restart=no \
-                practice-${problem.slug}:latest`;
-    
-                try {
-                        await execPromise(dockerCommand);
-                } catch (dockerError) {
-                // Docker 실행 실패 시 포트 반환
-                        usedPorts.delete(port);
-                        throw dockerError;
-                }
+                        let containerStarted = false;
 
-                console.log(`Starting container: ${containerName} on port ${port}`);
+                        try {
+                                await runDocker(dockerArgs);
+                                containerStarted = true;
 
-                const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60분 후 만료
-                const newPractice = await Practice.create({
-                        userId,
-                        problemId: problem._id,
-                        containerName,
-                        port,
-                        status: 'running',
-                        createdAt: new Date(),
-                        expiresAt,
+                                console.log(`Starting container: ${containerName} on port ${port}`);
+
+                                const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+                                await Practice.create({
+                                        userId,
+                                        problemId: problem._id,
+                                        containerName,
+                                        port,
+                                        status: "running",
+                                        createdAt: new Date(),
+                                        expiresAt,
+                                });
+
+                                return res.json({
+                                        success: true,
+                                        url : buildLabUrl(port),
+                                        port,
+                                        expiresAt
+                                });
+                        } catch (error) {
+                                if (containerStarted) {
+                                        try {
+                                                await stopAndRemoveContainer(containerName);
+                                        } catch (cleanupError) {
+                                                console.error("Error rolling back failed lab start:", cleanupError);
+                                        }
+                                }
+
+                                throw error;
+                        } finally {
+                                releaseReservedPort(port);
+                        }
                 });
-
-                res.json({
-                        success: true,
-                        url : buildLabUrl(port),
-                        port,
-                        expiresAt
-                })
         } catch (error){
                 console.error("Error starting lab environment:", error);
                 res.status(500).json({ message : "Failed to start lab environment." });
         }
 });     
 
-router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수정해야됨
+router.post("/:id/stop-lab", requireLogin, async( req, res) => {
         try {
                 const { id } = req.params;
                 const userId = req.user._id;
@@ -618,43 +713,14 @@ router.post("/:id/stop-lab", requireLogin, async( req, res) => { //이것도 수
                         });
                 }
 
-                const practices = await Practice.find({ userId, problemId: problem._id, status: 'running' }).sort({ createdAt : -1 });
-
-                let target = null;
-                for (const p of practices) {
-
-                        const cleanName = String(p.containerName).trim();
-                        let aliveOutput = "";
-
-                        try {
-                                aliveOutput = await execPromise(
-                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
-                                );
-                        } catch (err) {
-                                console.error("docker ps failed for", cleanName, err);
-                                aliveOutput = "";
-                        }
-
-                        const alive = (aliveOutput?.stdout || "").trim();
-
-                        if (alive) {
-                                target = p;
-                                break;
-                        } else {
-                                p.status = "stopped";
-                                await p.save();
-                        }
-                }
+                const target = await findLatestAlivePractice(userId, problem._id);
                 if (!target) {
                     return res.status(404).json({ success: false, message: "No active running environment." });
                 }
 
-                await execPromise(`docker stop ${target.containerName}`);
-                await execPromise(`docker rm ${target.containerName}`);
-                usedPorts.delete(target.port);
-                target.status = 'stopped';
-                target.stoppedAt = new Date();
-                await target.save();
+                await stopAndRemoveContainer(target.containerName);
+                releaseReservedPort(target.port);
+                await markPracticeStopped(target);
 
                 res.json({ success: true, message: target.port + " Lab environment stopped successfully." });
         } catch (error) {
@@ -682,38 +748,7 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                 const problem = await Problem.findOne({ slug });
                 if( !problem ) return res.status(404).json({ success: false, message: "Problem not found." });
 
-                let practices = await Practice.find({ 
-                        userId, 
-                        problemId: problem._id,
-                        status : 'running'
-                 }).sort({ createdAt : -1 });
-
-                 let practice = null;
-
-                for (const p of practices) {
-
-                        const cleanName = String(p.containerName).trim();
-                        let aliveOutput = "";
-
-                        try {
-                                aliveOutput = await execPromise(
-                                `docker ps --filter "name=${cleanName}" --format "{{.Names}}"`
-                                );
-                        } catch (err) {
-                                console.error("docker ps failed for", cleanName, err);
-                                aliveOutput = "";
-                        }
-
-                        const alive = (aliveOutput?.stdout || "").trim();
-
-                        if (alive) {
-                                practice = p;
-                                break;
-                        } else {
-                                p.status = "stopped";
-                                await p.save();
-                        }
-                }
+                const practice = await findLatestAlivePractice(userId, problem._id);
 
                 if( !practice ) return res.status(404).json({ success: false, message: "No running practice found for this problem." });
                  
@@ -725,7 +760,7 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
                 fs.mkdirSync( tempDir, { recursive: true } );
 
                 try {
-                        await execPromise(`docker exec ${practice.containerName} test -f ${containerPath}`);
+                        await runDocker(["exec", practice.containerName, "test", "-f", containerPath]);
                 } catch {
                         return res.status(404).json({
                                 success: false,
@@ -736,7 +771,7 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
 
 
                 try {
-                        await execPromise(`docker cp ${practice.containerName}:${containerPath} ${tempPath}`);
+                        await runDocker(["cp", `${practice.containerName}:${containerPath}`, tempPath]);
                 } catch (err) {
                         console.error("cp failed:", err);
                         return res.status(500).json({ success: false, message: "Failed to copy event log from container." });
@@ -763,8 +798,8 @@ router.get("/:slug/events", requireLogin, async (req, res) => {
 
 router.get("/progress" , requireLogin, problemController.getProgressList); //문제 목록
 router.get("/:slug",requireLogin, problemController.getProblemDetails); //문제 상세 정보
-router.post("/:slug/submit", validateBody('submitFlag'), problemController.submitFlag);
-router.post("/:slug/request-hint", validateBody('requestHint'), problemController.requestHint);
+router.post("/:slug/submit", requireLogin, validateBody('submitFlag'), problemController.submitFlag);
+router.post("/:slug/request-hint", requireLogin, validateBody('requestHint'), problemController.requestHint);
 router.post("/:slug/reset",requireLogin, problemController.resetProblemState);
 
 export default router;
